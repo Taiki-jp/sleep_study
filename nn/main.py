@@ -158,9 +158,9 @@ if __name__ == '__main__':
             checkpointPath = os.path.join(checkpointPath, "ss_"+str(sleep_stage))
             m_preProcess.checkPath(checkpointPath)
             checkpointPath = os.path.join(checkpointPath, "cp-{epoch:04d}.ckpt")
-            cm_file_name = os.path.join(os.environ["sleep"], "analysis",f"{name}_{id}")
+            cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{name}")
             m_preProcess.checkPath(cm_file_name)
-            cm_file_name = os.path.join(cm_file_name, f"confusion_matrix_{sleep_stage}.csv")
+            cm_file_name = os.path.join(cm_file_name, f"confusion_matrix_{sleep_stage}_{id}.csv")
             main(name = name, project = "sleep", sleep_stage=sleep_stage,
                  train=train, test=test, epoch=15, isSaveModel=False, mul_num=mulNum,
                  my_tags=["f measure", "testそのまま", f"train:1:{mulNum}", attention_tag],

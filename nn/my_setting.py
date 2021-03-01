@@ -7,9 +7,9 @@ class SetsPath(object):
     def __init__(self):
         """git/ 以下にあるプログラムのための必要なフォルダをインポートするために設定する
         """
-        self.dataAnalysis = os.path.join(os.environ["userprofile"], "git", "data_analysis")
-        self.preProcess = os.path.join(os.environ["userprofile"], "git", "pre_process")
-        self.nn = os.path.join(os.environ['userprofile'], 'git', "nn")
+        self.dataAnalysis = os.path.join(os.environ["git"], "sleep_study", "data_analysis")
+        self.preProcess = os.path.join(os.environ["git"], "sleep_study", "pre_process")
+        self.nn = os.path.join(os.environ['git'], "sleep_study", "nn")
         pass
     
     def set(self):

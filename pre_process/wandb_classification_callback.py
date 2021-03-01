@@ -17,7 +17,38 @@ class WandbClassificationCallback(WandbCallback):
                  log_best_prefix="best_", 
                  log_confusion_matrix=False,
                  confusion_examples=0, confusion_classes=5,
-                 show_my_confusion_title=False, my_confusion_title=False):
+                 show_my_confusion_title=False, my_confusion_title=False,
+                 my_confusion_file_name=False):
+        """[summary]
+
+        Args:
+            monitor (str, optional): [description]. Defaults to 'val_loss'.
+            verbose (int, optional): [description]. Defaults to 0.
+            mode (str, optional): [description]. Defaults to 'auto'.
+            save_weights_only (bool, optional): [description]. Defaults to False.
+            log_weights (bool, optional): [description]. Defaults to False.
+            log_gradients (bool, optional): [description]. Defaults to False.
+            save_model (bool, optional): [description]. Defaults to True.
+            training_data ([type], optional): [description]. Defaults to None.
+            validation_data ([type], optional): [description]. Defaults to None.
+            labels (list, optional): [description]. Defaults to [].
+            data_type ([type], optional): [description]. Defaults to None.
+            predictions (int, optional): [description]. Defaults to 1.
+            generator ([type], optional): [description]. Defaults to None.
+            input_type ([type], optional): [description]. Defaults to None.
+            output_type ([type], optional): [description]. Defaults to None.
+            log_evaluation (bool, optional): [description]. Defaults to False.
+            validation_steps ([type], optional): [description]. Defaults to None.
+            class_colors ([type], optional): [description]. Defaults to None.
+            log_batch_frequency ([type], optional): [description]. Defaults to None.
+            log_best_prefix (str, optional): [description]. Defaults to "best_".
+            log_confusion_matrix (bool, optional): [description]. Defaults to False.
+            confusion_examples (int, optional): [description]. Defaults to 0.
+            confusion_classes (int, optional): [description]. Defaults to 5.
+            show_my_confusion_title (bool, optional): [description]. Defaults to False.
+            my_confusion_title (bool, optional): [description]. Defaults to False.
+            my_confusion_file_name (bool, optional): [description]. Defaults to False.
+        """
         
         super().__init__(monitor=monitor,
                         verbose=verbose, 
@@ -45,6 +76,7 @@ class WandbClassificationCallback(WandbCallback):
         self.confusion_classes = confusion_classes
         self.show_my_confusion_title = show_my_confusion_title
         self.my_confusion_title = my_confusion_title
+        self.my_confusion_file_name = my_confusion_file_name
                
     def on_epoch_end(self, epoch, logs={}):
         if self.generator:
@@ -104,7 +136,11 @@ class WandbClassificationCallback(WandbCallback):
         import os
         df = pd.DataFrame(confmatrix.ravel())
         df = pd.DataFrame(df.to_numpy().reshape(2,2))
-        path = os.path.join(os.environ["sleep"], "datas", "confusion_matrix_from_wandb.csv")
+        # もしmy_confusion_file_nameが指定された場合指定の場所に保存する
+        if self.my_confusion_file_name:
+            path = self.my_confusion_file_name
+        else:
+            path = os.path.join(os.environ["sleep"], "datas", "confusion_matrix_from_wandb.csv")
         df.to_csv(path, mode='a')
         print(df)
         confdiag = np.eye(len(confmatrix)) * confmatrix
