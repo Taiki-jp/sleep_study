@@ -10,8 +10,7 @@ from file_reader import FileReader
 
 class LoadSleepData():
 
-    def __init__(self, 
-                 input_file_name):
+    def __init__(self, input_file_name):
         """[summary]
 
         Args:
@@ -20,7 +19,7 @@ class LoadSleepData():
         """
         self.m_fileReader = FileReader()
         self.inputFileName = self.m_fileReader.determinFilePath(input_file_name)
-        self.data = self.m_fileReader.loadNormal(self.inputFileName)
+        self.data = self.m_fileReader.loadNormal(self.inputFileName) 
             
     def makeSleepStagesDict(self):
         ss_label = ["nr4", "nr3", "nr2", "nr1", "rem", "wake"]

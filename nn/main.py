@@ -1,4 +1,31 @@
 # ================================================ #
+# *            ライブラリのインポート
+# ================================================ #
+
+import os
+from my_setting import SetsPath, FindsDir
+SetsPath().set()
+import datetime, wandb
+# * データ保存用ライブラリ
+#from wandb.keras import WandbCallback
+from wandb_classification_callback import WandbClassificationCallback
+# * モデル計算初期化用ライブラリ
+import tensorflow as tf
+# * モデル構築ライブラリ
+from my_model import MyInceptionAndAttention
+# * 前処理ライブラリ
+from utils import PreProcess, Utils
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+# NOTE : gpuを設定していない環境のためにエラーハンドル
+try:
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+except:
+    print("GPUがサポートされていません")
+tf.keras.backend.set_floatx('float32')
+
+# ================================================ #
 #  *                メイン関数
 # ================================================ #
 
@@ -112,31 +139,7 @@ def main(name, project, sleep_stage, train, test,
 #  *                ループ処理
 # ================================================ #
 
-if __name__ == '__main__':
-
-    import os
-    from my_setting import SetsPath, FindsDir
-    SetsPath().set()
-    import datetime, wandb
-    # * データ保存用ライブラリ
-    #from wandb.keras import WandbCallback
-    from wandb_classification_callback import WandbClassificationCallback
-    # * モデル計算初期化用ライブラリ
-    import tensorflow as tf
-    # * モデル構築ライブラリ
-    from my_model import MyInceptionAndAttention
-    # * 前処理ライブラリ
-    from utils import PreProcess, Utils
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-    
-    # NOTE : gpuを設定していない環境のためにエラーハンドル
-    try:
-        physical_devices = tf.config.list_physical_devices("GPU")
-        tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    except:
-        print("GPUがサポートされていません")
-    tf.keras.backend.set_floatx('float32')
-    
+if __name__ == '__main__':   
     PROJECT = "sleep"
     m_findsDir = FindsDir(PROJECT)
     m_preProcess = PreProcess(project=m_findsDir.returnDirName(), input_file_name=Utils().name_dict)    

@@ -1,8 +1,8 @@
 # ================================================ #
 # *            ライブラリのインポート
 # ================================================ #
-from random import shuffle, choices, random, seed
 from file_reader import FileReader
+from random import shuffle, choices, random, seed
 from my_setting import *
 SetsPath().set()
 import os, wandb
@@ -39,10 +39,6 @@ class PreProcess():
         self.name_dict = Utils().name_dict
         self.test_data_for_wandb = None
         seed(0)
-        
-    def checkRandom(self):
-        tmp = [randint(0, 10) for _ in range(10)]
-        print(tmp)
     
     def list2Spectrum(self, list_data):
         return np.array([data.spectrum for data in list_data])
@@ -54,7 +50,19 @@ class PreProcess():
         return np.array([data.spectrogram for data in list_data])
     
     def loadData(self, is_split, is_auto_loop=False, is_auto_loop_name=False):
-        
+        """基本record形式で読み込んだデータを返す
+        NOTE : 1. オブジェクト生成時のinputFileName によって処理が分かれている
+        （文字列の時は一気に入力と出力の形で返す）
+    
+
+        Args:
+            is_split (bool): [description]
+            is_auto_loop (bool, optional): [description]. Defaults to False.
+            is_auto_loop_name (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        """
         assert type(self.inputFileName) == str or type(self.inputFileName) == dict
         
         if type(self.inputFileName) == str:
