@@ -14,8 +14,9 @@ import tensorflow as tf
 # * モデル構築ライブラリ
 from my_model import MyInceptionAndAttention
 # * 前処理ライブラリ
+from load_sleep_data import LoadSleepData
 from utils import PreProcess, Utils
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 # NOTE : gpuを設定していない環境のためにエラーハンドル
 try:
@@ -38,10 +39,8 @@ def main(name, project, sleep_stage, train, test,
     # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
                                                                     test=test, 
-                                                                    is_split=True, 
+                                                                    is_set_data_size=True, 
                                                                     target_ss=TARGET_SS, 
-                                                                    is_storchastic=True,  # 
-                                                                    is_multiply=False,  # trueの時は今の実装では400を返す
                                                                     mul_num=mul_num)  
     m_preProcess.maxNorm(x_train)
     m_preProcess.maxNorm(x_test)
@@ -114,6 +113,7 @@ def main(name, project, sleep_stage, train, test,
         
         m_model.model.fit(x_train,
                           y_train,
+                          batch_size=16,
                           validation_data = (x_test, y_test),
                           epochs = epoch,
                           callbacks = [w_callBack, tf_callback],
@@ -124,6 +124,7 @@ def main(name, project, sleep_stage, train, test,
         print("テストデータが用意できません．学習のみ行います")
         m_model.model.fit(x_train,
                           y_train,
+                          batch_size=16,
                           epochs=epoch,
                           callbacks=[w_callBack, tf_callback],
                           verbose=2)
@@ -142,31 +143,31 @@ def main(name, project, sleep_stage, train, test,
 if __name__ == '__main__':   
     PROJECT = "sleep"
     m_findsDir = FindsDir(PROJECT)
-    m_preProcess = PreProcess(project=m_findsDir.returnDirName(), input_file_name=Utils().name_dict)    
+    m_preProcess = PreProcess(project=m_findsDir.returnDirName(), input_file_name=Utils().name_dict)
+    m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
+    MUL_NUM = 1
+    is_attention = True
+    if is_attention:
+        attention_tag = "attention"
+    else:
+        attention_tag = "no-attention"
+    # for name in Utils().name_list[:-2][::-1]:  # テストデータとなる被験者データに対してループ処理を行っている, TODO : メモリ管理が上手くできるようになるまでこのループは避ける
+    datasets = m_loadSleepData.load_data_all()
+    for i, name in enumerate(Utils().name_list):
+        (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=i)
+        for sleep_stage in range(1, 6):  # 睡眠段階に対してループ処理を行っている
 
-    for name in Utils().name_list[:-2][::-1]:  # テストデータとなる被験者データに対してループ処理を行っている, TODO : メモリ管理が上手くできるようになるまでこのループは避ける
-    #for name in Utils().name_list:
-        (train, test) = m_preProcess.loadData(is_split=True, is_auto_loop=True, is_auto_loop_name=name)
-        for sleep_stage in [5]: #range(1, 6):  # 睡眠段階に対してループ処理を行っている
-            mulNum = 1
-            is_attention = True
-            if is_attention:
-                attention_tag = "attention"
-            else:
-                attention_tag = "no-attention"
             id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            import os
-            checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag)
-            m_preProcess.checkPath(checkpointPath)  
-            checkpointPath = os.path.join(checkpointPath, "ss_"+str(sleep_stage))
-            m_preProcess.checkPath(checkpointPath)
-            checkpointPath = os.path.join(checkpointPath, "cp-{epoch:04d}.ckpt")
-            cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{name}")
-            m_preProcess.checkPath(cm_file_name)
-            cm_file_name = os.path.join(cm_file_name, f"confusion_matrix_{sleep_stage}_{id}.csv")
+            
+            checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
+                                          "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
+            cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{name}", 
+                                        f"confusion_matrix_{sleep_stage}_{id}.csv")
+            m_preProcess.check_path_auto(checkpointPath)
+            m_preProcess.check_path_auto(cm_file_name)
+            
             main(name = name, project = "sleep", sleep_stage=sleep_stage,
-                 train=train, test=test, epoch=15, isSaveModel=False, mul_num=mulNum,
-                 my_tags=["f measure", "testそのまま", f"train:1:{mulNum}", attention_tag],
+                 train=train, test=test, epoch=1, isSaveModel=False, mul_num=MUL_NUM,
+                 my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
                  checkpoint_path=checkpointPath, is_attention = is_attention, 
-                 my_confusion_file_name=cm_file_name, id = id)
-        break  # 一人だけを実行したいのでここにbreakを入れる
+                 my_confusion_file_name=cm_file_name, id=id)

@@ -1,6 +1,7 @@
 # ================================================ #
 # *            ライブラリのインポート
 # ================================================ #
+from numpy.core.records import record
 from file_reader import FileReader
 from random import shuffle, choices, random, seed
 from my_setting import *
@@ -39,6 +40,13 @@ class PreProcess():
         self.name_dict = Utils().name_dict
         self.test_data_for_wandb = None
         seed(0)
+        # 必ず辞書形式で受け取って（処理の重さは文字列と変わらないから）
+        # loadDataメソッド内で読み込むデータ数を決定する
+        try:
+            assert type(self.inputFileName) == dict
+        except:
+            print("PreProcessオブジェクト生成時にinputfilenameは辞書形式で渡してください")
+            sys.exit(1)
     
     def list2Spectrum(self, list_data):
         return np.array([data.spectrum for data in list_data])
@@ -49,156 +57,178 @@ class PreProcess():
     def list2Spectrogram(self, list_data):
         return np.array([data.spectrogram for data in list_data])
     
-    def loadData(self, is_split, is_auto_loop=False, is_auto_loop_name=False):
-        """基本record形式で読み込んだデータを返す
-        NOTE : 1. オブジェクト生成時のinputFileName によって処理が分かれている
-        （文字列の時は一気に入力と出力の形で返す）
-    
+    def loadData(self, is_only_one_person=True, 
+                 is_auto_loop_name=False, verbose=0):
+        """
+        NOTE : (train, test)のtupleで返すこと（サイズをそろえたりの処理とかいらない）
 
         Args:
-            is_split (bool): [description]
-            is_auto_loop (bool, optional): [description]. Defaults to False.
-            is_auto_loop_name (bool, optional): [description]. Defaults to False.
+            is_only_one_person (bool, optional): [一人だけのデータを読み込むかどうか]. Defaults to True.
+            is_auto_loop_name (bool, optional): [テストデータを指定したいときはここに名前を入れる]. Defaults to False.
+            verbose (int, optional): [print文の省略をしたいときは1を入れる]]. Defaults to 0.
 
         Returns:
-            [type]: [description]
+            [tuple]: [(train, test)をデータサイズをそろえずに返す]
         """
-        assert type(self.inputFileName) == str or type(self.inputFileName) == dict
+        # テスト時に時間がかからないための実装
+        # そのため返す形式は複数読み込んだ時と無理やりそろえている
+        if is_only_one_person:
+            name = input("input load file name : ")
+            records = LoadSleepData(name).load_data()[0][:]
+            if verbose==0:
+                print("テストデータと訓練データは同じデータを返します")
+            train = records
+            test = records
         
-        if type(self.inputFileName) == str:
-            records = LoadSleepData(self.inputFileName).data[0][:]
-            return self.list2Spectrogram(records), self.list2SS(records)
-        elif type(self.inputFileName) == dict:
-            
+        else:
             def _make(test_data):
                 records_train = list()
                 records_test = list()
                 for name in self.name_dict.keys():
                     _loadSleepData = LoadSleepData(name)
                     if name == test_data:
-                        records_test.extend(_loadSleepData.data[0])
+                        records_test.extend(_loadSleepData.load_data()[0])
                     elif name != test_data:
-                        records_train.extend(_loadSleepData.data[0])
-                    del _loadSleepData
+                        records_train.extend(_loadSleepData.load_data()[0])
                 return (records_train, records_test)
-            
-            if is_split:
-                # 被験者データに対して自動処理を行いたいときはTrueにする
-                if is_auto_loop:
-                    assert is_auto_loop_name != False
-                    # print("被験者データに対して自動でループ処理を行います")
-                    test_data = is_auto_loop_name
-                    print(f"テストデータは{test_data}です")
-                    self.test_data_for_wandb = test_data
-                    (train, test) = _make(test_data=test_data)
-                    
-                else:
+
+            # 被験者データに対して自動処理を行いたいときはTrueにする
+            if bool(is_auto_loop_name):
+                # print("被験者データに対して自動でループ処理を行います")
+                test_data = is_auto_loop_name
+                print(f"テストデータは{test_data}です")
+                self.test_data_for_wandb = test_data
+                (train, test) = _make(test_data=test_data)
+                
+            else:
+                if verbose==0:
                     print(self.name_dict.keys())
-                    test_data = input("以上からテストデータを選んでください：")
-                    #test_data = "H_Li"
-                    print(f"テストデータは{self.name_dict[test_data]}です")
-                    self.test_data_for_wandb = test_data
-                    (train, test) = _make(test_data=test_data) 
-                    
-                return (train, test)     
+                test_data = input("テストデータを選んでください：")
+                print(f"テストデータは{self.name_dict[test_data]}です")
+                self.test_data_for_wandb = test_data
+                (train, test) = _make(test_data=test_data) 
+                
+        return (train, test)     
+    
+    def split_train_test_from_records(self, records, test_id):
+        assert test_id < 9
+        test_records = records[test_id]
+        train_records = list()
+        for i in range(9):
+            train_records.extend(records[i])
+        return (train_records, test_records)
     
     def makeDataSet(self, train, test,
-                    is_split = False, 
                     is_set_data_size = True, 
                     target_ss = None, 
                     is_storchastic = True, 
                     is_shuffle = True,
-                    is_multiply = True,
-                    mul_num = None):
-            
-            if is_split:
-                # ここまでの操作を別の関数で行う方が良い
-                if is_set_data_size:
-                    assert target_ss != None
-                    tmporary_sleep_stage = [record.ss for record in train]
-                    #print("訓練データのサイズをそろえる前のもの", Counter(tmporary_sleep_stage))
-                    # ss_dict_train は各睡眠段階の比率（数）を表す
-                    # target_ss も返して大丈夫？
-                    ss_dict_train = self.setDataSize(train, target_ss=target_ss, isStorchastic=is_storchastic)
-                    #ss_dict_test = self.setDataSize(test, target_ss=target_ss, isStorchastic=True)  # NOTE : テストデータに対しては確率的サンプリングを行う
-                    ss_dict_test = Counter([record.ss for record in test])
-                    #print("データサイズをそろえたもの（訓練）", ss_dict_train)
-                    #print("データサイズをそろえたもの（テスト）", ss_dict_test)
-                    def _storchastic_sampling(data, target_records, is_test):
-                        tmp = list()
-                        
-                        def _splitEachSleepStage():
-                            each_stage_list = list()
-                            
-                            for ss in data.keys():
-                                # record は順番通りにソートされていない
-                                # 多分train自体がソートされたものではないから
-                                # data.keys()の順番が5, 2, 4, 3, 1になっているから？
-                                # でもその順番に追加されているわけではないから違いそう
-                                # なんか最初に4が選択されていた（辞書なので順番がないからそういうものと思う）
-                                each_stage_list.append([record for record in target_records if record.ss == ss])
-                            return each_stage_list
-                        # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
-                        ss_list = _splitEachSleepStage()
-                        for records in ss_list:
-                            if len(records) == 0:
-                                print("睡眠段階が存在しないため飛ばします")
-                                continue
-                            # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
-                            def _sample(target_records):
-                                # 睡眠段階のラベルを知るために必要
-                                if is_test:
-                                    ss = target_records[0].ss
-                                    l = choices(target_records, k=data[ss])
-                                else:
-                                    ss = target_records[0].ss
-                                    if ss != target_ss:
-                                        try:
-                                            # target_recordsからdata[ss]個取ってくる感じ
-                                            # >>> len(target_records)
-                                            # >>> 1019（各睡眠段階のrecordオブジェクトが入っている
-                                            # >>> data[4]
-                                            # >>> 睡眠段階が4のもの（REM）の数を返す（正確にはCounterの辞書の4に対応するvalueのこと）
-                                            if is_multiply:
-                                                # l = sample(target_records, 4*data[ss])
-                                                l = choices(target_records, k=400)
-                                            else:
-                                                if mul_num != None:
-                                                    l = choices(target_records, k=data[ss]*mul_num)
-                                                else:
-                                                    l = choices(target_records, k=data[ss])
-                                        except:
-                                            if is_multiply:
-                                                #print("データを複製する必要があるので、random.choices()を用います")
-                                                l = choices(target_records, k=400)
-                                            else:
-                                                if mul_num != None:
-                                                    l = choices(target_records, k=data[ss]*mul_num)
-                                                else:
-                                                    l = choices(target_records, k=data[ss])
-                                    elif ss == target_ss:
-                                        #l = choices(target_records, k=400)
-                                        l = choices(target_records, k=data[ss])
-                                return l
-                            tmp.extend(_sample(target_records=records))
-                        return tmp
-                    
-                    train = _storchastic_sampling(data=ss_dict_train, target_records = train, is_test = False)
-                    # trainは4倍に複製できてる
-                    test = _storchastic_sampling(data=ss_dict_test, target_records = test, is_test = True)
-                    # testは複製していない
-                    if is_shuffle:
-                        #print("シャッフルします")
-                        #print("最初の先頭", train[0])
-                        shuffle(train)
-                        #print("シャッフル後の先頭", train[0])
-                return (self.list2Spectrogram(train), self.list2SS(train)), (self.list2Spectrogram(test), self.list2SS(test))
+                    is_multiply = False,
+                    mul_num = None,
+                    verbose=0):
+        """[summary]
 
-            else:
-                print("テストデータは用意しません（テストの際は交差検証を試してください）")
-                train, _ = _make(test_data=None)
-                return (self.list2Spectrogram(train), self.list2SS(train))
-            pass 
+        Args:
+            train ([list of records]): [訓練データ]
+            test ([list of records]): [テストデータ]
+            is_set_data_size (bool, optional): [訓練データサイズを揃えるときはtrueを返す]. Defaults to True.
+            target_ss ([type], optional): [複製の対象となる睡眠段階]. Defaults to None.
+            is_storchastic (bool, optional): [確率的サンプリングを行うかどうか]. Defaults to True.
+            is_shuffle (bool, optional): [訓練データをシャッフルするかどうか]. Defaults to True.
+            is_multiply (bool, optional): [description]. Defaults to False.
+            mul_num ([type], optional): [複製する数（target_ssの何倍作成するか）]. Defaults to None.
+            verbose (int, optional): [description]. Defaults to 0.
+
+        Returns:
+            [type]: [description]
+        """
+        if is_set_data_size:
+            
+            if verbose == 0:
+                print("訓練データのサイズを揃えます")
+                
+            assert target_ss != None
+            
+            ss_dict_train = self.setDataSize(train, target_ss=target_ss, isStorchastic=is_storchastic)
+            ss_dict_test = Counter([record.ss for record in test])
+            
+            if verbose == 0:
+                print("訓練データのサイズをそろえる前の各睡眠段階の数", Counter([record.ss for record in train]))
+                print("訓練データのサイズを揃えました", ss_dict_train)
+                
+            def _storchastic_sampling(data, target_records, is_test):
+                tmp = list()
+                
+                def _splitEachSleepStage():
+                    each_stage_list = list()
+                    
+                    for ss in data.keys():
+                        # record は順番通りにソートされていない
+                        # 多分train自体がソートされたものではないから
+                        # data.keys()の順番が5, 2, 4, 3, 1になっているから？
+                        # でもその順番に追加されているわけではないから違いそう
+                        # なんか最初に4が選択されていた（辞書なので順番がないからそういうものと思う）
+                        each_stage_list.append([record for record in target_records if record.ss == ss])
+                    return each_stage_list
+                # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
+                ss_list = _splitEachSleepStage()
+                for records in ss_list:
+                    if len(records) == 0:
+                        print("睡眠段階が存在しないため飛ばします")
+                        continue
+                    # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
+                    def _sample(target_records):
+                        # 睡眠段階のラベルを知るために必要
+                        if is_test:
+                            ss = target_records[0].ss
+                            l = choices(target_records, k=data[ss])
+                        else:
+                            ss = target_records[0].ss
+                            if ss != target_ss:
+                                try:
+                                    # target_recordsからdata[ss]個取ってくる感じ
+                                    # >>> len(target_records)
+                                    # >>> 1019（各睡眠段階のrecordオブジェクトが入っている
+                                    # >>> data[4]
+                                    # >>> 睡眠段階が4のもの（REM）の数を返す（正確にはCounterの辞書の4に対応するvalueのこと）
+                                    if is_multiply:
+                                        # l = sample(target_records, 4*data[ss])
+                                        l = choices(target_records, k=400)
+                                    else:
+                                        if mul_num != None:
+                                            l = choices(target_records, k=data[ss]*mul_num)
+                                        else:
+                                            l = choices(target_records, k=data[ss])
+                                except:
+                                    if is_multiply:
+                                        #print("データを複製する必要があるので、random.choices()を用います")
+                                        l = choices(target_records, k=400)
+                                    else:
+                                        if mul_num != None:
+                                            l = choices(target_records, k=data[ss]*mul_num)
+                                        else:
+                                            l = choices(target_records, k=data[ss])
+                            elif ss == target_ss:
+                                #l = choices(target_records, k=400)
+                                l = choices(target_records, k=data[ss])
+                        return l
+                    tmp.extend(_sample(target_records=records))
+                return tmp
+            
+            train = _storchastic_sampling(data=ss_dict_train, target_records=train, is_test=False)
+            test = _storchastic_sampling(data=ss_dict_test, target_records=test, is_test=True)
+
+            if verbose == 0:
+                print("実際の訓練データセット", Counter([record.ss for record in train]))
+            
+            if is_shuffle:
+                shuffle(train)
+                
+        else:
+            if verbose == 0:
+                print('データサイズをそろえずにデータセットを作成します')
+        
+        return (self.list2Spectrogram(train), self.list2SS(train)), (self.list2Spectrogram(test), self.list2SS(test))
     
     def maxNorm(self, data):
         for X in data:
@@ -466,6 +496,15 @@ class PreProcess():
             print(f"フォルダが見つからなかったので以下の場所に作成します．\n {path}")
             os.mkdir(path)
 
+    def check_path_auto(self, path):
+        # NOTE : フォルダがなければ作りまくるので注意
+        dir_list = path.split('\\')
+        # dir_listの最後にはフォルダではなくファイル名が来ている想定
+        file_path = ''
+        for dir in dir_list[:-1]:
+            file_path = os.path.join(file_path, dir)
+            self.checkPath(file_path)
+    
 # ================================================ #
 # *          様々な自分用の便利関数
 # ================================================ #
@@ -584,7 +623,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from utils import PreProcess, Utils
     import tensorflow.keras.preprocessing.image as tf_image
-    from my_model import *
+    #from my_model import *
     import tensorflow as tf
     # physical_devices = tf.config.list_physical_devices("GPU")
     # tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -592,9 +631,9 @@ if __name__ == '__main__':
     o_findsDir = my_setting.FindsDir("sleep")
     o_preProcess = PreProcess(project="sleep_study", input_file_name="H_Li")
     (x_train, y_train) = o_preProcess.loadData(is_split=True)
-    model.summary()
-    hidden = model(x_train)
-    hidden.shape
+    #model.summary()
+    #hidden = model(x_train)
+    #hidden.shape
     tmp = x_train.copy()
     o_preProcess.maxNorm(x_train)
     o_utils = Utils()

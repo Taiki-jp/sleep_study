@@ -33,9 +33,10 @@ class FileReader(object):
             print(f"In file_reader.py, there isn't {alias} !!")
             sys.exit(1)
 
-    def loadNormal(self, alias):
+    def loadNormal(self, alias, verbose=0):
         path = os.path.join(self.dirName, alias)
-        print(f"*** load {path} ! ***")
+        if verbose == 0:
+            print(f"*** load {path} ! ***")
         return pickle.load(open(path, 'rb'))
 
 # ================================================ #
