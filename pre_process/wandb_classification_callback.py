@@ -18,7 +18,8 @@ class WandbClassificationCallback(WandbCallback):
                  log_confusion_matrix=False,
                  confusion_examples=0, confusion_classes=5,
                  show_my_confusion_title=False, my_confusion_title=False,
-                 my_confusion_file_name=False):
+                 my_confusion_file_name=False,
+                 log_f_measure=False,calc_metrics=False):
         """[summary]
 
         Args:
@@ -77,6 +78,8 @@ class WandbClassificationCallback(WandbCallback):
         self.show_my_confusion_title = show_my_confusion_title
         self.my_confusion_title = my_confusion_title
         self.my_confusion_file_name = my_confusion_file_name
+        self.log_f_measure = log_f_measure
+        self.calc_metrics = calc_metrics
                
     def on_epoch_end(self, epoch, logs={}):
         if self.generator:
@@ -143,6 +146,15 @@ class WandbClassificationCallback(WandbCallback):
             path = os.path.join(os.environ["sleep"], "datas", "confusion_matrix_from_wandb.csv")
         df.to_csv(path, mode='a')
         print(df)
+        if self.calc_metrics:
+            def _calc_metrics(df):
+                cm = df.to_numpy()
+                try:
+                    assert cm.shape == (2, 2)
+                except:
+                    print("2クラス分類の際しかメトリクスは計算しません")
+        else:
+            print("メトリクスはwandb内で計算しません")
         confdiag = np.eye(len(confmatrix)) * confmatrix
         np.fill_diagonal(confmatrix, 0)
 
@@ -171,6 +183,11 @@ class WandbClassificationCallback(WandbCallback):
         else:
             fig.update_layout(title={'text':'Confusion matrix', 'x':0.5}, paper_bgcolor=transparent, plot_bgcolor=transparent, xaxis=xaxis, yaxis=yaxis)
         # fig.show()
+        if self.log_f_measure:
+            assert self.calc_metrics
+        else:
+            pass
+        
         return {'confusion_matrix': wandb.data_types.Plotly(fig)}
         
     def _log_confusion_examples(self, rescale=255, confusion_classes=5, max_confused_examples=3):

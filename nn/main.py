@@ -107,7 +107,8 @@ def main(name, project, sleep_stage, train, test,
                                                labels=["non-target", "target"],
                                                show_my_confusion_title=True,
                                                my_confusion_title=ss_list_for_wandb[TARGET_SS-1],
-                                               my_confusion_file_name=my_confusion_file_name)
+                                               my_confusion_file_name=my_confusion_file_name,
+                                               log_f_measure=True,calc_metrics=True)
         
         tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
         
@@ -153,7 +154,8 @@ if __name__ == '__main__':
         attention_tag = "no-attention"
     # for name in Utils().name_list[:-2][::-1]:  # テストデータとなる被験者データに対してループ処理を行っている, TODO : メモリ管理が上手くできるようになるまでこのループは避ける
     datasets = m_loadSleepData.load_data_all()
-    for i, name in enumerate(Utils().name_list):
+    id_list = [i for i in range(10)]
+    for i, name in zip(id_list[5:], Utils().name_list[5:]):
         (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=i)
         for sleep_stage in range(1, 6):  # 睡眠段階に対してループ処理を行っている
 
@@ -167,7 +169,7 @@ if __name__ == '__main__':
             m_preProcess.check_path_auto(cm_file_name)
             
             main(name = name, project = "sleep", sleep_stage=sleep_stage,
-                 train=train, test=test, epoch=1, isSaveModel=False, mul_num=MUL_NUM,
+                 train=train, test=test, epoch=15, isSaveModel=False, mul_num=MUL_NUM,
                  my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
                  checkpoint_path=checkpointPath, is_attention = is_attention, 
                  my_confusion_file_name=cm_file_name, id=id)

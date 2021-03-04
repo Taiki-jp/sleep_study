@@ -103,4 +103,4 @@ for num, target in enumerate(attentionArray):
                              x_label = "time[s]",
                              y_label = "frequency[Hz]",
                              title_array = confArray[num])
-    
+
