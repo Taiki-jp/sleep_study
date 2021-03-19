@@ -21,8 +21,11 @@ class LoadSleepData():
         self.m_fileReader = FileReader()
         self.inputFileName = self.m_fileReader.determinFilePath(input_file_name)
     
-    def load_data(self, name):
-        return self.m_fileReader.loadNormal(self.inputFileName)
+    def load_data(self, name=None):
+        if name:
+            return self.m_fileReader.loadNormal(name)
+        else:
+            return self.m_fileReader.loadNormal(self.inputFileName)
     
     def load_data_all(self):
         records = list()

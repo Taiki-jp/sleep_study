@@ -144,7 +144,7 @@ def main(name, project, sleep_stage, train, test,
 if __name__ == '__main__':   
     PROJECT = "sleep"
     m_findsDir = FindsDir(PROJECT)
-    m_preProcess = PreProcess(project=m_findsDir.returnDirName(), input_file_name=Utils().name_dict)
+    m_preProcess = PreProcess(input_file_name=Utils().name_dict)
     m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1
     is_attention = True

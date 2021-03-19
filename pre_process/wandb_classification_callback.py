@@ -153,6 +153,15 @@ class WandbClassificationCallback(WandbCallback):
                     assert cm.shape == (2, 2)
                 except:
                     print("2クラス分類の際しかメトリクスは計算しません")
+                tn = cm[0][0]
+                fp = cm[1][0]
+                fn = cm[0][1]
+                tp = cm[1][1]
+                pre = tp/(tp+fp)
+                rec = tp/(tp+fn)
+                f_m = 2*pre*rec/(pre+rec)
+                return pre, rec, f_m
+            pre, rec, f_m = _calc_metrics(df=df)
         else:
             print("メトリクスはwandb内で計算しません")
         confdiag = np.eye(len(confmatrix)) * confmatrix
@@ -184,8 +193,13 @@ class WandbClassificationCallback(WandbCallback):
             fig.update_layout(title={'text':'Confusion matrix', 'x':0.5}, paper_bgcolor=transparent, plot_bgcolor=transparent, xaxis=xaxis, yaxis=yaxis)
         # fig.show()
         if self.log_f_measure:
-            assert self.calc_metrics
+            try:
+                assert self.calc_metrics == True
+            except:
+                print("F値のログを送りたいけど計算が出来てないみたいです")
+            wandb.log({"F measure":f_m, "Precision":pre, "Recall":rec})
         else:
+            print('F値のログは取りません')
             pass
         
         return {'confusion_matrix': wandb.data_types.Plotly(fig)}

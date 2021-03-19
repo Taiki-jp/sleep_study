@@ -27,8 +27,7 @@ import datetime
 
 class PreProcess():
     
-    def __init__(self, project, input_file_name=None):
-        # project は project のディレクトリとなることに注意
+    def __init__(self, input_file_name=None):
         self.projectDir = os.environ['sleep']
         self.figureDir = os.path.join(self.projectDir, "figures")
         self.videoDir = os.path.join(self.projectDir, "videos")

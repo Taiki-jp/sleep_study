@@ -70,12 +70,11 @@ class FindsDir(object):
         Returns:
             [type]: [description]
         """
-        path = os.path.join(os.environ['userprofile'], self.returnDirName())
+        path = os.environ['sleep']
         return path
 
     def returnDataPath(self):
-        path = os.path.join(os.environ['userprofile'],
-                            self.returnDirName(),
+        path = os.path.join(os.environ['sleep'],
                             "datas")
         return path
 # ================================================ #
