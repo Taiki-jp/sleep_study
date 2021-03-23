@@ -9,6 +9,18 @@ import layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 
 # ================================================ #
+# *           超単純なFNN実装関数
+# ================================================ #
+
+def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(hidded1_dim, activation='relu', input_shape=(1,)))
+    model.add(tf.keras.layers.Dense(hidded2_dim, activation='relu'))
+    model.add(tf.keras.layers.Dense(1))
+    print(model.summary)
+    return model
+
+# ================================================ #
 # *           FNN を使ったモデル
 # TODO : サブクラスの実装はどうしよう
 # ================================================ #
