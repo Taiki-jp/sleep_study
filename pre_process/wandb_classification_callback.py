@@ -137,33 +137,12 @@ class WandbClassificationCallback(WandbCallback):
         confmatrix = confusion_matrix(y_pred, y_val, labels=range(len(self.labels)))
         import pandas as pd
         import os
-        df = pd.DataFrame(confmatrix.ravel())
-        df = pd.DataFrame(df.to_numpy().reshape(2,2))
         # もしmy_confusion_file_nameが指定された場合指定の場所に保存する
         if self.my_confusion_file_name:
             path = self.my_confusion_file_name
         else:
             path = os.path.join(os.environ["sleep"], "datas", "confusion_matrix_from_wandb.csv")
-        df.to_csv(path, mode='a')
-        print(df)
-        if self.calc_metrics:
-            def _calc_metrics(df):
-                cm = df.to_numpy()
-                try:
-                    assert cm.shape == (2, 2)
-                except:
-                    print("2クラス分類の際しかメトリクスは計算しません")
-                tn = cm[0][0]
-                fp = cm[1][0]
-                fn = cm[0][1]
-                tp = cm[1][1]
-                pre = tp/(tp+fp)
-                rec = tp/(tp+fn)
-                f_m = 2*pre*rec/(pre+rec)
-                return pre, rec, f_m
-            pre, rec, f_m = _calc_metrics(df=df)
-        else:
-            print("メトリクスはwandb内で計算しません")
+
         confdiag = np.eye(len(confmatrix)) * confmatrix
         np.fill_diagonal(confmatrix, 0)
 

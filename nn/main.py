@@ -3,6 +3,7 @@
 # ================================================ #
 
 import os
+from tokenize import PlainToken
 from my_setting import SetsPath, FindsDir
 SetsPath().set()
 import datetime, wandb
@@ -18,6 +19,9 @@ from load_sleep_data import LoadSleepData
 from utils import PreProcess, Utils
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+
 # NOTE : gpuを設定していない環境のためにエラーハンドル
 try:
     physical_devices = tf.config.list_physical_devices("GPU")
@@ -30,18 +34,17 @@ tf.keras.backend.set_floatx('float32')
 #  *                メイン関数
 # ================================================ #
 
-def main(name, project, sleep_stage, train, test, 
+def main(name, project, train, test, 
          epoch=1, isSaveModel=False, my_tags=None, mul_num=False, 
          checkpoint_path=None, is_attention=True, my_confusion_file_name=None,
          id = None):
     
-    TARGET_SS = sleep_stage
     # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
                                                                     test=test, 
-                                                                    is_set_data_size=True, 
-                                                                    target_ss=TARGET_SS, 
-                                                                    mul_num=mul_num)  
+                                                                    is_set_data_size=True,
+                                                                    mul_num=mul_num,
+                                                                    is_storchastic=False) 
     m_preProcess.maxNorm(x_train)
     m_preProcess.maxNorm(x_test)
     (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
@@ -49,10 +52,9 @@ def main(name, project, sleep_stage, train, test,
     from collections import Counter
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
-    # ターゲットの睡眠段階とそれ以外でラベルを分けるために必要
-    y_train = m_preProcess.binClassChanger(y_data=y_train, target_ss=TARGET_SS)
-    y_test = m_preProcess.binClassChanger(y_data=y_test, target_ss=TARGET_SS)
-
+    # convert label 1-5 to 0-4
+    y_train-=1
+    y_test-=1
     # ================================================ #
     #  *             データ保存先の設定
     # ================================================ #
@@ -63,7 +65,6 @@ def main(name, project, sleep_stage, train, test,
                config= \
                {
                    "test id":m_preProcess.test_data_for_wandb,
-                    "true label":ss_list_for_wandb[TARGET_SS-1],
                     "train num":x_train.shape[0],
                     "test num":x_test.shape[0],
                     "date id":id,
@@ -83,7 +84,7 @@ def main(name, project, sleep_stage, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    m_model = MyInceptionAndAttention(n_classes=2, 
+    m_model = MyInceptionAndAttention(n_classes=5, 
                                       hight=128, 
                                       width=512, 
                                       findsDirObj=m_findsDir,
@@ -100,35 +101,27 @@ def main(name, project, sleep_stage, train, test,
     # ================================================ #
     #*                   モデル学習
     # ================================================ #
-    if Counter(y_test)[1] != 0:
-        w_callBack = WandbClassificationCallback(validation_data = (x_test, y_test),
-                                               training_data=(x_train, y_train),
-                                               log_confusion_matrix=True,
-                                               labels=["non-target", "target"],
-                                               show_my_confusion_title=True,
-                                               my_confusion_title=ss_list_for_wandb[TARGET_SS-1],
-                                               my_confusion_file_name=my_confusion_file_name,
-                                               log_f_measure=True,calc_metrics=True)
-        
-        tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
-        
-        m_model.model.fit(x_train,
-                          y_train,
-                          batch_size=16,
-                          validation_data = (x_test, y_test),
-                          epochs = epoch,
-                          callbacks = [w_callBack, tf_callback],
-                          verbose = 2)
-    else:
-        w_callBack = WandbClassificationCallback()
-        tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
-        print("テストデータが用意できません．学習のみ行います")
-        m_model.model.fit(x_train,
-                          y_train,
-                          batch_size=16,
-                          epochs=epoch,
-                          callbacks=[w_callBack, tf_callback],
-                          verbose=2)
+    w_callBack = WandbClassificationCallback(validation_data = (x_test, y_test),
+                                             training_data=(x_train, y_train),
+                                             log_confusion_matrix=True,
+                                             labels=["nr34", "nr2", "nr1", "rem", "wake"],
+                                             show_my_confusion_title=True,
+                                             my_confusion_title="confusion matrix",
+                                             my_confusion_file_name=my_confusion_file_name,
+                                             log_f_measure=False,calc_metrics=False)
+    
+    # NOTE : モデルの各チェックポイントでの保存部分は削除
+    if checkpoint_path:
+        pass
+        # tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
+    
+    m_model.model.fit(x_train,
+                      y_train,
+                      batch_size=8,
+                      validation_data = (x_test, y_test),
+                      epochs = epoch,
+                      callbacks = [w_callBack],
+                      verbose = 2)
     
     # ================================================ #
     #*                   モデルの保存
@@ -148,28 +141,20 @@ if __name__ == '__main__':
     m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1
     is_attention = True
-    if is_attention:
-        attention_tag = "attention"
-    else:
-        attention_tag = "no-attention"
-    # for name in Utils().name_list[:-2][::-1]:  # テストデータとなる被験者データに対してループ処理を行っている, TODO : メモリ管理が上手くできるようになるまでこのループは避ける
+    attention_tag = "attention" if is_attention else "no-attention"
     datasets = m_loadSleepData.load_data_all()
-    id_list = [i for i in range(10)]
-    for i, name in zip(id_list[5:], Utils().name_list[5:]):
-        (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=i)
-        for sleep_stage in range(1, 6):  # 睡眠段階に対してループ処理を行っている
-
-            id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            
-            checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
-                                          "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
-            cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{name}", 
-                                        f"confusion_matrix_{sleep_stage}_{id}.csv")
-            m_preProcess.check_path_auto(checkpointPath)
-            m_preProcess.check_path_auto(cm_file_name)
-            
-            main(name = name, project = "sleep", sleep_stage=sleep_stage,
-                 train=train, test=test, epoch=15, isSaveModel=False, mul_num=MUL_NUM,
-                 my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
-                 checkpoint_path=checkpointPath, is_attention = is_attention, 
-                 my_confusion_file_name=cm_file_name, id=id)
+    # TODO : test-idと名前を紐づける
+    test_id = 1
+    (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
+    id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    
+    #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
+    #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
+    cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
+    m_preProcess.check_path_auto(cm_file_name)
+    
+    main(name = "test", project = "test",
+         train=train, test=test, epoch=15, isSaveModel=True, mul_num=MUL_NUM,
+         my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
+         checkpoint_path=None, is_attention = is_attention, 
+         my_confusion_file_name=cm_file_name, id=id)
