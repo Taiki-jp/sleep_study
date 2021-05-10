@@ -215,9 +215,11 @@ class MyInceptionAndAttention(ModelBase):
         self.feature = tf.keras.Model(self.baseInputs, self.baseOutputs)
         self.attention = MyLayer.MyAttention2D(filters=1, kernel_size=1)
         self.GAP = tf.keras.layers.GlobalAveragePooling2D()
-        self.dense1 = tf.keras.layers.Dense(n_classes)
+        self.dense1 = tf.keras.layers.Dense(n_classes ** 2)
+        self.dense2 = tf.keras.layers.Dense(n_classes)
         self.is_attention = is_attention
         self.model = self.createModel()  # NOTE : ここが最後に来るようにする（じゃないと全部が初期化できない）
+        print(self.model.summary())
         pass
     
     def call(self, x):
@@ -228,6 +230,7 @@ class MyInceptionAndAttention(ModelBase):
             x*=attention
         x = self.GAP(x)
         x = self.dense1(x)
+        x = self.dense2(x)
         return x
 
     def createModel(self):

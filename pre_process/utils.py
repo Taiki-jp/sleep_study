@@ -145,8 +145,6 @@ class PreProcess():
             
             if verbose == 0:
                 print("訓練データのサイズを揃えます")
-                
-            assert target_ss != None
             
             ss_dict_train = self.setDataSize(train, target_ss=target_ss, isStorchastic=is_storchastic)
             ss_dict_test = Counter([record.ss for record in test])
@@ -229,8 +227,8 @@ class PreProcess():
         
         return (self.list2Spectrogram(train), self.list2SS(train)), (self.list2Spectrogram(test), self.list2SS(test))
     
-    def maxNorm(self, data):
-        for X in data:
+    def maxNorm(self, data):  
+        for X in data:  # TODO : 全体の値で割るようなこともする
             X /= X.max()
     
     def catchNone(self, x_data, y_data):
@@ -252,6 +250,7 @@ class PreProcess():
         return y_data-1
     
     def setDataSize(self, ss_list, target_ss, isStorchastic):
+
         from collections import Counter
         if isStorchastic:
             # selection based on their probabilities
@@ -291,7 +290,6 @@ class PreProcess():
             ss_dict.update(dict_target)
             return ss_dict
         else:
-            # NOTE : ランダムサンプリングにはなってないよ（すべてのクラス同じ数作成する）
             # 400個作成する
             return {1:400, 2:400, 3:400, 4:400, 5:400}
     
