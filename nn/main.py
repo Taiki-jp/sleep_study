@@ -93,6 +93,22 @@ def main(name, project, sleep_stage, train, test,
     #*       モデルのコンパイル（サブクラスなし）
     # ================================================ #
     
+    def KL(alpha, K):
+        beta=tf.constant(np.ones((1,K)),dtype=tf.float32)
+        S_alpha = tf.reduce_sum(alpha,axis=1,keepdims=True)
+
+        KL = tf.reduce_sum((alpha - beta)*(tf.digamma(alpha)-tf.digamma(S_alpha)),axis=1,keepdims=True) + \
+             tf.lgamma(S_alpha) - tf.reduce_sum(tf.lgamma(alpha),axis=1,keepdims=True) + \
+             tf.reduce_sum(tf.lgamma(beta),axis=1,keepdims=True) - tf.lgamma(tf.reduce_sum(beta,axis=1,keepdims=True))
+        return KL
+
+    def loss_eq5(pred, alpha, K, global_step, annealing_step):
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        loglikelihood = tf.reduce_sum((pred-(alpha/S))**2, axis=1, keepdims=True) + tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
+        KL_reg =  tf.minimum(1.0, tf.cast(global_step/annealing_step, tf.float32)) * KL((alpha - 1)*(1-pred) + 1 , K)
+        return loglikelihood + KL_reg
+        
+    
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
                           loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                           metrics=["accuracy"])
