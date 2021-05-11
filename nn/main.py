@@ -17,6 +17,8 @@ from my_model import MyInceptionAndAttention
 # * 前処理ライブラリ
 from load_sleep_data import LoadSleepData
 from utils import PreProcess, Utils
+import numpy as np
+from losses import EDLLoss
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -94,24 +96,8 @@ def main(name, project, train, test,
     #*       モデルのコンパイル（サブクラスなし）
     # ================================================ #
     
-    def KL(alpha, K):
-        beta=tf.constant(np.ones((1,K)),dtype=tf.float32)
-        S_alpha = tf.reduce_sum(alpha,axis=1,keepdims=True)
-
-        KL = tf.reduce_sum((alpha - beta)*(tf.digamma(alpha)-tf.digamma(S_alpha)),axis=1,keepdims=True) + \
-             tf.lgamma(S_alpha) - tf.reduce_sum(tf.lgamma(alpha),axis=1,keepdims=True) + \
-             tf.reduce_sum(tf.lgamma(beta),axis=1,keepdims=True) - tf.lgamma(tf.reduce_sum(beta,axis=1,keepdims=True))
-        return KL
-
-    def loss_eq5(pred, alpha, K, global_step, annealing_step):
-        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
-        loglikelihood = tf.reduce_sum((pred-(alpha/S))**2, axis=1, keepdims=True) + tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
-        KL_reg =  tf.minimum(1.0, tf.cast(global_step/annealing_step, tf.float32)) * KL((alpha - 1)*(1-pred) + 1 , K)
-        return loglikelihood + KL_reg
-        
-    
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                          loss=EDLLoss(),
                           metrics=["accuracy"])
     
     # ================================================ #
@@ -133,7 +119,7 @@ def main(name, project, train, test,
     
     m_model.model.fit(x_train,
                       y_train,
-                      batch_size=8,
+                      batch_size=16,
                       validation_data = (x_test, y_test),
                       epochs = epoch,
                       callbacks = [w_callBack],
@@ -151,8 +137,8 @@ def main(name, project, train, test,
 # ================================================ #
 
 if __name__ == '__main__':   
-    PROJECT = "sleep"
-    m_findsDir = FindsDir(PROJECT)
+
+    m_findsDir = FindsDir("sleep")
     m_preProcess = PreProcess(input_file_name=Utils().name_dict)
     m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1

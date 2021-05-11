@@ -2,6 +2,7 @@
 # *         Import Some Libraries
 # ================================================ #
 
+from types import new_class
 import tensorflow as tf
 from tensorflow.python.autograph.core.converter import Feature
 from model_base import ModelBase, CreateModelBase
@@ -205,6 +206,7 @@ class MyInceptionAndAttention(ModelBase):
     def __init__(self, n_classes, hight, width, findsDirObj, channel=1, is_attention=True):
         super().__init__(findsDirObj=findsDirObj)
         tf.random.set_seed(0)
+        self.n_classes = n_classes
         self.hight = hight
         self.width = width
         self.channel = channel
@@ -231,6 +233,10 @@ class MyInceptionAndAttention(ModelBase):
         x = self.GAP(x)
         x = self.dense1(x)
         x = self.dense2(x)
+        evidence = tf.nn.relu(x)
+        alpha = evidence+1
+        u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
+        prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
         return x
 
     def createModel(self):
