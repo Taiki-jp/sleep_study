@@ -3,19 +3,19 @@
 # ================================================ #
 
 import os
-from my_setting import SetsPath, FindsDir
+from nn.my_setting import SetsPath, FindsDir
 SetsPath().set()
 import datetime, wandb
 # * データ保存用ライブラリ
 #from wandb.keras import WandbCallback
-from wandb_classification_callback import WandbClassificationCallback
+from pre_process.wandb_classification_callback import WandbClassificationCallback
 # * モデル計算初期化用ライブラリ
 import tensorflow as tf
 # * モデル構築ライブラリ
-from my_model import MyInceptionAndAttention
+from nn.my_model import MyInceptionAndAttention
 # * 前処理ライブラリ
-from load_sleep_data import LoadSleepData
-from utils import PreProcess, Utils
+from pre_process.load_sleep_data import LoadSleepData
+from pre_process.utils import PreProcess, Utils
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
