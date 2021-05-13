@@ -1,2 +1,5 @@
 .vscode/
 wandb/
+__pycache__/
+
+*.code-workspace
