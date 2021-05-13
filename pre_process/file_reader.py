@@ -1,28 +1,17 @@
 # ================================================ #
 # *            ライブラリのインポート
 # ================================================ #
-
 import pickle, sys, os
-
+from subjects_list import SubjectsList
 # ================================================ #
 # *      pickle ファイル読み込みのためのクラス
 # ================================================ #
 
 class FileReader(object):
     def __init__(self):
-        self.date = "20210201-055748"
-        self.name_list = \
-            [
-            "H_Li",
-            "H_Hayashi",
-            "H_Hiromoto",
-            "H_Kashiwazaki",
-            "H_Kumazawa",
-            "H_Kumazawa_F",
-            "H_Murakami",
-            "H_Takadama",
-            "H_Yamamoto",
-            ]
+        self.date = "20210201-055748"  # スペクトログラム
+        #self.date = "20210320-011750"  # スペクトラム版
+        self.name_list = SubjectsList().nameList
         self.name_dict = {name : name+"_"+self.date+".sav" for name in self.name_list}
         self.dirName = os.path.join(os.environ['sleep'], "datas", "pre_processed_data")
 
@@ -44,4 +33,6 @@ class FileReader(object):
 # ================================================ #
 
 if __name__ == '__main__':
+    file_reader = FileReader()
+    data = file_reader.loadNormal("H_Li")
     pass

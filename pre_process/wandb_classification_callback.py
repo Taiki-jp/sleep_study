@@ -137,24 +137,12 @@ class WandbClassificationCallback(WandbCallback):
         confmatrix = confusion_matrix(y_pred, y_val, labels=range(len(self.labels)))
         import pandas as pd
         import os
-        df = pd.DataFrame(confmatrix.ravel())
-        df = pd.DataFrame(df.to_numpy().reshape(2,2))
         # もしmy_confusion_file_nameが指定された場合指定の場所に保存する
         if self.my_confusion_file_name:
             path = self.my_confusion_file_name
         else:
             path = os.path.join(os.environ["sleep"], "datas", "confusion_matrix_from_wandb.csv")
-        df.to_csv(path, mode='a')
-        print(df)
-        if self.calc_metrics:
-            def _calc_metrics(df):
-                cm = df.to_numpy()
-                try:
-                    assert cm.shape == (2, 2)
-                except:
-                    print("2クラス分類の際しかメトリクスは計算しません")
-        else:
-            print("メトリクスはwandb内で計算しません")
+
         confdiag = np.eye(len(confmatrix)) * confmatrix
         np.fill_diagonal(confmatrix, 0)
 
@@ -184,8 +172,13 @@ class WandbClassificationCallback(WandbCallback):
             fig.update_layout(title={'text':'Confusion matrix', 'x':0.5}, paper_bgcolor=transparent, plot_bgcolor=transparent, xaxis=xaxis, yaxis=yaxis)
         # fig.show()
         if self.log_f_measure:
-            assert self.calc_metrics
+            try:
+                assert self.calc_metrics == True
+            except:
+                print("F値のログを送りたいけど計算が出来てないみたいです")
+            wandb.log({"F measure":f_m, "Precision":pre, "Recall":rec})
         else:
+            print('F値のログは取りません')
             pass
         
         return {'confusion_matrix': wandb.data_types.Plotly(fig)}

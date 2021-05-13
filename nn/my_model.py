@@ -9,6 +9,18 @@ import layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 
 # ================================================ #
+# *           超単純なFNN実装関数
+# ================================================ #
+
+def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(hidded1_dim, activation='relu', input_shape=(1,)))
+    model.add(tf.keras.layers.Dense(hidded2_dim, activation='relu'))
+    model.add(tf.keras.layers.Dense(1))
+    print(model.summary)
+    return model
+
+# ================================================ #
 # *           FNN を使ったモデル
 # TODO : サブクラスの実装はどうしよう
 # ================================================ #
@@ -203,9 +215,11 @@ class MyInceptionAndAttention(ModelBase):
         self.feature = tf.keras.Model(self.baseInputs, self.baseOutputs)
         self.attention = MyLayer.MyAttention2D(filters=1, kernel_size=1)
         self.GAP = tf.keras.layers.GlobalAveragePooling2D()
-        self.dense1 = tf.keras.layers.Dense(n_classes)
+        self.dense1 = tf.keras.layers.Dense(n_classes ** 2)
+        self.dense2 = tf.keras.layers.Dense(n_classes)
         self.is_attention = is_attention
         self.model = self.createModel()  # NOTE : ここが最後に来るようにする（じゃないと全部が初期化できない）
+        print(self.model.summary())
         pass
     
     def call(self, x):
@@ -216,6 +230,7 @@ class MyInceptionAndAttention(ModelBase):
             x*=attention
         x = self.GAP(x)
         x = self.dense1(x)
+        x = self.dense2(x)
         return x
 
     def createModel(self):

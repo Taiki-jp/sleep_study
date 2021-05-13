@@ -6,7 +6,6 @@ from my_setting import *
 SetsPath().set()
 from csv_reader import CsvReader
 import pandas as pd
-from csv_reader import CsvReader
 
 # ================================================ #
 # *     睡眠段階のデータを読み込むクラス作成

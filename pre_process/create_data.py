@@ -25,16 +25,31 @@ class CreateData(object):
     def __init__(self):
         pass
 
-    def makeSpectrum(self, data, record=False):
-        """ (windowing) x (FFT) x (normalize) x (log scale) 
-        """
-        amped = hamming(len(data)) * data
-        fft = np.fft.fft(amped, norm='ortho') / (len(data) / 2.0)
-        fft = 20 * np.log10(np.abs(fft))
-        if record:
-            record.spectrum = list(fft[:int(len(data)/2)])
-            return
-        return fft
+    def makeSpectrum(self, tanita_data, psg_data, kernel_size, stride):
+        # NOTE : record_lenは公式から簡単に求められる
+        record_len = int((len(tanita_data)-kernel_size)/stride)+1
+        records = multipleRecords(record_len)
+        start_points_list = [i for i in range(0, len(tanita_data)-1024, stride)]
+        assert record_len == len(start_points_list)
+        
+        def _make(start_point, record):
+            end_point = start_point+kernel_size
+            amped = hamming(len(tanita_data['val'][start_point:end_point])) * tanita_data['val'][start_point:end_point]
+            fft = np.fft.fft(amped) / (len(tanita_data['val'][start_point:end_point]) / 2.0)
+            fft = 20 * np.log10(np.abs(fft))
+            fft = fft[:int(kernel_size/2)]
+            record.spectrum = fft
+            record.time = tanita_data['time'][int((start_point+end_point)/2)]
+        
+        def _match(record):
+            for counter, psg_time in enumerate(psg_data["time"]):
+                if psg_time == record.time:
+                    record.ss = psg_data["ss"][counter]
+        
+        for start_point, record in tqdm(zip(start_points_list, records)):
+            _make(start_point=start_point, record=record)
+            _match(record=record)
+        return records
     
     def makeSpectrogram(self, tanita_data, psg_data, sampleLen=1024, timeLen = 128):
         loopLen = int((len(tanita_data)-sampleLen)/4)  # fft ができる回数
