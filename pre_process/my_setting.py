@@ -31,7 +31,7 @@ class SetsPath(object):
                 if callable(value) == False:
                     sys.path.append(value)
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-            os.environ["WANDB_SILENT"] = "true"
+            #os.environ["WANDB_SILENT"] = "true"
             SetsPath.executedFlag = True
 
 # ================================================ #

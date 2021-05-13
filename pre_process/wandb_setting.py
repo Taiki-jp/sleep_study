@@ -15,7 +15,7 @@ class WandbSettings():
         self.project = project
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         if silent:
-            os.environ["WANDB_SILENT"] = "true"
+            #os.environ["WANDB_SILENT"] = "true"
     
     def myInit(self, name, project, job_type, **kwargs):
         # NOTE : このままだと id 以外使う意味ない
