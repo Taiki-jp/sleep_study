@@ -143,17 +143,17 @@ if __name__ == '__main__':
     attention_tag = "attention" if is_attention else "no-attention"
     datasets = m_loadSleepData.load_data_all()
     # TODO : test-idと名前を紐づける
-    test_id = 2
-    (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
-    id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    for test_id in range(9):
+        (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
+        id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
-    #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
-    #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
-    cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
-    m_preProcess.check_path_auto(cm_file_name)
+        #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
+        #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
+        cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
+        m_preProcess.check_path_auto(cm_file_name)
     
-    main(name = "test", project = "test",
-         train=train, test=test, epoch=15, isSaveModel=True, mul_num=MUL_NUM,
-         my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
-         checkpoint_path=None, is_attention = is_attention, 
-         my_confusion_file_name=cm_file_name, id=id)
+        main(name = "test", project = "test",
+             train=train, test=test, epoch=15, isSaveModel=True, mul_num=MUL_NUM,
+             my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
+             checkpoint_path=None, is_attention = is_attention, 
+             my_confusion_file_name=cm_file_name, id=id)
