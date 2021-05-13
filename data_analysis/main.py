@@ -96,7 +96,8 @@ savedDirList = ["non_target/", "target/"]
 savedDirList = [pathRoot + savedDir for savedDir in savedDirList]
 
 for num, target in enumerate(attentionArray):
-    m_preProcess.checkPath(savedDirList[num])
+    # ANCHOR : なんでかpathがたくさん作られるのでとりあえずコメントアウト
+    # m_preProcess.checkPath(savedDirList[num])
     m_preProcess.simpleImage(image_array = target,
                              row_image_array = convertedArray[num],
                              file_path = savedDirList[num],

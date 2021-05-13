@@ -70,13 +70,18 @@ class FindsDir(object):
         Returns:
             [type]: [description]
         """
-        path = os.path.join(os.environ['userprofile'], self.returnDirName())
+        # クラスタ内で実行するために変更した部分
+        # path = os.path.join(os.environ['userprofile'], self.returnDirName())
+        path = os.path.join(os.environ["sleep"])
         return path
 
     def returnDataPath(self):
-        path = os.path.join(os.environ['userprofile'],
-                            self.returnDirName(),
-                            "datas")
+        # クラスタ内で実行するために変更した部分
+        #path = os.path.join(os.environ['userprofile'],
+        #                    self.returnDirName(),
+        #                    "datas")
+        path = os.path.join(os.environ["sleep"], "datas")
+        
         return path
 # ================================================ #
 # *            試験用メイン関数

@@ -500,10 +500,16 @@ class PreProcess():
         # NOTE : フォルダがなければ作りまくるので注意
         dir_list = path.split('\\')
         # dir_listの最後にはフォルダではなくファイル名が来ている想定
-        file_path = ''
-        for dir in dir_list[:-1]:
-            file_path = os.path.join(file_path, dir)
-            self.checkPath(file_path)
+        file_path = "\\"
+        # ANCHOR : クラスタで実行するためにデバイス名でif処理
+        if os.environ["computername"] == "CASTOR-2ND":
+            for dir in dir_list[2:-1]:  # gammaの前に\\\\となっているので，2番目のインデックスから実行
+                file_path = os.path.join(file_path, dir)
+                self.checkPath(file_path)
+        else:
+            for dir in dir_list[:-1]:
+                file_path = os.path.join(file_path, dir)
+                self.checkPath(file_path)
     
 # ================================================ #
 # *          様々な自分用の便利関数

@@ -1,2 +1,5 @@
 .vscode/
 wandb/
+*.pyc
+.gitignore
+*.code-workspace
