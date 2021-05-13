@@ -3,7 +3,6 @@
 # ================================================ #
 
 import os
-from tokenize import PlainToken
 from my_setting import SetsPath, FindsDir
 SetsPath().set()
 import datetime, wandb
@@ -117,7 +116,7 @@ def main(name, project, train, test,
     
     m_model.model.fit(x_train,
                       y_train,
-                      batch_size=8,
+                      batch_size=64,
                       validation_data = (x_test, y_test),
                       epochs = epoch,
                       callbacks = [w_callBack],
@@ -144,7 +143,7 @@ if __name__ == '__main__':
     attention_tag = "attention" if is_attention else "no-attention"
     datasets = m_loadSleepData.load_data_all()
     # TODO : test-idと名前を紐づける
-    test_id = 1
+    test_id = 2
     (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
     id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
