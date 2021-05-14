@@ -2,21 +2,24 @@
 # *         Import Some Libraries
 # ================================================ #
 
-from types import new_class
 import tensorflow as tf
-from tensorflow.python.autograph.core.converter import Feature
-from model_base import ModelBase, CreateModelBase
+from model_base import ModelBase, CreateModelBase, CustomModel
 import layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 
-# ================================================ #
-# *           超単純なFNN実装関数
-# ================================================ #
-
 def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
+    """スカラからスカラを予測する全結合モデル
+
+    Args:
+        hidded1_dim ([int]): [一層目のユニット数]
+        hidden2_dim ([int]): [二層目のユニット数]
+
+    Returns:
+        [model]: [モデルを返す]
+    """
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Dense(hidded1_dim, activation='relu', input_shape=(1,)))
-    model.add(tf.keras.layers.Dense(hidded2_dim, activation='relu'))
+    model.add(tf.keras.layers.Dense(hidden2_dim, activation='relu'))
     model.add(tf.keras.layers.Dense(1))
     print(model.summary)
     return model

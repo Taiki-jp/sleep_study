@@ -6,22 +6,13 @@ import os
 from nn.my_setting import SetsPath, FindsDir
 SetsPath().set()
 import datetime, wandb
-# * データ保存用ライブラリ
-#from wandb.keras import WandbCallback
 from pre_process.wandb_classification_callback import WandbClassificationCallback
-# * モデル計算初期化用ライブラリ
 import tensorflow as tf
-# * モデル構築ライブラリ
 from nn.my_model import MyInceptionAndAttention
-# * 前処理ライブラリ
-import numpy as np
 from losses import EDLLoss
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.utils import PreProcess, Utils
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
+from collections import Counter
 
 # NOTE : gpuを設定していない環境のためにエラーハンドル
 try:
@@ -50,7 +41,6 @@ def main(name, project, train, test,
     m_preProcess.maxNorm(x_test)
     (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
     (x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
-    from collections import Counter
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
     # convert label 1-5 to 0-4
@@ -59,6 +49,7 @@ def main(name, project, train, test,
     # ================================================ #
     #  *             データ保存先の設定
     # ================================================ #
+    # TODO : ほかのファイルでこれできないの？
     ss_list_for_wandb = ["NR34", "NR2", "NR1", "REM", "WAKE"]
     wandb.init(name = name, 
                project = project,
@@ -96,13 +87,13 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=EDLLoss(),
+                          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True),
                           metrics=["accuracy"])
     
     # ================================================ #
     #*                   モデル学習
     # ================================================ #
-    w_callBack = WandbClassificationCallback(validation_data = (x_test, y_test),
+    w_callBack = WandbClassificationCallback(validation_data=(x_test, y_test),
                                              training_data=(x_train, y_train),
                                              log_confusion_matrix=True,
                                              labels=["nr34", "nr2", "nr1", "rem", "wake"],
@@ -124,9 +115,6 @@ def main(name, project, train, test,
                       callbacks = [w_callBack],
                       verbose = 2)
     
-    # ================================================ #
-    #*                   モデルの保存
-    # ================================================ #
     if isSaveModel:
         m_model.saveModel(id = id)
     wandb.finish()
@@ -155,7 +143,7 @@ if __name__ == '__main__':
         m_preProcess.check_path_auto(cm_file_name)
     
         main(name = "test", project = "test",
-             train=train, test=test, epoch=15, isSaveModel=True, mul_num=MUL_NUM,
+             train=train, test=test, epoch=50, isSaveModel=True, mul_num=MUL_NUM,
              my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
              checkpoint_path=None, is_attention = is_attention, 
              my_confusion_file_name=cm_file_name, id=id)
