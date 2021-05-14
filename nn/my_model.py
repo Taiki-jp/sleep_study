@@ -418,6 +418,95 @@ class MyShapingModel(tf.keras.Model):
         return tf.keras.Model([inputs], self.call(inputs))
 
 # ================================================ #
+# *      Attention x 1dCNN x Inception Module
+# ================================================ #
+
+class MyInceptionAndAttentionAnd1dCNN(CustomModel):
+    
+    def __init__(self, 
+                 n_classes, 
+                 hight, 
+                 width, 
+                 findsDirObj, 
+                 channel=1, 
+                 is_attention=True):
+        super().__init__(findsDirObj=findsDirObj)
+        tf.random.set_seed(0)
+        self.n_classes = n_classes
+        self.hight = hight
+        self.width = width
+        self.channel = channel
+        self.input = tf.keras.Input(shape=(self.hight, 
+                                           self.width, 
+                                           self.channel))
+        
+        self.conv01 = tf.keras.layers.Conv1D(filters=32,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn01 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.conv02 = tf.keras.layers.Conv1D(filters=32,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn02 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.conv03 = tf.keras.layers.Conv1D(filters=64,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn03 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.conv04 = tf.keras.layers.Conv1D(filters=80,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn04 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.conv05 = tf.keras.layers.Conv1D(filters=80,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn05 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.conv06 = tf.keras.layers.Conv1D(filters=80,
+                                            kernel_size=3,
+                                            strides=3,
+                                            activation='relu',
+                                            name="my_conv")
+        self.bn06 = tf.keras.layers.BatchNormalization(name="my_bn")
+
+        self.maxpool01 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter03")
+        self.maxpool02 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter06")
+
+    
+    def call(self, x):
+        x = self.conv(x)
+        x = self.feature(x)
+        if self.is_attention:
+            attention = self.attention(x)
+            x*=attention
+        x = self.GAP(x)
+        x = self.dense1(x)
+        x = self.dense2(x)
+        evidence = tf.nn.relu(x)
+        alpha = evidence+1
+        u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
+        prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
+        return x
+
+    def createModel(self):
+        inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))
+        return tf.keras.Model([inputs], self.call(inputs))
+
+
+# ================================================ #
 # *         テスト用メイン部分
 # ================================================ #
 
