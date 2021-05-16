@@ -498,7 +498,8 @@ class PreProcess():
         dir_list = path.split('\\')
         # dir_listの最後にはフォルダではなくファイル名が来ている想定
         file_path = ''
-        for dir in dir_list[:-1]:
+        # FIXME : dir_list の開始地点はインデックスが5以上のTaikiSenjuの下にする
+        for dir in dir_list[5:-1]:
             file_path = os.path.join(file_path, dir)
             self.checkPath(file_path)
     

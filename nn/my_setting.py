@@ -6,6 +6,7 @@ class SetsPath(object):
     
     def __init__(self):
         """git/ 以下にあるプログラムのための必要なフォルダをインポートするために設定する
+        FIXME : この書き方は避けるべきであり、相対パスや実行ファイルの階層や実行方法を変更することにより実行できるようにすること
         """
         self.dataAnalysis = os.path.join(os.environ["git"], "sleep_study", "data_analysis")
         self.preProcess = os.path.join(os.environ["git"], "sleep_study", "pre_process")
@@ -22,18 +23,24 @@ class SetsPath(object):
             for _, value in self.__dict__.items():
                 if callable(value) == False:
                     sys.path.append(value)
+            # ANCHOR : ここで実行した設定を呼び出し元のファイルで継続するにはどうするとよいか？
+            # TODO : 方法１（別々のosを呼び出してprintで値を確認する）
+            # TODO : 方法２（ここで用いたosを呼び出してprintする）
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
             os.environ["WANDB_SILENT"] = "true"
+            # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
             SetsPath.executedFlag = True
         
         
 class FindsDir(object):
     """target_problem によって保存するフォルダを分けるためのクラス
-
-    Args:
-        object ([type]): [description]
     """
     def __init__(self, target_problem):
+        """初期化メソッド
+
+        Args:
+            target_problem ([string]): [dirDictの中からtarget_problemを選ぶ]
+        """
         self.dirDict = {"sleep" : "sleep_study",
                         "test" : "test",
                         "oxford" : "oxford"}
