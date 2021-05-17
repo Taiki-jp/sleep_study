@@ -151,7 +151,7 @@ class PreProcess():
             
             if verbose == 0:
                 print("訓練データのサイズをそろえる前の各睡眠段階の数", Counter([record.ss for record in train]))
-                print("訓練データのサイズを揃えました", ss_dict_train)
+                print("訓練データのサイズを揃えます", ss_dict_train)
                 
             def _storchastic_sampling(data, target_records, is_test):
                 tmp = list()
@@ -225,7 +225,8 @@ class PreProcess():
             if verbose == 0:
                 print('データサイズをそろえずにデータセットを作成します')
         
-        return (self.list2Spectrogram(train), self.list2SS(train)), (self.list2Spectrogram(test), self.list2SS(test))
+        # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
+        return (self.list2Spectrum(train), self.list2SS(train)), (self.list2Spectrum(test), self.list2SS(test))
     
     def maxNorm(self, data):  
         for X in data:  # TODO : 全体の値で割るようなこともする

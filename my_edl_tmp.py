@@ -1,14 +1,11 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
 import os
+from tensorflow.keras import metrics
 from nn.my_setting import SetsPath, FindsDir
 SetsPath().set()
 import datetime, wandb
 from pre_process.wandb_classification_callback import WandbClassificationCallback
 import tensorflow as tf
-from nn.my_model import MyInceptionAndAttention
+from nn.my_model import MyInceptionAndAttentionAnd1dCNN
 from losses import EDLLoss
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.utils import PreProcess, Utils
@@ -21,10 +18,6 @@ try:
 except:
     print("GPUがサポートされていません")
 tf.keras.backend.set_floatx('float32')
-
-# ================================================ #
-#  *                メイン関数
-# ================================================ #
 
 def main(name, project, train, test, 
          epoch=1, isSaveModel=False, my_tags=None, mul_num=False, 
@@ -41,8 +34,6 @@ def main(name, project, train, test,
     m_preProcess.maxNorm(x_test)
     (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
     (x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
-    # input shape
-    print(x_train.shape)
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
     # convert label 1-5 to 0-4
@@ -78,19 +69,19 @@ def main(name, project, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    m_model = MyInceptionAndAttention(n_classes=5, 
-                                      hight=128, 
-                                      width=512, 
-                                      findsDirObj=m_findsDir,
-                                      is_attention=is_attention)
+    model = MyInceptionAndAttentionAnd1dCNN(n_classes=5,
+                                            vec_dim=1,
+                                            timesteps=512,
+                                            batch=32,
+                                            findsDirObj=fd)
     
     # ================================================ #
     #*       モデルのコンパイル（サブクラスなし）
     # ================================================ #
     
-    m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True),
-                          metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(), 
+                  loss=EDLLoss(K=5),
+                  metrics=['accuracy', 'mse'])
     
     # ================================================ #
     #*                   モデル学習
@@ -109,16 +100,16 @@ def main(name, project, train, test,
         pass
         # tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
     
-    m_model.model.fit(x_train,
-                      y_train,
-                      batch_size=8,
-                      validation_data = (x_test, y_test),
-                      epochs = epoch,
-                      callbacks = [w_callBack],
-                      verbose = 2)
+    model.fit(x_train,
+              y_train,
+              batch_size=8,
+              validation_data = (x_test, y_test),
+              epochs = epoch,
+              callbacks = [w_callBack],
+              verbose = 2)
     
     if isSaveModel:
-        m_model.saveModel(id = id)
+        model.saveModel(id = id)
     wandb.finish()
 
 # ================================================ #
@@ -127,7 +118,7 @@ def main(name, project, train, test,
 
 if __name__ == '__main__':   
 
-    m_findsDir = FindsDir("sleep")
+    fd = FindsDir("sleep")
     m_preProcess = PreProcess(input_file_name=Utils().name_dict)
     m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1

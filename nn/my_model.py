@@ -6,6 +6,7 @@ import tensorflow as tf
 from model_base import ModelBase, CreateModelBase, CustomModel
 import layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
+from tensorflow.python.keras import backend
 
 def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
     """スカラからスカラを予測する全結合モデル
@@ -425,86 +426,131 @@ class MyInceptionAndAttentionAnd1dCNN(CustomModel):
     
     def __init__(self, 
                  n_classes, 
-                 hight, 
-                 width, 
+                 vec_dim,
+                 timesteps, 
                  findsDirObj, 
-                 channel=1, 
+                 batch=None,
                  is_attention=True):
         super().__init__(findsDirObj=findsDirObj)
         tf.random.set_seed(0)
         self.n_classes = n_classes
-        self.hight = hight
-        self.width = width
-        self.channel = channel
-        self.input = tf.keras.Input(shape=(self.hight, 
-                                           self.width, 
-                                           self.channel))
-        
-        self.conv01 = tf.keras.layers.Conv1D(filters=32,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn01 = tf.keras.layers.BatchNormalization(name="my_bn")
-
-        self.conv02 = tf.keras.layers.Conv1D(filters=32,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn02 = tf.keras.layers.BatchNormalization(name="my_bn")
-
-        self.conv03 = tf.keras.layers.Conv1D(filters=64,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn03 = tf.keras.layers.BatchNormalization(name="my_bn")
-
-        self.conv04 = tf.keras.layers.Conv1D(filters=80,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn04 = tf.keras.layers.BatchNormalization(name="my_bn")
-
-        self.conv05 = tf.keras.layers.Conv1D(filters=80,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn05 = tf.keras.layers.BatchNormalization(name="my_bn")
-
-        self.conv06 = tf.keras.layers.Conv1D(filters=80,
-                                            kernel_size=3,
-                                            strides=3,
-                                            activation='relu',
-                                            name="my_conv")
-        self.bn06 = tf.keras.layers.BatchNormalization(name="my_bn")
-
+        self.vec_dim = vec_dim
+        self.timesteps = timesteps
+        self.batch = batch
+        if backend.image_data_format() == 'channel_first':
+            self.channel_axis = 1
+        else:
+            self.channel_axis = 2
+        # input_shape = (batch, timesteps, vector's dim)
+        self.my_input_shape = (self.batch, self.timesteps, self.vec_dim)
+        self.gap = tf.keras.layers.GlobalAveragePooling1D()
         self.maxpool01 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter03")
         self.maxpool02 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter06")
-
+        self.dense1 = tf.keras.layers.Dense(self.n_classes**2,
+                                            activation='relu')
+        self.dense2 = tf.keras.layers.Dense(self.n_classes)
     
     def call(self, x):
-        x = self.conv(x)
-        x = self.feature(x)
-        if self.is_attention:
-            attention = self.attention(x)
-            x*=attention
-        x = self.GAP(x)
+        x = self.conv1d_bn(x=x,
+                           filters=32,
+                           kernelsize=3,
+                           strides=2,
+                           padding='valid')
+        x = self.conv1d_bn(x=x,
+                           filters=32,
+                           kernelsize=3,
+                           padding='valid')
+        x = self.conv1d_bn(x=x,
+                           filters=64,
+                           kernelsize=3)
+        x = tf.keras.layers.MaxPooling1D(pool_size=3,
+                                         strides=2)(x)
+        
+        x = self.conv1d_bn(x=x,
+                           filters=80,
+                           kernelsize=1,
+                           padding='valid')
+        x = self.conv1d_bn(x=x,
+                           filters=192,
+                           kernelsize=3,
+                           padding='valid')
+        x = tf.keras.layers.MaxPooling1D(pool_size=3,
+                                         strides=2)(x)
+        # mixed 0: 35 x 256
+        branch1x1 = self.conv1d_bn(x=x,
+                                   filters=64,
+                                   kernelsize=1)
+        
+        branch5x5 = self.conv1d_bn(x=x,
+                                   filters=48,
+                                   kernelsize=1)
+        branch5x5 = self.conv1d_bn(x=x,
+                                   filters=64,
+                                   kernelsize=5)
+        
+        branch3x3dbl = self.conv1d_bn(x=x,
+                                      filters=64,
+                                      kernelsize=1)
+        branch3x3dbl = self.conv1d_bn(x=branch3x3dbl,
+                                      filters=96,
+                                      kernelsize=3)
+        branch3x3dbl = self.conv1d_bn(x=branch3x3dbl,
+                                      filters=96,
+                                      kernelsize=3)
+        
+        branch_pool = tf.keras.layers.AveragePooling1D(pool_size=3,
+                                                        strides=1,
+                                                        padding='same')(x)
+        branch_pool = self.conv1d_bn(x=branch_pool,
+                                      filters=32,
+                                      kernelsize=1)
+        
+        x = tf.keras.layers.concatenate([branch1x1,
+                                         branch5x5,
+                                         branch3x3dbl,
+                                         branch_pool],
+                                        axis=self.channel_axis,
+                                        name='mixed0')
+        # gather along with channel axis
+        x = self.gap(x)
         x = self.dense1(x)
         x = self.dense2(x)
+        # evidence : 活性化関数(普通の関数の出力のイメージ)．論文内のe_kの事
         evidence = tf.nn.relu(x)
+        # alpha : ディリクレ分布のハイパーパラメータ
         alpha = evidence+1
+        # uncertainty : クラス分類数/Σ alpha
         u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
-        prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        return x
+        # probabitity : クラス予測
+        prob = alpha/tf.reduce_sum(alpha,axis=1,keepdims=True)
+        return prob
 
     def createModel(self):
-        inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))
-        return tf.keras.Model([inputs], self.call(inputs))
+        inputs = tf.keras.Input(shape=self.my_input_shape[1:])
+        return tf.keras.Model(inputs, self.call(inputs))
 
+    def conv1d_bn(self, x, filters, kernelsize, padding="same", strides=1, name=None):
+        if name is not None:
+            bn_name = name + "_bn"
+            conv_name = name + "_conv"
+        else:
+            bn_name = None
+            conv_name = None
+        if backend.image_data_format() == "channels_first":
+            bn_axis = 1
+        else:
+            bn_axis = 1
+        x = tf.keras.layers.Conv1D(filters=filters,
+                                   kernel_size=kernelsize,
+                                   strides=strides,
+                                   padding=padding,
+                                   use_bias=False,
+                                   name=conv_name)(x)
+        x = tf.keras.layers.BatchNormalization(axis=bn_axis,
+                                               scale=False,
+                                               name=bn_name)(x)
+        x = tf.keras.layers.Activation('relu', name=name)(x)
+        return x
 
 # ================================================ #
 # *         テスト用メイン部分

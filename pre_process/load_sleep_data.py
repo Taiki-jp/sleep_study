@@ -11,26 +11,26 @@ from file_reader import FileReader
 
 class LoadSleepData():
 
-    def __init__(self, input_file_name):
+    def __init__(self, input_file_name=None):
         """[summary]
 
         Args:
             input_file_name ([type]): [description]
             test_id ([type]): [TODO : 今後全員のデータを一括で読み込むときは実装してもよい部分（テストデータと訓練データを分けるため）]
         """
-        self.m_fileReader = FileReader()
-        self.inputFileName = self.m_fileReader.determinFilePath(input_file_name)
+        self.FR = FileReader()
+        self.input_filename = self.FR.determinFilePath(input_file_name)
     
     def load_data(self, name=None):
         if name:
-            return self.m_fileReader.loadNormal(name)
+            return self.FR.loadNormal(name)
         else:
-            return self.m_fileReader.loadNormal(self.inputFileName)
+            return self.FR.loadNormal(self.input_filename)
     
     def load_data_all(self):
         records = list()
-        for name in self.m_fileReader.name_list:
-            records.extend(self.m_fileReader.loadNormal(self.m_fileReader.determinFilePath(name)))
+        for name in self.FR.name_list:
+            records.extend(self.FR.loadNormal(self.FR.determinFilePath(name)))
         return records
     
 # ================================================ #

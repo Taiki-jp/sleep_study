@@ -107,7 +107,7 @@ class CreateModelBase(object):
 
 class CustomModel(tf.keras.Model):
     def __init__(self,
-                 load_file_path,
+                 #load_file_path,
                  findsDirObj,
                  base_model=None,
                  exploit_input_layer=0,
@@ -121,19 +121,23 @@ class CustomModel(tf.keras.Model):
             exploit_input_layer (int, optional): [ベース構造が指定されていないときは0]. Defaults to 0.
             exploit_output_layer ([int], optional): [ベース構造が指定されていないときはNone]. Defaults to None.
         """
-        super(CustomModel, self).__init__()
+        super().__init__()
         self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name = 'accuracy')
-        self.load_file_path = load_file_path
+        #self.load_file_path = load_file_path
         self.findsDirObj = findsDirObj
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.base_model = base_model
         self.exploit_input_layer = exploit_input_layer
         self.exploit_output_layer = exploit_output_layer
         
-    def compile(self, optimizer, loss):
-        super(CustomModel, self).compile()
+    def compile(self, 
+                optimizer, 
+                loss, 
+                metrics):
+        super().compile(metrics=metrics)
         self.optimizer = optimizer
         self.loss = loss
+        #self.metrics = metrics
     
     def train_step(self, data):
         x, y = data
