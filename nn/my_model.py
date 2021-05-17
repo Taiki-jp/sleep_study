@@ -422,7 +422,7 @@ class MyShapingModel(tf.keras.Model):
 # *      Attention x 1dCNN x Inception Module
 # ================================================ #
 
-class MyInceptionAndAttentionAnd1dCNN(CustomModel):
+class MyInceptionAndAttentionAnd1dCNN(tf.keras.Model):
     
     def __init__(self, 
                  n_classes, 
@@ -431,12 +431,14 @@ class MyInceptionAndAttentionAnd1dCNN(CustomModel):
                  findsDirObj, 
                  batch=None,
                  is_attention=True):
-        super().__init__(findsDirObj=findsDirObj)
+        super().__init__()
         tf.random.set_seed(0)
         self.n_classes = n_classes
         self.vec_dim = vec_dim
         self.timesteps = timesteps
         self.batch = batch
+        self.findsDirObj = findsDirObj
+        self.is_attentino = is_attention
         if backend.image_data_format() == 'channel_first':
             self.channel_axis = 1
         else:
@@ -444,8 +446,6 @@ class MyInceptionAndAttentionAnd1dCNN(CustomModel):
         # input_shape = (batch, timesteps, vector's dim)
         self.my_input_shape = (self.batch, self.timesteps, self.vec_dim)
         self.gap = tf.keras.layers.GlobalAveragePooling1D()
-        self.maxpool01 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter03")
-        self.maxpool02 = tf.keras.layers.MaxPool1D(name="my_maxpoolafter06")
         self.dense1 = tf.keras.layers.Dense(self.n_classes**2,
                                             activation='relu')
         self.dense2 = tf.keras.layers.Dense(self.n_classes)
@@ -529,6 +529,7 @@ class MyInceptionAndAttentionAnd1dCNN(CustomModel):
         inputs = tf.keras.Input(shape=self.my_input_shape[1:])
         return tf.keras.Model(inputs, self.call(inputs))
 
+    # TODO : この関数が原因っぽいので参照元と比較したり、関数だけ取り出して学習できるか確かめる
     def conv1d_bn(self, x, filters, kernelsize, padding="same", strides=1, name=None):
         if name is not None:
             bn_name = name + "_bn"
