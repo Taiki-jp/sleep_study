@@ -3,15 +3,16 @@ import numpy as np
 
 class EDLLoss(tf.keras.losses.Loss):
     def __init__(self, K, global_step=0.5, annealing_step=0.5,
-                 name='custom_edl_loss'):
+                 name='custom_edl_loss', batch_size=8):
         super().__init__(name=name)
         self.K = K
         self.global_step = global_step
         self.annealing_step = annealing_step
+        self.batch_size = batch_size
         pass
     
     def call(self, y_true, alpha):
-        print("alpha", alpha)
+        #print("alpha", alpha)
         return self.loss_eq5(y_true=y_true, alpha=alpha)
     
     def KL(self, alpha):
@@ -30,6 +31,8 @@ class EDLLoss(tf.keras.losses.Loss):
     def loss_eq5(self, y_true, alpha):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         # 2乗誤差
+        _batch_dim, _ = alpha.shape
+        y_true = tf.one_hot(tf.reshape(y_true, _batch_dim), depth=5)
         L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)
         # ディリクレ分布の分散
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)

@@ -32,7 +32,7 @@ tf.config.run_functions_eagerly(True)
 def main(name, project, train, test, 
          epoch=1, isSaveModel=False, my_tags=None, mul_num=False, 
          checkpoint_path=None, is_attention=True, my_confusion_file_name=None,
-         id = None):
+         id = None, batch_size=8):
     
     # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
@@ -92,7 +92,7 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=EDLLoss(K=5),
+                          loss=EDLLoss(K=5, batch_size=batch_size),
                           metrics=["accuracy"])
     
     # ================================================ #
@@ -114,7 +114,7 @@ def main(name, project, train, test,
     
     m_model.model.fit(x_train,
                       y_train,
-                      batch_size=8,
+                      batch_size=batch_size,
                       validation_data = (x_test, y_test),
                       epochs = epoch,
                       callbacks = [w_callBack],
