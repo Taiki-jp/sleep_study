@@ -20,8 +20,11 @@ try:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 except:
     print("GPUがサポートされていません")
-tf.keras.backend.set_floatx('float32')
 
+# float32が推奨されているみたい
+tf.keras.backend.set_floatx('float32')
+# tf.functionのせいでデバッグがしずらい問題を解決してくれる？
+tf.config.run_functions_eagerly(True)
 # ================================================ #
 #  *                メイン関数
 # ================================================ #
