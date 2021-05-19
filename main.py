@@ -9,7 +9,7 @@ import datetime, wandb
 from pre_process.wandb_classification_callback import WandbClassificationCallback
 import tensorflow as tf
 from nn.my_model import MyInceptionAndAttention
-from losses import EDLLoss
+from losses import EDLLoss, MyLoss
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.utils import PreProcess, Utils
 from collections import Counter
@@ -23,8 +23,8 @@ except:
 
 # float32が推奨されているみたい
 tf.keras.backend.set_floatx('float32')
-# tf.functionのせいでデバッグがしずらい問題を解決してくれる？
-tf.config.run_functions_eagerly(True)
+# tf.functionのせいでデバッグがしずらい問題を解決してくれる（これを使わないことでエラーが起こらなかったりする）
+# tf.config.run_functions_eagerly(True)
 # ================================================ #
 #  *                メイン関数
 # ================================================ #
@@ -92,7 +92,8 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=EDLLoss(K=5, batch_size=batch_size),
+                          #loss=EDLLoss(K=5, batch_size=batch_size),
+                          loss=MyLoss(),
                           metrics=["accuracy"])
     
     # ================================================ #

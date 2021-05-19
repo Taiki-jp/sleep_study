@@ -1,5 +1,8 @@
 import tensorflow as tf
 import numpy as np
+from tensorflow.python.framework import ops
+from tensorflow.python.ops import math_ops
+from tensorflow.python.keras import backend as K
 
 class EDLLoss(tf.keras.losses.Loss):
     def __init__(self, K, global_step=0.5, annealing_step=0.5,
@@ -11,7 +14,7 @@ class EDLLoss(tf.keras.losses.Loss):
         self.batch_size = batch_size
         pass
     
-    def call(self, y_true, alpha):
+    def call(self, y_true, alpha):  # TODO : alphaじゃなくて確率の出力を渡した方が良い？
         #print("alpha", alpha)
         return self.loss_eq5(y_true=y_true, alpha=alpha)
     
@@ -39,3 +42,20 @@ class EDLLoss(tf.keras.losses.Loss):
         # 損失関数:lambda * KL_div
         KL_reg =  tf.minimum(1.0, tf.cast(self.global_step/self.annealing_step, tf.float32)) * self.KL((alpha - 1)*(1-y_true) + 1)
         return L_err + L_var + KL_reg
+    
+class MyLoss(tf.keras.losses.Loss):
+    # NOTE : from_logits = Trueのみの実装
+    def __init__(self, name='my_loss', axis=-1):
+        super().__init__(name=name)
+        self.axis = axis
+        pass
+    
+    def call(self, y_true, y_pred):
+        # reference : https://github.com/tensorflow/tensorflow/blob/v2.5.0/tensorflow/python/keras/losses.py#L687-L759
+        # 上の実際のコードを基にソフトマックスクロスエントロピーを再現
+        # y_true.shape = (batch_size), y_pred.shape = (batch_size, num_classes)
+        y_pred = ops.convert_to_tensor_v2_with_dispatch(y_pred)
+        y_true = math_ops.cast(y_true, y_pred.dtype)
+        # y_true = ops.convert_to_tensor_v2_with_dispatch(y_true)
+        #return K.sparse
+        return K.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True, axis=self.axis)
