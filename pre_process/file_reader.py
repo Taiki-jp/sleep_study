@@ -9,8 +9,8 @@ from subjects_list import SubjectsList
 
 class FileReader(object):
     def __init__(self):
-        #self.date = "20210201-055748"  # スペクトログラム
-        self.date = "20210320-011750"  # スペクトラム版
+        self.date = "20210201-055748"  # スペクトログラム
+        #self.date = "20210320-011750"  # スペクトラム版
         self.name_list = SubjectsList().nameList
         self.name_dict = {name : name+"_"+self.date+".sav" for name in self.name_list}
         self.dirName = os.path.join(os.environ['sleep'], "datas", "pre_processed_data")

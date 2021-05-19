@@ -241,7 +241,7 @@ class MyInceptionAndAttention(ModelBase):
         alpha = evidence+1
         u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
         prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        return x
+        return prob
 
     def createModel(self):
         inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))

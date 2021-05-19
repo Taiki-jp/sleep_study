@@ -89,7 +89,7 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True),
+                          loss=EDLLoss(K=5),
                           metrics=["accuracy"])
     
     # ================================================ #

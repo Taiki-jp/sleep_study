@@ -226,8 +226,9 @@ class PreProcess():
                 print('データサイズをそろえずにデータセットを作成します')
         
         # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
-        return (self.list2Spectrum(train), self.list2SS(train)), (self.list2Spectrum(test), self.list2SS(test))
-    
+        return (self.list2Spectrogram(train), self.list2SS(train)), (self.list2Spectrogram(test), self.list2SS(test))
+        #return (self.list2Spectrum(train), self.list2SS(train)), (self.list2Spectrum(test), self.list2SS(test))
+
     def maxNorm(self, data):  
         for X in data:  # TODO : 全体の値で割るようなこともする
             X /= X.max()
