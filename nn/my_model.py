@@ -2,8 +2,9 @@
 # *         Import Some Libraries
 # ================================================ #
 
+from nn.model_base import EDLModelBase
 import tensorflow as tf
-from model_base import ModelBase, CreateModelBase, CustomModel
+from model_base import ModelBase, CreateModelBase, EDLModelBase
 import layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 from tensorflow.python.keras import backend
@@ -205,10 +206,10 @@ class MyInception(ModelBase):
 # *         SubClass x Inception モデル
 # ================================================ #
 
-class MyInceptionAndAttention(ModelBase):
+class MyInceptionAndAttention(EDLModelBase):
     
     def __init__(self, n_classes, hight, width, findsDirObj, channel=1, is_attention=True):
-        super().__init__(findsDirObj=findsDirObj)
+        super().__init__(findsDirObj=findsDirObj, n_class=n_classes)
         tf.random.set_seed(0)
         self.n_classes = n_classes
         self.hight = hight
@@ -238,11 +239,8 @@ class MyInceptionAndAttention(ModelBase):
         x = self.dense1(x)
         x = self.dense2(x)
         evidence = tf.nn.relu(x)
-        alpha = evidence+1
-        u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
-        prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        return prob
-
+        return evidence
+        
     def createModel(self):
         inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))
         return tf.keras.Model([inputs], self.call(inputs))

@@ -32,7 +32,7 @@ tf.keras.backend.set_floatx('float32')
 def main(name, project, train, test, 
          epoch=1, isSaveModel=False, my_tags=None, mul_num=False, 
          checkpoint_path=None, is_attention=True, my_confusion_file_name=None,
-         id = None, batch_size=8):
+         id = None, batch_size=32, n_class=5):
     
     # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
@@ -45,12 +45,15 @@ def main(name, project, train, test,
     (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
     (x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
     # input shape
-    print(x_train.shape)
+    print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
     # convert label 1-5 to 0-4
     y_train-=1
     y_test-=1
+    # convert2one-hot
+    y_train = tf.one_hot(y_train, n_class)
+    y_test = tf.one_hot(y_test, n_class)
     # ================================================ #
     #  *             データ保存先の設定
     # ================================================ #
@@ -92,8 +95,8 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          #loss=EDLLoss(K=5, batch_size=batch_size),
-                          loss=MyLoss(),
+                          loss=EDLLoss(K=5, batch_size=batch_size),
+                          #loss=MyLoss()
                           metrics=["accuracy"])
     
     # ================================================ #
@@ -101,7 +104,7 @@ def main(name, project, train, test,
     # ================================================ #
     w_callBack = WandbClassificationCallback(validation_data=(x_test, y_test),
                                              training_data=(x_train, y_train),
-                                             log_confusion_matrix=True,
+                                             log_confusion_matrix=False,
                                              labels=["nr34", "nr2", "nr1", "rem", "wake"],
                                              show_my_confusion_title=True,
                                              my_confusion_title="confusion matrix",
@@ -148,8 +151,8 @@ if __name__ == '__main__':
         cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
         m_preProcess.check_path_auto(cm_file_name)
     
-        main(name = "test", project = "test",
-             train=train, test=test, epoch=50, isSaveModel=True, mul_num=MUL_NUM,
-             my_tags=["f measure", "testそのまま", f"train:1:{MUL_NUM}", attention_tag],
+        main(name = "edl", project = "edl",
+             train=train, test=test, epoch=500, isSaveModel=True, mul_num=MUL_NUM,
+             my_tags=["loss_all", f"{list(Utils().name_dict.keys())[0]}", f"train:1:{MUL_NUM}", attention_tag],
              checkpoint_path=None, is_attention = is_attention, 
              my_confusion_file_name=cm_file_name, id=id)

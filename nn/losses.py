@@ -14,8 +14,9 @@ class EDLLoss(tf.keras.losses.Loss):
         self.batch_size = batch_size
         pass
     
-    def call(self, y_true, alpha):  # TODO : alphaじゃなくて確率の出力を渡した方が良い？
+    def call(self, y_true, evidence):  # TODO : alphaじゃなくて確率の出力を渡した方が良い？
         #print("alpha", alpha)
+        alpha = evidence+1
         return self.loss_eq5(y_true=y_true, alpha=alpha)
     
     def KL(self, alpha):
@@ -35,13 +36,14 @@ class EDLLoss(tf.keras.losses.Loss):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         # 2乗誤差
         _batch_dim, _ = alpha.shape
-        y_true = tf.one_hot(tf.reshape(y_true, _batch_dim), depth=5)
+        # FIXME : eager executionのときのみエラーが起こらない
+        # y_true = tf.one_hot(tf.reshape(y_true, _batch_dim), depth=5)
         L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)
         # ディリクレ分布の分散
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
         # 損失関数:lambda * KL_div
         KL_reg =  tf.minimum(1.0, tf.cast(self.global_step/self.annealing_step, tf.float32)) * self.KL((alpha - 1)*(1-y_true) + 1)
-        return L_err + L_var + KL_reg
+        return L_err + L_var + 0.01*KL_reg
     
 class MyLoss(tf.keras.losses.Loss):
     # NOTE : from_logits = Trueのみの実装

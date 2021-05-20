@@ -105,49 +105,49 @@ class CreateModelBase(object):
 # *　Model に対して様々な自動操作を行うクラスをそろえた関数
 # ================================================ #
 
-class CustomModel(tf.keras.Model):
+class EDLModelBase(tf.keras.Model):
     def __init__(self,
-                 #load_file_path,
                  findsDirObj,
-                 base_model=None,
-                 exploit_input_layer=0,
-                 exploit_output_layer=0):
+                 n_class):
         """初期化メソッド
 
         Args:
-            load_file_path ([bool]): [継承先でここにパスを入れると指定したファイルパスのモデルを読み込む]
             findsDirObj([object]): [保存パスを見つけるためのオブジェクト] Defaults to None
-            base_model ([model], optional): [ベース構造（特徴抽出）に用いたいモデルを入れる]. Defaults to None.
-            exploit_input_layer (int, optional): [ベース構造が指定されていないときは0]. Defaults to 0.
-            exploit_output_layer ([int], optional): [ベース構造が指定されていないときはNone]. Defaults to None.
         """
         super().__init__()
-        self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name = 'accuracy')
-        #self.load_file_path = load_file_path
         self.findsDirObj = findsDirObj
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.base_model = base_model
-        self.exploit_input_layer = exploit_input_layer
-        self.exploit_output_layer = exploit_output_layer
-        
+        self.n_class = n_class
+
+    def saveModel(self, id):
+        """パスを指定しなくていい分便利
+
+        Args:
+            id ([string]): [名前が被らないように日付を渡す]
+        """
+        path = os.path.join(self.findsDirObj.returnFilePath(), "models", id)
+        self.model.save(path)
+
     def compile(self, 
                 optimizer, 
                 loss, 
                 metrics):
-        super().compile(metrics=metrics)
+        super().compile()
         self.optimizer = optimizer
         self.loss = loss
-        #self.metrics = metrics
+        self.metrics = metrics
     
     def train_step(self, data):
         x, y = data
 
         with tf.GradientTape() as tape:
             # Caclulate predictions
-            y_pred = self.model(x, training=True)
-
+            evidence = self.model(x, training=True)
+            alpha = evidence+1
+            #uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+            y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
             # Loss
-            loss = self.loss(y, y_pred)
+            loss = self.loss(y, alpha)
 
         # Gradients
         training_vars = self.trainable_variables
@@ -155,8 +155,9 @@ class CustomModel(tf.keras.Model):
 
         # Step with optimizer
         self.optimizer.apply_gradients(zip(gradients, training_vars))
+        # accuracyのメトリクスにはy_predを入れる
         self.acc_metric.update_state(y, y_pred)
-
+        # loss: edlのロス，accuracy: edlの出力が合っているか
         return {"loss": loss, "accuracy": self.acc_metric.result()}
     
     def test_step(self, data):
@@ -164,11 +165,11 @@ class CustomModel(tf.keras.Model):
         x, y = data
 
         # Compute predictions
-        y_pred = self.model(x, training=False)
-
+        evidence = self.model(x, training=False)
+        alpha = evidence+1
+        y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
         # Updates the metrics tracking the loss
-        loss = self.loss(y, y_pred)
-
+        loss = self.loss(y, alpha)
         # Update the metrics.
         self.acc_metric.update_state(y, y_pred)
         return {"loss": loss, "accuracy": self.acc_metric.result()}
