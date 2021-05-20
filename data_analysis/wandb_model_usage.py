@@ -1,6 +1,6 @@
 import wandb
 
-wandb.init(project = "FNN")
+wandb.init(project = "edl")
 
 model = wandb.restore("model-best.h5",
-                      run_path = "taiki/FNN/2lawwaa9")
+                      run_path = "taiki/edl/28pgzug2")

@@ -8,7 +8,7 @@ SetsPath().set()
 import datetime, wandb
 from pre_process.wandb_classification_callback import WandbClassificationCallback
 import tensorflow as tf
-from nn.my_model import MyInceptionAndAttention
+from nn.my_model import MyInceptionAndAttention, build_my_model
 from losses import EDLLoss, MyLoss
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.utils import PreProcess, Utils
@@ -24,7 +24,7 @@ except:
 # float32が推奨されているみたい
 tf.keras.backend.set_floatx('float32')
 # tf.functionのせいでデバッグがしずらい問題を解決してくれる（これを使わないことでエラーが起こらなかったりする）
-# tf.config.run_functions_eagerly(True)
+tf.config.run_functions_eagerly(True)
 # ================================================ #
 #  *                メイン関数
 # ================================================ #
@@ -84,20 +84,20 @@ def main(name, project, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    m_model = MyInceptionAndAttention(n_classes=n_class, 
-                                      hight=128, 
-                                      width=512, 
-                                      findsDirObj=m_findsDir,
-                                      is_attention=is_attention)
+    model = MyInceptionAndAttention(n_classes=n_class, 
+                                    hight=128, 
+                                    width=512, 
+                                    findsDirObj=m_findsDir,
+                                    is_attention=is_attention)
     
     # ================================================ #
     #*       モデルのコンパイル（サブクラスなし）
     # ================================================ #
     
-    m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=EDLLoss(K=n_class, batch_size=batch_size),
-                          #loss=MyLoss()
-                          metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(),
+                  loss=EDLLoss(K=n_class, batch_size=batch_size),
+                  #loss=MyLoss()
+                  metrics=["accuracy"])
     
     # ================================================ #
     #*                   モデル学習
@@ -116,16 +116,16 @@ def main(name, project, train, test,
         pass
         # tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
     
-    m_model.model.fit(x_train,
-                      y_train,
-                      batch_size=batch_size,
-                      validation_data = (x_test, y_test),
-                      epochs = epoch,
-                      callbacks = [w_callBack],
-                      verbose = 2)
+    model.fit(x_train,
+              y_train,
+              batch_size=batch_size,
+              validation_data = (x_test, y_test),
+              epochs = epoch,
+              callbacks = [w_callBack],
+              verbose = 2)
     
     if isSaveModel:
-        m_model.saveModel(id = id)
+        model.saveModel(id = id)
     wandb.finish()
 
 # ================================================ #

@@ -124,7 +124,8 @@ class PreProcess():
                     is_shuffle = True,
                     is_multiply = False,
                     mul_num = None,
-                    verbose=0):
+                    verbose=0,
+                    each_data_size=1000):
         """[summary]
 
         Args:
@@ -146,7 +147,7 @@ class PreProcess():
             if verbose == 0:
                 print("訓練データのサイズを揃えます")
             
-            ss_dict_train = self.setDataSize(train, target_ss=target_ss, isStorchastic=is_storchastic)
+            ss_dict_train = self.setDataSize(train, target_ss=target_ss, isStorchastic=is_storchastic, each_data_size=each_data_size)
             ss_dict_test = Counter([record.ss for record in test])
             
             if verbose == 0:
@@ -251,7 +252,7 @@ class PreProcess():
                 y_data[num] = nr4LabelTo
         return y_data-1
     
-    def setDataSize(self, ss_list, target_ss, isStorchastic):
+    def setDataSize(self, ss_list, target_ss, isStorchastic, each_data_size):
 
         from collections import Counter
         if isStorchastic:
@@ -293,7 +294,7 @@ class PreProcess():
             return ss_dict
         else:
             # 400個作成する
-            return {1:400, 2:400, 3:400, 4:400, 5:400}
+            return {1:each_data_size, 2:each_data_size, 3:each_data_size, 4:each_data_size, 5:each_data_size}
     
     def binClassChanger(self, y_data, target_ss):
         # target_ss or non-target_ss

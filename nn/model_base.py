@@ -126,7 +126,7 @@ class EDLModelBase(tf.keras.Model):
             id ([string]): [名前が被らないように日付を渡す]
         """
         path = os.path.join(self.findsDirObj.returnFilePath(), "models", id)
-        self.model.save(path)
+        self.save(path)
 
     def compile(self, 
                 optimizer, 
@@ -135,7 +135,7 @@ class EDLModelBase(tf.keras.Model):
         super().compile()
         self.optimizer = optimizer
         self.loss = loss
-        self.metrics = metrics
+        self.my_metrics = metrics
     
     def train_step(self, data):
         x, y = data
