@@ -2,7 +2,7 @@
 # *            ライブラリのインポート
 # ================================================ #
 import pickle, sys, os
-from subjects_list import SubjectsList
+from pre_process.subjects_list import SubjectsList
 # ================================================ #
 # *      pickle ファイル読み込みのためのクラス
 # ================================================ #

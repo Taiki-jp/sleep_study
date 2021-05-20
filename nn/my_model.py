@@ -4,8 +4,8 @@
 
 from nn.model_base import EDLModelBase
 import tensorflow as tf
-from model_base import ModelBase, CreateModelBase, EDLModelBase
-import layer_base as MyLayer
+from nn.model_base import ModelBase, CreateModelBase, EDLModelBase
+import nn.layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 from tensorflow.python.keras import backend
 
@@ -552,9 +552,25 @@ class MyInceptionAndAttentionAnd1dCNN(tf.keras.Model):
         return x
 
 # ================================================ #
+# *                モデルのビルト
+# ================================================ #
+
+def build_my_model(input_shape: tuple,
+                   model: tf.keras.Model):
+    inputs = tf.keras.Input(shape=input_shape)
+    outputs = model(inputs)
+    model = tf.keras.Model(inputs, outputs)
+    return model
+
+# ================================================ #
 # *         テスト用メイン部分
 # ================================================ #
 
 if __name__ == '__main__':
-    model = MyInceptionAndAttention(5, 224, 224, 1).createModel()
+    #model = MyInceptionAndAttention(5, 224, 224, 1).createModel()
+    #print(model.summary())
+    from pre_process.utils import FindsDir
+    fd = FindsDir("sleep")
+    model = build_my_model(input_shape=(224, 224, 1),
+                           model = MyInceptionAndAttention(5, 512, 128, fd))
     print(model.summary())

@@ -43,7 +43,7 @@ class EDLLoss(tf.keras.losses.Loss):
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
         # 損失関数:lambda * KL_div
         KL_reg =  tf.minimum(1.0, tf.cast(self.global_step/self.annealing_step, tf.float32)) * self.KL((alpha - 1)*(1-y_true) + 1)
-        return L_err + L_var + 0.01*KL_reg
+        return L_err + L_var + 0.1*KL_reg
     
 class MyLoss(tf.keras.losses.Loss):
     # NOTE : from_logits = Trueのみの実装

@@ -2,9 +2,9 @@
 # *            ライブラリのインポート
 # ================================================ #
 from numpy.core.records import record
-from file_reader import FileReader
+from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
-from my_setting import *
+from pre_process.my_setting import *
 SetsPath().set()
 import os, wandb
 import matplotlib.pyplot as plt

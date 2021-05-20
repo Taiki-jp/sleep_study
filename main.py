@@ -84,7 +84,7 @@ def main(name, project, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    m_model = MyInceptionAndAttention(n_classes=5, 
+    m_model = MyInceptionAndAttention(n_classes=n_class, 
                                       hight=128, 
                                       width=512, 
                                       findsDirObj=m_findsDir,
@@ -95,7 +95,7 @@ def main(name, project, train, test,
     # ================================================ #
     
     m_model.model.compile(optimizer=tf.keras.optimizers.Adam(),
-                          loss=EDLLoss(K=5, batch_size=batch_size),
+                          loss=EDLLoss(K=n_class, batch_size=batch_size),
                           #loss=MyLoss()
                           metrics=["accuracy"])
     
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         m_preProcess.check_path_auto(cm_file_name)
     
         main(name = "edl", project = "edl",
-             train=train, test=test, epoch=500, isSaveModel=True, mul_num=MUL_NUM,
-             my_tags=["loss_all", f"{list(Utils().name_dict.keys())[0]}", f"train:1:{MUL_NUM}", attention_tag],
+             train=train, test=test, epoch=50, isSaveModel=True, mul_num=MUL_NUM,
+             my_tags=["loss_all", f"{list(Utils().name_dict.keys())[test_id]}", f"train:1:{MUL_NUM}", attention_tag],
              checkpoint_path=None, is_attention = is_attention, 
              my_confusion_file_name=cm_file_name, id=id)
