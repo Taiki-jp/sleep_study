@@ -206,16 +206,18 @@ class MyInception(ModelBase):
 # *         SubClass x Inception モデル
 # ================================================ #
 
-class MyInceptionAndAttention(EDLModelBase):
+class MyInceptionAndAttention(tf.keras.Model):
     
     def __init__(self, n_classes, hight, width, findsDirObj, channel=1, is_attention=True):
-        super().__init__(findsDirObj=findsDirObj, n_class=n_classes)
+        super().__init__()
         tf.random.set_seed(0)
         self.n_classes = n_classes
         self.hight = hight
         self.width = width
         self.channel = channel
-        self.conv = tf.keras.layers.Conv2D(filters = 3, kernel_size = (1, 4), strides=(1, 4))
+        self.conv = tf.keras.layers.Conv2D(filters=3,
+                                           kernel_size=(1,4),
+                                           strides=(1, 4))
         self.baseModel = tf.keras.applications.InceptionV3(include_top = False)
         self.baseInputs = self.baseModel.layers[0].input
         self.baseOutputs = self.baseModel.get_layer('mixed0').output
@@ -225,13 +227,11 @@ class MyInceptionAndAttention(EDLModelBase):
         self.dense1 = tf.keras.layers.Dense(n_classes ** 2)
         self.dense2 = tf.keras.layers.Dense(n_classes)
         self.is_attention = is_attention
-        self.model = self.createModel()  # NOTE : ここが最後に来るようにする（じゃないと全部が初期化できない）
-        print(self.model.summary())
-        pass
     
     def call(self, x):
+        # xが3次元データのときは以下の処理を入れる
         x = self.conv(x)
-        x = self.feature(x)
+        #x = self.feature(x)
         if self.is_attention:
             attention = self.attention(x)
             x*=attention
@@ -240,11 +240,7 @@ class MyInceptionAndAttention(EDLModelBase):
         x = self.dense2(x)
         evidence = tf.nn.relu(x)
         return evidence
-        
-    def createModel(self):
-        inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))
-        return tf.keras.Model([inputs], self.call(inputs))
-    
+
 # ================================================ #
 # *         Functional x Inception モデル
 # !           NOTE : 今一番いいやつ

@@ -2,6 +2,7 @@
 # *            ライブラリのインポート
 # ================================================ #
 
+from nn.model_base import EDLModelBase
 import os
 from nn.my_setting import SetsPath, FindsDir
 SetsPath().set()
@@ -13,6 +14,7 @@ from losses import EDLLoss, MyLoss
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.utils import PreProcess, Utils
 from collections import Counter
+import numpy as np
 
 # NOTE : gpuを設定していない環境のためにエラーハンドル
 try:
@@ -24,7 +26,7 @@ except:
 # float32が推奨されているみたい
 tf.keras.backend.set_floatx('float32')
 # tf.functionのせいでデバッグがしずらい問題を解決してくれる（これを使わないことでエラーが起こらなかったりする）
-tf.config.run_functions_eagerly(True)
+# tf.config.run_functions_eagerly(True)
 # ================================================ #
 #  *                メイン関数
 # ================================================ #
@@ -35,6 +37,27 @@ def main(name, project, train, test,
          id = None, batch_size=32, n_class=5):
     
     # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
+    
+    # 無理やり追加した部分
+    # ========================================================
+    """
+    name = "edl"
+    project = "edl"
+    test_id = 1
+    (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
+    epoch = 100
+    mul_num = False
+    isSaveModel = False
+    my_tags = None
+    mul_num = 1
+    checkpoint_path=None
+    is_attention = True
+    my_confusion_file_name=None
+    id=datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    batch_size = 32
+    n_class = 5
+    """
+    # ========================================================
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
                                                                     test=test, 
                                                                     is_set_data_size=True,
@@ -54,6 +77,9 @@ def main(name, project, train, test,
     # convert2one-hot
     y_train = tf.one_hot(y_train, n_class)
     y_test = tf.one_hot(y_test, n_class)
+    # change x shape
+    x_train = x_train[:,:,:,np.newaxis]
+    x_test = x_test[:,:,:,np.newaxis]
     # ================================================ #
     #  *             データ保存先の設定
     # ================================================ #
@@ -84,11 +110,15 @@ def main(name, project, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    model = MyInceptionAndAttention(n_classes=n_class, 
-                                    hight=128, 
-                                    width=512, 
-                                    findsDirObj=m_findsDir,
-                                    is_attention=is_attention)
+    classifier = MyInceptionAndAttention(n_classes=n_class, 
+                                         hight=128, 
+                                         width=512, 
+                                         findsDirObj=fd,
+                                         is_attention=is_attention)
+    
+    model = EDLModelBase(classifier=classifier,
+                         findsDirObj=fd,
+                         n_class=n_class)
     
     # ================================================ #
     #*       モデルのコンパイル（サブクラスなし）
@@ -125,7 +155,8 @@ def main(name, project, train, test,
               verbose = 2)
     
     if isSaveModel:
-        model.saveModel(id = id)
+        path = os.path.join(os.environ["sleep"], "models", id)
+        model.save(path)
     wandb.finish()
 
 # ================================================ #
@@ -134,7 +165,7 @@ def main(name, project, train, test,
 
 if __name__ == '__main__':   
 
-    m_findsDir = FindsDir("sleep")
+    fd = FindsDir("sleep")
     m_preProcess = PreProcess(input_file_name=Utils().name_dict)
     m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1
@@ -152,7 +183,7 @@ if __name__ == '__main__':
         m_preProcess.check_path_auto(cm_file_name)
     
         main(name = "edl", project = "edl",
-             train=train, test=test, epoch=50, isSaveModel=True, mul_num=MUL_NUM,
+             train=train, test=test, epoch=100, isSaveModel=True, mul_num=MUL_NUM,
              my_tags=["loss_all", f"{list(Utils().name_dict.keys())[test_id]}", f"train:1:{MUL_NUM}", attention_tag],
              checkpoint_path=None, is_attention = is_attention, 
              my_confusion_file_name=cm_file_name, id=id)

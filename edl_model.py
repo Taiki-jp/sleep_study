@@ -12,6 +12,7 @@ from losses import EDLLoss
 from utils import FindsDir, PreProcess, Utils
 from load_sleep_data import LoadSleepData
 from my_model import MyInceptionAndAttention
+from model_base import EDLModelBase
 
 # float32が推奨されているみたい
 tf.keras.backend.set_floatx('float32')
@@ -19,12 +20,12 @@ tf.keras.backend.set_floatx('float32')
 tf.config.run_functions_eagerly(True)
 
 # murakamiテストのときのENNのパス
-path = os.path.join(os.environ["sleep"], "models", "20210520-194451")
+path = os.path.join(os.environ["sleep"], "models", "20210521-101824")
 
 # モデル読み込み
-model = tf.keras.models.load_model(path)
-                                   #custom_objects={"EDLLoss":EDLLoss(K=5)},
-                                   #compile=False)
+model = tf.keras.models.load_model(path,
+                                   #custom_objects={"EDLLoss":EDLLoss(K=5)})
+                                   compile=False)
 
 # うまく読み込めないときに使える（keras.Model型ではないのでfitとかはできない）
 
@@ -49,9 +50,16 @@ test_id = 1
                                                                 is_set_data_size=True,
                                                                 mul_num=1,
                                                                 is_storchastic=False) 
+m_preProcess.maxNorm(x_train)
+m_preProcess.maxNorm(x_test)
+(x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
+(x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
+
 y_train = tf.one_hot(y_train, depth=5)
 print(x_train[0].shape)
-pse_data = tf.expand_dims(x_train[0], axis=2)
-pse_data.shape
+x_train = np.reshape(x_train, (-1, 128, 512, 1))
 
-model.predict(x_train)
+model.predict(x_train[0])
+
+input_shape = (1, 128, 512, 1)
+pse_data = tf.random.normal(input_shape)

@@ -108,7 +108,8 @@ class CreateModelBase(object):
 class EDLModelBase(tf.keras.Model):
     def __init__(self,
                  findsDirObj,
-                 n_class):
+                 n_class,
+                 classifier):
         """初期化メソッド
 
         Args:
@@ -118,7 +119,11 @@ class EDLModelBase(tf.keras.Model):
         self.findsDirObj = findsDirObj
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.n_class = n_class
-
+        self.classifier = classifier
+        
+    def call(self, x):
+        return self.classifier(x)
+    
     def saveModel(self, id):
         """パスを指定しなくていい分便利
 
@@ -127,27 +132,19 @@ class EDLModelBase(tf.keras.Model):
         """
         path = os.path.join(self.findsDirObj.returnFilePath(), "models", id)
         self.save(path)
-
-    def compile(self, 
-                optimizer, 
-                loss, 
-                metrics):
-        super().compile()
-        self.optimizer = optimizer
-        self.loss = loss
-        self.my_metrics = metrics
     
     def train_step(self, data):
         x, y = data
 
         with tf.GradientTape() as tape:
             # Caclulate predictions
-            evidence = self.model(x, training=True)
+            evidence = self(x, training=True)
             alpha = evidence+1
             #uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
             y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
             # Loss
-            loss = self.loss(y, alpha)
+            loss = self.compiled_loss(y, alpha,
+                                      regularization_losses=self.losses)
 
         # Gradients
         training_vars = self.trainable_variables
@@ -156,20 +153,20 @@ class EDLModelBase(tf.keras.Model):
         # Step with optimizer
         self.optimizer.apply_gradients(zip(gradients, training_vars))
         # accuracyのメトリクスにはy_predを入れる
-        self.acc_metric.update_state(y, y_pred)
+        self.compiled_metrics.update_state(y, y_pred)
         # loss: edlのロス，accuracy: edlの出力が合っているか
-        return {"loss": loss, "accuracy": self.acc_metric.result()}
+        return {m.name: m.result() for m in self.metrics}
     
     def test_step(self, data):
         # Unpack the data
         x, y = data
 
         # Compute predictions
-        evidence = self.model(x, training=False)
+        evidence = self(x, training=False)
         alpha = evidence+1
         y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
         # Updates the metrics tracking the loss
-        loss = self.loss(y, alpha)
+        loss = self.compiled_loss(y, alpha)
         # Update the metrics.
-        self.acc_metric.update_state(y, y_pred)
-        return {"loss": loss, "accuracy": self.acc_metric.result()}
+        self.compiled_metrics.update_state(y, y_pred)
+        return {m.name: m.result() for m in self.metrics}
