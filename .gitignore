@@ -15,3 +15,7 @@ __pycache__/
 9/
 
 tmp_save/
+
+*.png
+*.csv
+custom_model/
