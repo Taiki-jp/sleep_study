@@ -58,11 +58,11 @@ def main(name, project, train, test,
     n_class = 5
     """
     # ========================================================
-    (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train, 
-                                                                    test=test, 
+    (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train,
+                                                                    test=test,
                                                                     is_set_data_size=True,
                                                                     mul_num=mul_num,
-                                                                    is_storchastic=False) 
+                                                                    is_storchastic=False)
     m_preProcess.maxNorm(x_train)
     m_preProcess.maxNorm(x_test)
     (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
