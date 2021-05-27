@@ -8,6 +8,61 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import tensorflow as tf
 
 # ================================================ #
+#           function APIによるモデル構築
+# ================================================ #
+
+def edl_classifier_2d(x, n_class):
+    # convolution AND batch normalization
+    def _conv2d_bn(x, filters, num_row, num_col,
+                   padding='same', strides=(1,1),name=None):
+        if name is not None:
+            bn_name = name+'_bn'
+            conv_name = name+'_conv'
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv2D(filters, (num_row, num_col),
+                                   strides=strides,
+                                   padding=padding,
+                                   use_bias=False,
+                                   name=conv_name)(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation('relu', name=name)(x)
+        return x
+
+    # shapeが合うように調整
+    x = tf.keras.layers.Conv2D(3, (1, 4), (1, 4))(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    # 畳み込み開始01
+    x = _conv2d_bn(x, 32, 3, 3, strides=(2,2), padding='valid')
+    x = _conv2d_bn(x, 32, 3, 3, padding='valid')
+    x = _conv2d_bn(x, 64, 3, 3)
+    x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
+    # 畳み込み開始02
+    x = _conv2d_bn(x, 80, 1, 1, padding='valid')
+    x = _conv2d_bn(x, 192, 3, 3, padding='valid')
+    x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
+    
+    # mixed 1: 35 x 35 x 288
+    branch1x1 = _conv2d_bn(x, 64, 1, 1)  
+    branch5x5 = _conv2d_bn(x, 48, 1, 1)
+    branch5x5 = _conv2d_bn(branch5x5, 64, 5, 5)  
+    branch3x3dbl = _conv2d_bn(x, 64, 1, 1)
+    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)
+    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)    
+    branch_pool = tf.keras.layers.AveragePooling2D(
+        (3, 3), strides=(1, 1), padding='same')(x)
+    branch_pool = _conv2d_bn(branch_pool, 64, 1, 1)
+    x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                                    axis=-1, name='mixed1')
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(n_class**2)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    x = tf.keras.layers.Dense(n_class)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+# ================================================ #
 # *     Model を継承した自作のモデルクラス
 # ?             あまり使えない
 # ================================================ #
@@ -106,23 +161,22 @@ class CreateModelBase(object):
 # ================================================ #
 
 class EDLModelBase(tf.keras.Model):
+    # NOTE : model.fitを呼ぶと，train_stepが呼ばれる
+    # その結果中身のself(x, training)によってmodel.callが呼ばれる
+    # そのためcallメソッド内にtrainingなどの引数を受け取れるように設定しておく必要がある
     def __init__(self,
-                 findsDirObj,
-                 n_class,
-                 classifier):
+                 findsDirObj=None,
+                 n_class=5,
+                 **kwargs):
         """初期化メソッド
 
         Args:
             findsDirObj([object]): [保存パスを見つけるためのオブジェクト] Defaults to None
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.findsDirObj = findsDirObj
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.n_class = n_class
-        self.classifier = classifier
-        
-    def call(self, x):
-        return self.classifier(x)
     
     def saveModel(self, id):
         """パスを指定しなくていい分便利

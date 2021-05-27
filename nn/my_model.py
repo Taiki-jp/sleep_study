@@ -220,6 +220,7 @@ class MyInceptionAndAttention(tf.keras.Model):
                                            strides=(1, 4))
         self.baseModel = tf.keras.applications.InceptionV3(include_top = False)
         self.baseInputs = self.baseModel.layers[0].input
+        # FIXME : gradientが存在しない層が複数個存在する（なぜ？）
         self.baseOutputs = self.baseModel.get_layer('mixed0').output
         self.feature = tf.keras.Model(self.baseInputs, self.baseOutputs)
         self.attention = MyLayer.MyAttention2D(filters=1, kernel_size=1)
@@ -231,7 +232,7 @@ class MyInceptionAndAttention(tf.keras.Model):
     def call(self, x):
         # xが3次元データのときは以下の処理を入れる
         x = self.conv(x)
-        #x = self.feature(x)
+        x = self.feature(x)
         if self.is_attention:
             attention = self.attention(x)
             x*=attention

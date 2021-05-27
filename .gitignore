@@ -19,3 +19,5 @@ tmp_save/
 *.png
 *.csv
 custom_model/
+
+model_saved_by_save_method/

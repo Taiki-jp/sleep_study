@@ -2,7 +2,8 @@
 # *            ライブラリのインポート
 # ================================================ #
 
-from nn.model_base import EDLModelBase
+from tensorflow.python.keras.backend import shape
+from nn.model_base import EDLModelBase, edl_classifier_2d
 import os
 from nn.my_setting import SetsPath, FindsDir
 SetsPath().set()
@@ -110,23 +111,16 @@ def main(name, project, train, test,
     #*         モデル作成（ネットから取ってくる方）
     # ================================================ #
     
-    classifier = MyInceptionAndAttention(n_classes=n_class, 
-                                         hight=128, 
-                                         width=512, 
-                                         findsDirObj=fd,
-                                         is_attention=is_attention)
-    
-    model = EDLModelBase(classifier=classifier,
-                         findsDirObj=fd,
-                         n_class=n_class)
+    inputs = tf.keras.Input(shape=(128, 512, 1))
+    outputs = edl_classifier_2d(x=inputs, n_class=n_class)
+    model = EDLModelBase(inputs=inputs, outputs=outputs)
     
     # ================================================ #
     #*       モデルのコンパイル（サブクラスなし）
     # ================================================ #
     
     model.compile(optimizer=tf.keras.optimizers.Adam(),
-                  loss=EDLLoss(K=n_class, batch_size=batch_size),
-                  #loss=MyLoss()
+                  loss=EDLLoss(K=n_class),
                   metrics=["accuracy"])
     
     # ================================================ #
