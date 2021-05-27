@@ -5,9 +5,10 @@ from tensorflow.python.ops import math_ops
 from tensorflow.python.keras import backend as K
 
 class EDLLoss(tf.keras.losses.Loss):
-    def __init__(self, K, name='custom_edl_loss', reduction='auto'):
+    def __init__(self, K, annealing, name='custom_edl_loss', reduction='auto'):
         super().__init__(name=name, reduction=reduction)
         self.K = K
+        self.annealing = annealing
         pass
     
     def call(self, y_true, evidence):  # TODO : alphaじゃなくて確率の出力を渡した方が良い？
@@ -43,7 +44,7 @@ class EDLLoss(tf.keras.losses.Loss):
     
     def get_config(self):
         config = super().get_config()
-        config.update({"K":self.K})
+        config.update({"K":self.K, "annealing":self.annealing})
         return config
     
 class MyLoss(tf.keras.losses.Loss):
