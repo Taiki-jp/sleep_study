@@ -22,6 +22,10 @@ import pickle
 import datetime
 
 # ================================================ #
+# *            　　　便利な関数群
+# ================================================ #
+
+# ================================================ #
 # *            主に画像の前処理クラス
 # ================================================ #
 
@@ -29,7 +33,7 @@ class PreProcess():
     
     def __init__(self, input_file_name=None):
         self.projectDir = os.environ['sleep']
-        self.figureDir = os.path.join(self.projectDir, "figures")
+        self.figure_dir = os.path.join(self.projectDir, "figures")
         self.videoDir = os.path.join(self.projectDir, "videos")
         self.tmpDir = os.path.join(self.projectDir, "tmps")
         self.analysisdir = os.path.join(self.projectDir, "analysis")
@@ -38,6 +42,7 @@ class PreProcess():
         self.file_dict = None
         self.name_dict = Utils().name_dict
         self.test_data_for_wandb = None
+        self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         seed(0)
         # 必ず辞書形式で受け取って（処理の重さは文字列と変わらないから）
         # loadDataメソッド内で読み込むデータ数を決定する
@@ -420,7 +425,7 @@ class PreProcess():
         plt.tight_layout()
         plt.show()
         
-    def makeConfusionMatrix(self, x, y, model, using_pandas = False):
+    def makeConfusionMatrixFromInput(self, x, y, model, using_pandas = False):
         """混合マトリクスを作成するメソッド
 
         Args:
@@ -439,15 +444,83 @@ class PreProcess():
                 df = pd.DataFrame(cm)
             return cm, df
         return cm, None
+
+    def make_confusion_matrix(self, y_true, y_pred, using_pandas = False):
+        """混合マトリクスを作成するメソッド
+
+        Args:
+            x ([array]]): [入力データ]
+            y ([array]]): [正解ラベル]
+        """
+        try:
+            assert np.ndim(y_true)==1
+        except:
+            print("正解データはlogitsで入力してください（one-hotじゃない形で！）")
+            sys.exit(1)
+        try:
+            assert np.ndim(y_pred)==2
+        except:
+            print("予測ラベルは確率で出力してください")
+        y_pred = np.argmax(y_pred, axis=1) 
+        
+        # ラベルの番号を睡眠段階に読み替える
+        # 5段階の睡眠段階の際はこの方法で良い
+        # y_trueはtensorflowのオブジェクトで値を変更できないみたいなので、
+        # _y_trueを代わりに作成してそっちに入れる
+        _y_true = [i for i in range(y_true.shape[0])]
+        _y_pred = [i for i in range(y_pred.shape[0])]
+        
+        for counter, true_label in enumerate(y_true.numpy()):
+            if true_label==0:
+                _y_true[counter]="nr34"
+            elif true_label==1:
+                _y_true[counter]="nr2"
+            elif true_label==2:
+                _y_true[counter]="nr1"
+            elif true_label==3:
+                _y_true[counter]="rem"
+            elif true_label==4:
+                _y_true[counter]="wake"
+            else:
+                print("sleep stage is out of range")
+                sys.exit(1)
+                
+        for counter, pred_label in enumerate(y_pred):
+            if pred_label==0:
+                _y_pred[counter]="nr34"
+            elif pred_label==1:
+                _y_pred[counter]="nr2"
+            elif pred_label==2:
+                _y_pred[counter]="nr1"
+            elif pred_label==3:
+                _y_pred[counter]="rem"
+            elif pred_label==4:
+                _y_pred[counter]="wake"
+            else:
+                print("sleep stage is out of range")
+                sys.exit(1)
+                
+        cm = confusion_matrix(y_true=_y_true, y_pred=_y_pred)
+        
+        if using_pandas:
+            try:
+                df = pd.DataFrame(cm,
+                                  index = ["wake", "rem", "nr1", "nr2", "nr34"],
+                                  columns = ["wake", "rem", "nr1", "nr2", "nr34"])
+            except:
+                df = pd.DataFrame(cm)
+            return cm, df
+        return cm, None
     
-    def saveImage2Wandb(self, image, dir2 = "confusion_matrix", fileName = "cm", to_wandb = False):
+    def save_image2wandb(self, image, dir2 = "confusion_matrix", fileName = "cm", to_wandb = False):
         sns.heatmap(image, annot = True, cmap = "Blues", fmt = "d")
-        path = self.figure_dir + os.path.join(dir2, fileName+".png")
+        path = os.path.join(self.figure_dir, dir2, fileName+"_"+str(self.date_id)+".png")
         plt.savefig(path)
         if to_wandb:
             im_read = plt.imread(path)
             wandb.log({f"{dir2}":[wandb.Image(im_read, caption = f"{fileName}")]})
         plt.clf()
+        return
     
     def simpleImage(self,
                     image_array,

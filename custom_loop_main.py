@@ -31,7 +31,7 @@ tf.keras.backend.set_floatx('float32')
 # ================================================ #
 
 def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False, 
-         checkpoint_path=None, is_attention=True, my_confusion_file_name=None,
+         checkpoint_path=None, has_attention=True, my_confusion_file_name=None,
          id = None, batch_size=32, n_class=5):
     
     (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train,
@@ -119,7 +119,7 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
         
         # エポックの終わりにメトリクスを表示する
         train_acc = train_acc_metric.result()
-        print(f"エポック中の訓練一致率：{train_acc:.2%}")
+        print(f"訓練一致率：{train_acc:.2%}")
         # エポックの終わりに訓練メトリクスを初期化
         train_acc_metric.reset_states()
         
@@ -132,15 +132,21 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
             val_acc_metric.update_state(y_batch_val, val_y_pred)  # NOTE : one-hotの形で入れるべき？
         # メトリクスを表示
         val_acc = val_acc_metric.result()
-        print(f"検証用データの一致率：{val_acc:.2%}")
+        print(f"テスト一致率：{val_acc:.2%}")
         # 初期化
         val_acc_metric.reset_states()
 
-        # wandbにログを送る
+        # wandbにログを送る（TODO：pre, rec, f-mも送る)
         wandb.log({"train_acc" : train_acc, "test_acc" : val_acc})
         
-        # 混合マトリクスの作成
+        # 混合マトリクスの作成（各エポック毎）
+        cm_train, _ = m_preProcess.make_confusion_matrix(y_true=y_batch_train, y_pred=y_pred)  # 訓練データ
+        cm_test, _ = m_preProcess.make_confusion_matrix(y_true=y_batch_val, y_pred=val_y_pred)
+        m_preProcess.save_image2wandb(cm_train, to_wandb=True, fileName="cm_train")
+        m_preProcess.save_image2wandb(cm_test, to_wandb=True, fileName="cm_test")
         
+        # 不確かさのヒストグラム（各エポック毎）
+        # 学習の最後に
         
     # wandbへの記録終了
     wandb.finish()
@@ -166,8 +172,7 @@ if __name__ == '__main__':
         #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
         #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
         cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
-        m_preProcess.check_path_auto(cm_file_name)
-    
+        m_preProcess.check_path_auto(cm_file_name)    
         main(name = list(Utils().name_dict.keys())[test_id], project = "edl",
              train=train, test=test, epochs=10, mul_num=MUL_NUM,
              my_tags=["loss_all", f"train:1:{MUL_NUM}", attention_tag],
