@@ -35,6 +35,7 @@ class EDLLoss(tf.keras.losses.Loss):
         _batch_dim, _ = alpha.shape
         # FIXME : eager executionのときのみエラーが起こらない
         # y_true = tf.one_hot(tf.reshape(y_true, _batch_dim), depth=5)
+        y_true = tf.one_hot(y_true, depth=self.K)
         L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)
         # ディリクレ分布の分散
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)

@@ -11,7 +11,7 @@ import tensorflow as tf
 #           function APIによるモデル構築
 # ================================================ #
 
-def edl_classifier_2d(x, n_class):
+def edl_classifier_2d(x, n_class, has_attention=True):
     # convolution AND batch normalization
     def _conv2d_bn(x, filters, num_row, num_col,
                    padding='same', strides=(1,1),name=None):
@@ -56,6 +56,10 @@ def edl_classifier_2d(x, n_class):
     x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
                                     axis=-1, name='mixed1')
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    if has_attention:
+        attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)
+        attention = tf.keras.layers.Activation('relu')(attention)
+        x *= attention
     x = tf.keras.layers.Dense(n_class**2)(x)
     x = tf.keras.layers.Activation('relu')(x)
     x = tf.keras.layers.Dense(n_class)(x)
