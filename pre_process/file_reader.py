@@ -1,44 +1,26 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
 import pickle, sys, os
 from pre_process.subjects_list import SubjectsList
-# ================================================ #
-# *      pickle ファイル読み込みのためのクラス
-# ================================================ #
+import pre_process.record as record
 
 class FileReader(object):
     def __init__(self):
-        self.date = "20210201-055748"  # スペクトログラム
-        #self.date = "20210320-011750"  # スペクトラム版
-        self.name_list = SubjectsList().nameList
-        self.name_dict = {name : name+"_"+self.date+".sav" for name in self.name_list}
-        self.dirName = os.path.join(os.environ['sleep'], "datas", "pre_processed_data")
-        if self.date == "20210201-055748":
-            self.input_type = "spectrogram"
-        elif self.date == "20210320-011750":
-            self.input_type = "spectrum"
+        self.sl = SubjectsList()
+        # データの保存先（パスを指定）
+        self.dir_name = os.path.join(os.environ['sleep'], "datas", "pre_processed_data")
 
-    def determinFilePath(self, alias):
-        try:
-            return self.name_dict[alias]
-        except:
-            print(f"In file_reader.py, there isn't {alias} !!")
-            sys.exit(1)
-
-    def loadNormal(self, alias, verbose=0):
-        path = alias
-        if verbose == 0:
-            print(f"*** load {path} ! ***")
-        path = os.path.join(self.dirName, path)
+    def load_normal(self, name, verbose=0, data_type=None):
+        if data_type is not None:
+            # data_typeが指定されたときのみセットを行う（これを行わないとエラーになる）
+            self.sl.sets_filename(data_type=data_type)
+        file_name = self.sl.name_dict[name]
+        path = os.path.join(self.dir_name, file_name)
+        print(path)
         return pickle.load(open(path, 'rb'))
 
-# ================================================ #
-#  *       　テストのためのメイン部分
-# ================================================ #
-
 if __name__ == '__main__':
-    file_reader = FileReader()
-    data = file_reader.loadNormal("H_Li")
-    print(len(data[0]))
-    pass
+    print(globals())
+    fr = FileReader()
+    data = fr.load_normal(name="H_Li", data_type="spectrogram")
+    print("data_len", len(data[0]))
+    # FIXME : モジュールとして実行するとできないけど，F5実行するとできる
+    

@@ -31,14 +31,13 @@ import datetime
 
 class PreProcess():
     
-    def __init__(self, input_file_name=None):
+    def __init__(self):
         self.projectDir = os.environ['sleep']
         self.figure_dir = os.path.join(self.projectDir, "figures")
         self.videoDir = os.path.join(self.projectDir, "videos")
         self.tmpDir = os.path.join(self.projectDir, "tmps")
         self.analysisdir = os.path.join(self.projectDir, "analysis")
         self.modelsDir = os.path.join(self.projectDir, "models")
-        self.inputFileName = input_file_name
         self.file_dict = None
         self.name_dict = Utils().name_dict
         self.test_data_for_wandb = None
@@ -46,11 +45,6 @@ class PreProcess():
         seed(0)
         # 必ず辞書形式で受け取って（処理の重さは文字列と変わらないから）
         # loadDataメソッド内で読み込むデータ数を決定する
-        try:
-            assert type(self.inputFileName) == dict
-        except:
-            print("PreProcessオブジェクト生成時にinputfilenameは辞書形式で渡してください")
-            sys.exit(1)
     
     def list2Spectrum(self, list_data):
         return np.array([data.spectrum for data in list_data])

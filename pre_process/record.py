@@ -1,14 +1,3 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
-from my_setting import *
-SetsPath().set()
-
-# ================================================ #
-# *     睡眠段階のデータを読み込むクラス作成
-# ================================================ #
-
 class Record(object):
 
     def __init__(self):
@@ -21,10 +10,6 @@ class Record(object):
         self.wavelet = None
         self.ss = None
 
-# ================================================ #
-# *     record オブジェクトを複数作成するメソッド
-# ================================================ #
-
 def multipleRecords(num):
     tmp = []
     for _ in range(num):
@@ -32,11 +17,8 @@ def multipleRecords(num):
     return tmp
         
 
-# ================================================ #
-# *            試験用メイン関数
-# ================================================ #
-
 if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
-    m_record = Record()
+    record = Record()
+    print(record.time)

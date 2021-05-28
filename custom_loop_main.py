@@ -1,7 +1,3 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
 from nn.model_base import EDLModelBase, edl_classifier_2d
 import os
 from nn.my_setting import SetsPath, FindsDir
@@ -22,9 +18,7 @@ try:
 except:
     print("GPUがサポートされていません")
 
-# float32が推奨されているみたい
 tf.keras.backend.set_floatx('float32')
-# tf.functionのせいでデバッグがしずらい問題を解決してくれる（これを使わないことでエラーが起こらなかったりする）
 #tf.config.run_functions_eagerly(True)
 # ================================================ #
 #  *                メイン関数
@@ -34,15 +28,15 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
          checkpoint_path=None, has_attention=True, my_confusion_file_name=None,
          id = None, batch_size=32, n_class=5):
     
-    (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train,
+    (x_train, y_train), (x_test, y_test) = pre_process.makeDataSet(train=train,
                                                                     test=test,
                                                                     is_set_data_size=True,
                                                                     mul_num=mul_num,
                                                                     is_storchastic=False)
-    m_preProcess.maxNorm(x_train)
-    m_preProcess.maxNorm(x_test)
-    (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
-    (x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
+    pre_process.maxNorm(x_train)
+    pre_process.maxNorm(x_test)
+    (x_train, y_train) = pre_process.catchNone(x_train, y_train)
+    (x_test, y_test) = pre_process.catchNone(x_test, y_test)
     # input shape
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
@@ -140,10 +134,10 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
         wandb.log({"train_acc" : train_acc, "test_acc" : val_acc})
         
         # 混合マトリクスの作成（各エポック毎）
-        cm_train, _ = m_preProcess.make_confusion_matrix(y_true=y_batch_train, y_pred=y_pred)  # 訓練データ
-        cm_test, _ = m_preProcess.make_confusion_matrix(y_true=y_batch_val, y_pred=val_y_pred)
-        m_preProcess.save_image2wandb(cm_train, to_wandb=True, fileName="cm_train")
-        m_preProcess.save_image2wandb(cm_test, to_wandb=True, fileName="cm_test")
+        cm_train, _ = pre_process.make_confusion_matrix(y_true=y_batch_train, y_pred=y_pred)  # 訓練データ
+        cm_test, _ = pre_process.make_confusion_matrix(y_true=y_batch_val, y_pred=val_y_pred)
+        pre_process.save_image2wandb(cm_train, to_wandb=True, fileName="cm_train")
+        pre_process.save_image2wandb(cm_test, to_wandb=True, fileName="cm_test")
         
         # 不確かさのヒストグラム（各エポック毎）
         # 学習の最後に
@@ -157,22 +151,25 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
 
 if __name__ == '__main__':   
 
+    # sleep_studyのモデルの保存やfigureの保存のために必要なオブジェクト
     fd = FindsDir("sleep")
-    m_preProcess = PreProcess(input_file_name=Utils().name_dict)
-    m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
+    # 前処理パッケージ
+    pre_process = PreProcess()
+    # データセット作成パッケージ
+    load_sleep_data = LoadSleepData(data_type="spectrogram")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    datasets = m_loadSleepData.load_data_all()
+    datasets = load_sleep_data.load_data_all()
     # TODO : test-idと名前を紐づける
     for test_id in range(9):
-        (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
+        (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id)
         id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
         #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
         #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
         cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
-        m_preProcess.check_path_auto(cm_file_name)    
+        pre_process.check_path_auto(cm_file_name)    
         main(name = list(Utils().name_dict.keys())[test_id], project = "edl",
              train=train, test=test, epochs=10, mul_num=MUL_NUM,
              my_tags=["loss_all", f"train:1:{MUL_NUM}", attention_tag],
