@@ -12,17 +12,20 @@ class LoadSleepData():
         self.sl.sets_filename(data_type=self.data_type)
         self.verbose = verbose
     
-    def load_data(self, name, load_all=False):
+    def load_data(self, name=None, load_all=False):
         if load_all:
-            print("すべての被験者を読み込みます")
+            print("*** すべての被験者を読み込みます ***")
             records = list()
             for name in self.sl.name_list:
-                records.extend(self.fr.load_normal(name=name, verbose=self.verbose))
+                records.extend(self.fr.load_normal(name=name, 
+                                                   verbose=self.verbose, 
+                                                   data_type=self.data_type))
             return records        
         else:
-            print("一人の被験者を読み込みます")
+            print("*** 一人の被験者を読み込みます ***")
             return self.fr.load_normal(name=name,
-                                       verbose=self.verbose)
+                                       verbose=self.verbose,
+                                       data_type=self.data_type)
 
 if __name__ == "__main__":
 
@@ -31,7 +34,9 @@ if __name__ == "__main__":
     from collections import Counter
     import random
     
-    load_sleep_data = LoadSleepData("spectrogram")
-    data = load_sleep_data.load_data(name="H_Li")
-    print(data)
+    load_sleep_data = LoadSleepData(data_type="spectrogram", verbose=1)
+    data = load_sleep_data.load_data(name="H_Li", load_all=False)
+    # or
+    data = load_sleep_data.load_data(load_all=True)
+    print("data_len : ", len(data))
     

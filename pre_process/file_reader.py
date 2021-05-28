@@ -1,6 +1,10 @@
 import pickle, sys, os
 from pre_process.subjects_list import SubjectsList
-import pre_process.record as record
+# NOTE : pickleは保存時と読み込み時のパスの指定を同じ方法で書かなければならないみたい
+# FIXME : 出来るだけ、pathのappendをしたくないので変更案が出れば修正
+from pre_process.my_setting import SetsPath
+SetsPath().set()
+import record
 
 class FileReader(object):
     def __init__(self):
@@ -14,13 +18,16 @@ class FileReader(object):
             self.sl.sets_filename(data_type=data_type)
         file_name = self.sl.name_dict[name]
         path = os.path.join(self.dir_name, file_name)
-        print(path)
+        if verbose==0:
+            print(f"{path}を読み込んでいます...")
+        elif verbose==1:
+            print(f"入力の種類は{data_type}です．被験者{name}を読み込んでいます...")
+        else:
+            pass
         return pickle.load(open(path, 'rb'))
 
 if __name__ == '__main__':
-    print(globals())
     fr = FileReader()
     data = fr.load_normal(name="H_Li", data_type="spectrogram")
     print("data_len", len(data[0]))
-    # FIXME : モジュールとして実行するとできないけど，F5実行するとできる
     
