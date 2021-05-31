@@ -51,10 +51,11 @@ def edl_classifier_2d(x, n_class, has_attention=True):
         (3, 3), strides=(1, 1), padding='same')(x)
     branch_pool = _conv2d_bn(branch_pool, 64, 1, 1)
     x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
-                                    axis=-1, name='mixed1')
+                                    axis=-1, name='mixed1')  # (13, 13, 288)
     if has_attention:
-        attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)
+        attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)  # (13, 13, 1)
         attention = tf.keras.layers.Activation('sigmoid')(attention)
+        
         x *= attention
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(n_class**2)(x)
@@ -211,6 +212,7 @@ class EDLModelBase(tf.keras.Model):
         evidence = self(x, training=False)
         alpha = evidence+1
         y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
+        uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
