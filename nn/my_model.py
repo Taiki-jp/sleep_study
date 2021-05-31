@@ -2,9 +2,10 @@
 # *         Import Some Libraries
 # ================================================ #
 
+from nn.model_base import EDLModelBase
 import tensorflow as tf
-from model_base import ModelBase, CreateModelBase, CustomModel
-import layer_base as MyLayer
+from nn.model_base import ModelBase, CreateModelBase, EDLModelBase
+import nn.layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 from tensorflow.python.keras import backend
 
@@ -205,18 +206,21 @@ class MyInception(ModelBase):
 # *         SubClass x Inception モデル
 # ================================================ #
 
-class MyInceptionAndAttention(ModelBase):
+class MyInceptionAndAttention(tf.keras.Model):
     
     def __init__(self, n_classes, hight, width, findsDirObj, channel=1, is_attention=True):
-        super().__init__(findsDirObj=findsDirObj)
+        super().__init__()
         tf.random.set_seed(0)
         self.n_classes = n_classes
         self.hight = hight
         self.width = width
         self.channel = channel
-        self.conv = tf.keras.layers.Conv2D(filters = 3, kernel_size = (1, 4), strides=(1, 4))
+        self.conv = tf.keras.layers.Conv2D(filters=3,
+                                           kernel_size=(1,4),
+                                           strides=(1, 4))
         self.baseModel = tf.keras.applications.InceptionV3(include_top = False)
         self.baseInputs = self.baseModel.layers[0].input
+        # FIXME : gradientが存在しない層が複数個存在する（なぜ？）
         self.baseOutputs = self.baseModel.get_layer('mixed0').output
         self.feature = tf.keras.Model(self.baseInputs, self.baseOutputs)
         self.attention = MyLayer.MyAttention2D(filters=1, kernel_size=1)
@@ -224,11 +228,9 @@ class MyInceptionAndAttention(ModelBase):
         self.dense1 = tf.keras.layers.Dense(n_classes ** 2)
         self.dense2 = tf.keras.layers.Dense(n_classes)
         self.is_attention = is_attention
-        self.model = self.createModel()  # NOTE : ここが最後に来るようにする（じゃないと全部が初期化できない）
-        print(self.model.summary())
-        pass
     
     def call(self, x):
+        # xが3次元データのときは以下の処理を入れる
         x = self.conv(x)
         x = self.feature(x)
         if self.is_attention:
@@ -238,15 +240,8 @@ class MyInceptionAndAttention(ModelBase):
         x = self.dense1(x)
         x = self.dense2(x)
         evidence = tf.nn.relu(x)
-        alpha = evidence+1
-        u = self.n_classes/tf.reduce_sum(alpha,axis=1,keepdims=True)
-        prob = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        return x
+        return evidence
 
-    def createModel(self):
-        inputs = tf.keras.Input(shape = (self.hight, self.width, self.channel))
-        return tf.keras.Model([inputs], self.call(inputs))
-    
 # ================================================ #
 # *         Functional x Inception モデル
 # !           NOTE : 今一番いいやつ
@@ -554,9 +549,25 @@ class MyInceptionAndAttentionAnd1dCNN(tf.keras.Model):
         return x
 
 # ================================================ #
+# *                モデルのビルト
+# ================================================ #
+
+def build_my_model(input_shape: tuple,
+                   model: tf.keras.Model):
+    inputs = tf.keras.Input(shape=input_shape)
+    outputs = model(inputs)
+    model = tf.keras.Model(inputs, outputs)
+    return model
+
+# ================================================ #
 # *         テスト用メイン部分
 # ================================================ #
 
 if __name__ == '__main__':
-    model = MyInceptionAndAttention(5, 224, 224, 1).createModel()
+    #model = MyInceptionAndAttention(5, 224, 224, 1).createModel()
+    #print(model.summary())
+    from pre_process.utils import FindsDir
+    fd = FindsDir("sleep")
+    model = build_my_model(input_shape=(224, 224, 1),
+                           model = MyInceptionAndAttention(5, 512, 128, fd))
     print(model.summary())

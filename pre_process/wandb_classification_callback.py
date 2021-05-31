@@ -92,11 +92,13 @@ class WandbClassificationCallback(WandbCallback):
             wandb.log(self._log_gradients(), commit=False)
         
         if self.log_confusion_matrix:
+            # nr34が空の場合は混合行列を作らない
+            nr34_len = len(self.validation_data[1] == 0)
             if self.validation_data is None:
                 wandb.termwarn(
                     "No validation_data set, pass a generator to the callback.")
             elif self.validation_data and len(self.validation_data) > 0:
-                wandb.log(self._log_confusion_matrix(), commit=False)                    
+                wandb.log(self._log_confusion_matrix(), commit=False)
 
         if self.input_type in ("image", "images", "segmentation_mask") or self.output_type in ("image", "images", "segmentation_mask"):
             if self.validation_data is None:
@@ -133,7 +135,6 @@ class WandbClassificationCallback(WandbCallback):
         # changed axis for my sleep env
         # y_val = np.argmax(y_val, axis=0)
         y_pred = np.argmax(self.model.predict(x_val), axis=1)
-
         confmatrix = confusion_matrix(y_pred, y_val, labels=range(len(self.labels)))
         import pandas as pd
         import os

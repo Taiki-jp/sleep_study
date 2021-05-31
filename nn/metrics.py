@@ -20,3 +20,9 @@ class CategoricalTruePositives(tf.keras.metrics.Metric):
     def reset_states(self):
         # The state of the metric will be reset at the start of each epoch.
         self.true_positives.assign(0.0)
+
+# edlのためのメトリクス
+class EDLMetrics(tf.keras.metrics.Metric):
+    def __init__(self, name, dtype, **kwargs):
+        super().__init__(name=name, dtype=dtype, **kwargs)
+        pass

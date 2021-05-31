@@ -2,4 +2,14 @@
 wandb/
 __pycache__/
 *.code-workspace
+
+tmp_save/
+
+*.png
+*.csv
+custom_model/
+
+model_saved_by_save_method/
+
 logs/
+.pytest_cache/

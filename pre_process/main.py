@@ -17,7 +17,7 @@ m_utils = Utils()
 
 # SECTION :　各被験者ループ
 
-for _, name in enumerate(tqdm(m_subjectsList.nameList)):
+for _, name in enumerate(tqdm(m_subjectsList.name_list)):
     records = list()
     m_tanitaReader = TanitaReader(name)
     m_psgReader = PsgReader(name)

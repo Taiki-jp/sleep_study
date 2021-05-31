@@ -1,35 +1,90 @@
+import os, datetime
+import numpy as np
+import tensorflow as tf
+from tensorflow.python.keras.backend import shape
+
 # ================================================ #
-# *         Import Some Libraries
+#           function APIによるモデル構築
 # ================================================ #
 
-import os, datetime
-# TODO : この部分削除
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-import tensorflow as tf
+def edl_classifier_2d(x, n_class, has_attention=True):
+    tf.random.set_seed(0)
+    # convolution AND batch normalization
+    def _conv2d_bn(x, filters, num_row, num_col,
+                   padding='same', strides=(1,1),name=None):
+        if name is not None:
+            bn_name = name+'_bn'
+            conv_name = name+'_conv'
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv2D(filters, (num_row, num_col),
+                                   strides=strides,
+                                   padding=padding,
+                                   use_bias=False,
+                                   name=conv_name)(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation('relu', name=name)(x)
+        return x
+
+    # shapeが合うように調整
+    x = tf.keras.layers.Conv2D(3, (1, 4), (1, 4))(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    # 畳み込み開始01
+    x = _conv2d_bn(x, 32, 3, 3, strides=(2,2), padding='valid')
+    x = _conv2d_bn(x, 32, 3, 3, padding='valid')
+    x = _conv2d_bn(x, 64, 3, 3)
+    x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
+    # 畳み込み開始02
+    x = _conv2d_bn(x, 80, 1, 1, padding='valid')
+    x = _conv2d_bn(x, 192, 3, 3, padding='valid')
+    x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
+    
+    # mixed 1: 35 x 35 x 288
+    branch1x1 = _conv2d_bn(x, 64, 1, 1)  
+    branch5x5 = _conv2d_bn(x, 48, 1, 1)
+    branch5x5 = _conv2d_bn(branch5x5, 64, 5, 5)  
+    branch3x3dbl = _conv2d_bn(x, 64, 1, 1)
+    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)
+    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)    
+    branch_pool = tf.keras.layers.AveragePooling2D(
+        (3, 3), strides=(1, 1), padding='same')(x)
+    branch_pool = _conv2d_bn(branch_pool, 64, 1, 1)
+    x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                                    axis=-1, name='mixed1')
+    if has_attention:
+        attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)
+        attention = tf.keras.layers.Activation('sigmoid')(attention)
+        x *= attention
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(n_class**2)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    x = tf.keras.layers.Dense(n_class)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
 
 # ================================================ #
 # *     Model を継承した自作のモデルクラス
-# ?             あまり使えない
 # ================================================ #
 
 class ModelBase(tf.keras.Model):
-    def __init__(self, findsDirObj=None):
+    def __init__(self, fd=None):
         """[初期化メソッド]
 
         Args:
-            findsDirObj ([type], optional): [モデル保存のパスを見つけるために必要]. Defaults to None.
+            fd ([type], optional): [モデル保存のパスを見つけるために必要]. Defaults to None.
         """
         super().__init__()
-        self.findsDirObj = findsDirObj
+        self.fd = fd
         self.model = None
     # TODO : 2snake_case
-    def saveModel(self, id):
+    def save_model(self, id):
         """パスを指定しなくていい分便利
 
         Args:
             id ([string]): [名前が被らないように日付を渡す]
         """
-        path = os.path.join(self.findsDirObj.returnFilePath(), "models", id)
+        path = os.path.join(self.fd.returnFilePath(), "models", id)
         self.model.save(path)
     # TODO : 2snake_case 
     def autoCompile(self):
@@ -45,7 +100,7 @@ class CreateModelBase(object):
     
     def __init__(self, 
                  load_file_path,
-                 findsDirObj=None,
+                 fd=None,
                  base_model = None, 
                  exploit_input_layer = 0, 
                  exploit_output_layer = None):
@@ -53,13 +108,13 @@ class CreateModelBase(object):
 
         Args:
             load_file_path ([bool]): [継承先でここにパスを入れると指定したファイルパスのモデルを読み込む]
-            findsDirObj([object]): [保存パスを見つけるためのオブジェクト] Defaults to None
+            fd([object]): [保存パスを見つけるためのオブジェクト] Defaults to None
             base_model ([model], optional): [ベース構造（特徴抽出）に用いたいモデルを入れる]. Defaults to None.
             exploit_input_layer (int, optional): [ベース構造が指定されていないときは0]. Defaults to 0.
             exploit_output_layer ([int], optional): [ベース構造が指定されていないときはNone]. Defaults to None.
         """
         self.load_file_path = load_file_path
-        self.findsDirObj = findsDirObj
+        self.fd = fd
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.base_model = base_model
         self.exploit_input_layer = exploit_input_layer
@@ -67,13 +122,13 @@ class CreateModelBase(object):
         self.model = None
         pass
     
-    def saveModel(self, id):
+    def save_model(self, id):
         """パスを指定しなくていい分便利
 
         Args:
             id ([string]): [名前が被らないように日付を渡す]
         """
-        path = os.path.join(self.findsDirObj.returnFilePath(), "models", id)
+        path = os.path.join(self.fd.returnFilePath(), "models", id)
         self.model.save(path)
         
     def autoCompile(self):
@@ -105,49 +160,36 @@ class CreateModelBase(object):
 # *　Model に対して様々な自動操作を行うクラスをそろえた関数
 # ================================================ #
 
-class CustomModel(tf.keras.Model):
-    def __init__(self,
-                 #load_file_path,
-                 findsDirObj,
-                 base_model=None,
-                 exploit_input_layer=0,
-                 exploit_output_layer=0):
-        """初期化メソッド
-
-        Args:
-            load_file_path ([bool]): [継承先でここにパスを入れると指定したファイルパスのモデルを読み込む]
-            findsDirObj([object]): [保存パスを見つけるためのオブジェクト] Defaults to None
-            base_model ([model], optional): [ベース構造（特徴抽出）に用いたいモデルを入れる]. Defaults to None.
-            exploit_input_layer (int, optional): [ベース構造が指定されていないときは0]. Defaults to 0.
-            exploit_output_layer ([int], optional): [ベース構造が指定されていないときはNone]. Defaults to None.
-        """
-        super().__init__()
-        self.metric = tf.keras.metrics.SparseCategoricalAccuracy(name = 'accuracy')
-        #self.load_file_path = load_file_path
-        self.findsDirObj = findsDirObj
-        self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.base_model = base_model
-        self.exploit_input_layer = exploit_input_layer
-        self.exploit_output_layer = exploit_output_layer
-        
-    def compile(self, 
-                optimizer, 
-                loss, 
-                metrics):
-        super().compile(metrics=metrics)
-        self.optimizer = optimizer
-        self.loss = loss
-        #self.metrics = metrics
+class EDLModelBase(tf.keras.Model):
     
+    # NOTE : model.fitを呼ぶと，train_stepが呼ばれる
+    # その結果中身のself(x, training)によってmodel.callが呼ばれる
+    # そのためcallメソッド内にtrainingなどの引数を受け取れるように設定しておく必要がある
+    def __init__(self,
+                 n_class=5,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.n_class = n_class
+    
+    # TODO : train_stepの中でアニーリングをできないか？
+    @tf.function
     def train_step(self, data):
+        # x.shape : (32, 128, 512, 1)
+        # y.shape : (32,)
         x, y = data
 
         with tf.GradientTape() as tape:
             # Caclulate predictions
-            y_pred = self.model(x, training=True)
-
+            evidence = self(x, training=True)  # (32, 5)
+            alpha = evidence+1  # (32, 5)
+            #uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+            y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 5)
+            # yをone-hot表現にして送る
+            y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
             # Loss
-            loss = self.loss(y, y_pred)
+            loss = self.compiled_loss(y, alpha,
+                                      regularization_losses=self.losses)
 
         # Gradients
         training_vars = self.trainable_variables
@@ -155,20 +197,127 @@ class CustomModel(tf.keras.Model):
 
         # Step with optimizer
         self.optimizer.apply_gradients(zip(gradients, training_vars))
-        self.acc_metric.update_state(y, y_pred)
-
-        return {"loss": loss, "accuracy": self.acc_metric.result()}
+        # accuracyのメトリクスにはy_predを入れる
+        self.compiled_metrics.update_state(y, y_pred)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        return {m.name: m.result() for m in self.metrics}
     
+    @tf.function
     def test_step(self, data):
         # Unpack the data
         x, y = data
 
         # Compute predictions
-        y_pred = self.model(x, training=False)
-
+        evidence = self(x, training=False)
+        alpha = evidence+1
+        y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
         # Updates the metrics tracking the loss
-        loss = self.loss(y, y_pred)
-
+        # yをone-hot表現にして送る
+        y = tf.one_hot(y, depth=self.n_class)
+        loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
-        self.acc_metric.update_state(y, y_pred)
-        return {"loss": loss, "accuracy": self.acc_metric.result()}
+        self.compiled_metrics.update_state(y, y_pred)
+        return {m.name: m.result() for m in self.metrics}
+    
+if __name__ == "__main__":
+    import os
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+    # gpuのメモリエラーが起こる可能性があるのでcpuで計算
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+    import random
+    random.seed(0)
+    import numpy as np
+    
+    # edl_classifierのテストコード
+    def edl_classifier_2d_checker():
+        # 入力のサイズ
+        batch_size = 10
+        n_class = 5
+        input_shape = (batch_size, 128, 512, 1)
+        x = tf.random.normal(shape=input_shape)
+        # 範囲はクラス数-1
+        y = [random.randint(0, n_class-1) for _ in range(batch_size)]
+        y = np.array(y)
+
+        # モデルの確認(edl_classifier_2d)
+        # shapeはバッチサイズ以降の形を指定
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        outputs = edl_classifier_2d(x=inputs, n_class=n_class,
+                                    has_attention=True)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+        # モデルのコンパイル
+        model.compile(optimizer=tf.keras.optimizers.Adam(),
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
+
+        # コールバックのためにグラフを作成
+        log_dir = "logs/my_random_fit_graph/"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
+        # 訓練
+        model.fit(x=x, y=y, 
+                  epochs=5, 
+                  callbacks=[tensorboard_callback],
+                  batch_size=4)
+        return
+    # TODO : model_baseのテストコード（使う必要ないので後回し）
+    def model_base_checker():
+        return
+    # TODO : create_model_baseのテストコード（使う必要ないので後回し）
+    def create_model_base_checker():
+        return
+    # TODO : edl_model_baseのテストコード
+    def edl_model_base_checker():
+        # 入力のサイズ
+        batch_size = 10
+        n_class = 5
+        input_shape = (batch_size, 128, 512, 1)
+        x = tf.random.normal(shape=input_shape)
+        # 範囲はクラス数-1
+        y = [random.randint(0, n_class-1) for _ in range(batch_size)]
+        y = np.array(y)
+
+        # モデルの確認(edl_classifier_2d)
+        # shapeはバッチサイズ以降の形を指定
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        outputs = edl_classifier_2d(x=inputs, n_class=n_class,
+                                    has_attention=True)
+        model = EDLModelBase(inputs=inputs, outputs=outputs)
+
+        # モデルのコンパイル
+        model.compile(optimizer=tf.keras.optimizers.Adam(),
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
+
+        # コールバックのためにグラフを作成
+        log_dir = "logs/in_edl_model_base_checker/"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
+        # 訓練
+        model.fit(x=x, y=y, 
+                  epochs=50, 
+                  callbacks=[tensorboard_callback],
+                  batch_size=4)
+        return
+    
+    # チェックしたい関数（クラス）のみTrueにする
+    check_edl_classifier_2d = False
+    check_model_base = False
+    check_create_model_base = False
+    check_edl_model_base = True
+    
+    # edl_classifierのモデルをチェックしたいとき
+    if check_edl_classifier_2d:
+        edl_classifier_2d_checker()
+    if check_model_base:
+        model_base_checker()
+    if check_create_model_base:
+        create_model_base_checker()
+    if check_edl_model_base:
+        edl_model_base_checker()
+    
+    
+    
+    
+    
