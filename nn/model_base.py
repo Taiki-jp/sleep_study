@@ -174,14 +174,18 @@ class EDLModelBase(tf.keras.Model):
     
     # TODO : train_stepの中でアニーリングをできないか？
     def train_step(self, data):
+        # x.shape : (32, 128, 512, 1)
+        # y.shape : (32,)
         x, y = data
 
         with tf.GradientTape() as tape:
             # Caclulate predictions
-            evidence = self(x, training=True)
-            alpha = evidence+1
+            evidence = self(x, training=True)  # (32, 5)
+            alpha = evidence+1  # (32, 5)
             #uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
-            y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
+            y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 5)
+            # yをone-hot表現にして送る
+            y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
             # Loss
             loss = self.compiled_loss(y, alpha,
                                       regularization_losses=self.losses)
@@ -206,7 +210,9 @@ class EDLModelBase(tf.keras.Model):
         alpha = evidence+1
         y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
         # Updates the metrics tracking the loss
-        loss = self.compiled_loss(y, alpha)
+        # yをone-hot表現にして送る
+        y = tf.one_hot(y, depth=self.n_class)
+        loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
         return {m.name: m.result() for m in self.metrics}

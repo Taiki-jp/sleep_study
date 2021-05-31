@@ -14,16 +14,16 @@ class EDLLoss(tf.keras.losses.Loss):
         pass
     
     def call(self, y_true, evidence):
-        # y_trueはone-hotじゃない状態で送られてくること
-        alpha = evidence+1
+        # y_trueはone-hotの状態
+        alpha = evidence+1  # (32:batch_size, 5:n_class)
         return self.loss_eq5(y_true=y_true, alpha=alpha)
     
     def KL(self, alpha):
         # 1行K列の全て値1のtensorflow.python.framework.ops.EagerTensorオブジェクト作成
-        beta = tf.constant(np.ones((1,self.K)),
+        beta = tf.constant(np.ones((1,self.K)),  # (1, 5)
                            dtype=tf.float32)
         # alphaの和を計算
-        S_alpha = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        S_alpha = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1, 5)
 
         # KL情報量
         KL = tf.reduce_sum((alpha - beta)*(tf.math.digamma(alpha)-tf.math.digamma(S_alpha)),axis=1,keepdims=True) + \
@@ -32,15 +32,14 @@ class EDLLoss(tf.keras.losses.Loss):
         return KL
     
     def loss_eq5(self, y_true, alpha):
-        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1)
         # 2乗誤差
-        _batch_dim, _ = alpha.shape
+
         # FIXME : eager executionのときのみエラーが起こらない
-        # y_true = tf.one_hot(tf.reshape(y_true, _batch_dim), depth=5)
-        y_true = tf.one_hot(y_true, depth=self.K)
-        L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)
+
+        L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)  # (32, 1, 5)
         # ディリクレ分布の分散
-        L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
+        L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)  # (32, 1)
         # 損失関数:lambda * KL_div
         KL_reg =  self.KL((alpha - 1)*(1-y_true) + 1)
         return L_err + L_var + self.annealing*KL_reg
