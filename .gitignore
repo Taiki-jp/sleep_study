@@ -21,3 +21,5 @@ tmp_save/
 custom_model/
 
 model_saved_by_save_method/
+
+logs/

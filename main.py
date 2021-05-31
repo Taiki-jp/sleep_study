@@ -1,183 +1,80 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
-from tensorflow.python.keras.backend import shape
-from nn.model_base import EDLModelBase, edl_classifier_2d
-import os
-from nn.my_setting import SetsPath, FindsDir
-SetsPath().set()
-import datetime, wandb
-from pre_process.wandb_classification_callback import WandbClassificationCallback
+import os, datetime, wandb
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
-from nn.my_model import MyInceptionAndAttention, build_my_model
-from losses import EDLLoss, MyLoss
-from pre_process.load_sleep_data import LoadSleepData
-from pre_process.utils import PreProcess, Utils
 from collections import Counter
 import numpy as np
+from pre_process.pre_process import PreProcess
+from pre_process.load_sleep_data import LoadSleepData
+from nn.model_base import EDLModelBase, edl_classifier_2d
+from nn.losses import EDLLoss
 
-# NOTE : gpuを設定していない環境のためにエラーハンドル
-try:
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
-except:
-    print("GPUがサポートされていません")
+def main(name, project, train, test,
+         pre_process,epoch=1, save_model=False, my_tags=None, batch_size=32, 
+         n_class=5, pse_data=False, test_name=None, date_id=None, has_attention=False):
 
-# float32が推奨されているみたい
-tf.keras.backend.set_floatx('float32')
-# tf.functionのせいでデバッグがしずらい問題を解決してくれる（これを使わないことでエラーが起こらなかったりする）
-# tf.config.run_functions_eagerly(True)
-# ================================================ #
-#  *                メイン関数
-# ================================================ #
-
-def main(name, project, train, test, 
-         epoch=1, isSaveModel=False, my_tags=None, mul_num=False, 
-         checkpoint_path=None, is_attention=True, my_confusion_file_name=None,
-         id = None, batch_size=32, n_class=5):
-    
-    # テストに関しては1:1の割合でmakeDatasetは作ってしまうので無視
-    
-    # 無理やり追加した部分
-    # ========================================================
-    """
-    name = "edl"
-    project = "edl"
-    test_id = 1
-    (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
-    epoch = 100
-    mul_num = False
-    isSaveModel = False
-    my_tags = None
-    mul_num = 1
-    checkpoint_path=None
-    is_attention = True
-    my_confusion_file_name=None
-    id=datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    batch_size = 32
-    n_class = 5
-    """
-    # ========================================================
-    (x_train, y_train), (x_test, y_test) = m_preProcess.makeDataSet(train=train,
-                                                                    test=test,
-                                                                    is_set_data_size=True,
-                                                                    mul_num=mul_num,
-                                                                    is_storchastic=False)
-    m_preProcess.maxNorm(x_train)
-    m_preProcess.maxNorm(x_test)
-    (x_train, y_train) = m_preProcess.catchNone(x_train, y_train)
-    (x_test, y_test) = m_preProcess.catchNone(x_test, y_test)
-    # input shape
+    # データセットの作成
+    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
+                                                                    test=test, 
+                                                                    is_storchastic=False,
+                                                                    pse_data=pse_data,
+                                                                    to_one_hot_vector=False)
+    # データセットの数
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
-    # convert label 1-5 to 0-4
-    y_train-=1
-    y_test-=1
-    # convert2one-hot
-    y_train = tf.one_hot(y_train, n_class)
-    y_test = tf.one_hot(y_test, n_class)
-    # change x shape
-    x_train = x_train[:,:,:,np.newaxis]
-    x_test = x_test[:,:,:,np.newaxis]
-    # ================================================ #
-    #  *             データ保存先の設定
-    # ================================================ #
-    # TODO : ほかのファイルでこれできないの？
-    ss_list_for_wandb = ["NR34", "NR2", "NR1", "REM", "WAKE"]
+
+    # wandbの初期化
     wandb.init(name = name, 
                project = project,
                tags = my_tags,
-               config= \
-               {
-                   "test id":m_preProcess.test_data_for_wandb,
-                    "train num":x_train.shape[0],
-                    "test num":x_test.shape[0],
-                    "date id":id,
-                    "test wake before replaced":ss_test_dict[5],
-                    "test rem before replaced":ss_test_dict[4],
-                    "test nr1 before replaced":ss_test_dict[3],
-                    "test nr2 before replaced":ss_test_dict[2],
-                    "test nr34 before replaced":ss_test_dict[1],
-                    "train wake before replaced":ss_train_dict[5],
-                    "train rem before replaced":ss_train_dict[4],
-                    "train nr1 before replaced":ss_train_dict[3],
-                    "train nr2 before replaced":ss_train_dict[2],
-                    "train nr34 before replaced":ss_train_dict[1]
-                })
-    
-    # ================================================ #
-    #*         モデル作成（ネットから取ってくる方）
-    # ================================================ #
-    
+               config= {"test name":test_name,
+                        "date id":date_id})
+           
+    # モデルの作成とコンパイル
     inputs = tf.keras.Input(shape=(128, 512, 1))
-    outputs = edl_classifier_2d(x=inputs, n_class=n_class)
+    outputs = edl_classifier_2d(x=inputs, n_class=n_class, has_attention=has_attention)
     model = EDLModelBase(inputs=inputs, outputs=outputs)
-    
-    # ================================================ #
-    #*       モデルのコンパイル（サブクラスなし）
-    # ================================================ #
-    
     model.compile(optimizer=tf.keras.optimizers.Adam(),
-                  loss=EDLLoss(K=n_class),
+                  loss=EDLLoss(K=n_class, annealing=0.1),
                   metrics=["accuracy"])
     
-    # ================================================ #
-    #*                   モデル学習
-    # ================================================ #
-    w_callBack = WandbClassificationCallback(validation_data=(x_test, y_test),
-                                             training_data=(x_train, y_train),
-                                             log_confusion_matrix=False,
-                                             labels=["nr34", "nr2", "nr1", "rem", "wake"],
-                                             show_my_confusion_title=True,
-                                             my_confusion_title="confusion matrix",
-                                             my_confusion_file_name=my_confusion_file_name,
-                                             log_f_measure=False,calc_metrics=False)
+    # tensorboard作成
+    log_dir = f"logs/my_edl/{test_name}/"+date_id
+    tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     
-    # NOTE : モデルの各チェックポイントでの保存部分は削除
-    if checkpoint_path:
-        pass
-        # tf_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path, save_weights_only=False, verbose=3)
+    model.fit(x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test),
+              epochs=epoch, callbacks=[tf_callback], verbose=2)
     
-    model.fit(x_train,
-              y_train,
-              batch_size=batch_size,
-              validation_data = (x_test, y_test),
-              epochs = epoch,
-              callbacks = [w_callBack],
-              verbose = 2)
-    
-    if isSaveModel:
-        path = os.path.join(os.environ["sleep"], "models", id)
+    if save_model:
+        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
         model.save(path)
     wandb.finish()
-
-# ================================================ #
-#  *                ループ処理
-# ================================================ #
-
-if __name__ == '__main__':   
-
-    fd = FindsDir("sleep")
-    m_preProcess = PreProcess(input_file_name=Utils().name_dict)
-    m_loadSleepData = LoadSleepData(input_file_name="H_Li")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
+    
+if __name__ == '__main__':
+    # 環境設定
+    try:
+        tf.keras.backend.set_floatx('float32')
+        # tf.config.run_functions_eagerly(True)
+        physical_devices = tf.config.list_physical_devices("GPU")
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    except:
+        print("*** cpuで計算します ***")
+    
+    # ハイパーパラメータの設定
     MUL_NUM = 1
-    is_attention = True
-    attention_tag = "attention" if is_attention else "no-attention"
-    datasets = m_loadSleepData.load_data_all()
-    # TODO : test-idと名前を紐づける
-    for test_id in range(9):
-        (train, test) = m_preProcess.split_train_test_from_records(datasets, test_id=test_id)
-        id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    has_attention = True
+    attention_tag = "attention" if has_attention else "no-attention"
+    pse_data = False
     
-        #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
-        #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
-        cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
-        m_preProcess.check_path_auto(cm_file_name)
-    
-        main(name = "edl", project = "edl",
-             train=train, test=test, epoch=100, isSaveModel=True, mul_num=MUL_NUM,
-             my_tags=["loss_all", f"{list(Utils().name_dict.keys())[test_id]}", f"train:1:{MUL_NUM}", attention_tag],
-             checkpoint_path=None, is_attention = is_attention, 
-             my_confusion_file_name=cm_file_name, id=id)
+    # オブジェクトの作成
+    load_sleep_data = LoadSleepData(data_type="spectrogram")
+    pre_process = PreProcess(load_sleep_data)
+    datasets = load_sleep_data.load_data(load_all=True, pse_data=pse_data)
+
+    for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
+        date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)
+
+        main(name = "edl", project = "edl",pre_process=pre_process,train=train, 
+             test=test,epoch=100, save_model=True, has_attention=has_attention,
+             my_tags=[f"{test_name}", f"train:1:{MUL_NUM}", attention_tag],date_id=date_id,
+             pse_data=pse_data,test_name=test_name)

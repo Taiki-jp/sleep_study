@@ -16,6 +16,8 @@ class SubjectsList(object):
         self.name_dict = None
         self.spectrogram_date = "20210201-055748"  # スペクトログラム
         self.spectrum_date = "20210320-011750"  # スペクトラム版
+        self.ss_list = ["nr34", "nr2", "nr1",
+                        "rem", "wake"]
         
     def sets_filename(self, data_type):
         if data_type == "spectrum":

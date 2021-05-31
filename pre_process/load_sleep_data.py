@@ -12,7 +12,10 @@ class LoadSleepData():
         self.sl.sets_filename(data_type=self.data_type)
         self.verbose = verbose
     
-    def load_data(self, name=None, load_all=False):
+    def load_data(self, name=None, load_all=False, pse_data=False):
+        if pse_data:
+            print("仮データのため、何も読み込みません")
+            return None
         if load_all:
             print("*** すべての被験者を読み込みます ***")
             records = list()
@@ -35,7 +38,7 @@ if __name__ == "__main__":
     import random
     
     load_sleep_data = LoadSleepData(data_type="spectrogram", verbose=1)
-    data = load_sleep_data.load_data(name="H_Li", load_all=False)
+    # data = load_sleep_data.load_data(name="H_Li", load_all=False)
     # or
     data = load_sleep_data.load_data(load_all=True)
     print("data_len : ", len(data))

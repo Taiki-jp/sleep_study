@@ -1,66 +1,57 @@
-from nn.model_base import EDLModelBase, edl_classifier_2d
-import os
-from nn.my_setting import SetsPath, FindsDir
-SetsPath().set()
-import datetime, wandb
-from pre_process.wandb_classification_callback import WandbClassificationCallback
+import os, datetime, wandb
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
-from nn.losses import EDLLoss, MyLoss
-from pre_process.load_sleep_data import LoadSleepData
-from pre_process.utils import PreProcess, Utils
 from collections import Counter
 import numpy as np
+from pre_process.pre_process import PreProcess
+from pre_process.load_sleep_data import LoadSleepData
+from nn.model_base import edl_classifier_2d
+from nn.losses import EDLLoss
 
-# NOTE : gpuを設定していない環境のためにエラーハンドル
-try:
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
-except:
-    print("GPUがサポートされていません")
+def main(name, project, train, test,
+         pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
+         n_class=5, pse_data=False, test_name=None, date_id=None, has_attention=False):
 
-tf.keras.backend.set_floatx('float32')
-#tf.config.run_functions_eagerly(True)
-# ================================================ #
-#  *                メイン関数
-# ================================================ #
-
-def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False, 
-         checkpoint_path=None, has_attention=True, my_confusion_file_name=None,
-         id = None, batch_size=32, n_class=5):
-    
-    (x_train, y_train), (x_test, y_test) = pre_process.makeDataSet(train=train,
-                                                                    test=test,
-                                                                    is_set_data_size=True,
-                                                                    mul_num=mul_num,
-                                                                    is_storchastic=False)
-    pre_process.maxNorm(x_train)
-    pre_process.maxNorm(x_test)
-    (x_train, y_train) = pre_process.catchNone(x_train, y_train)
-    (x_test, y_test) = pre_process.catchNone(x_test, y_test)
-    # input shape
+    # データセットの作成
+    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
+                                                                    test=test, 
+                                                                    is_storchastic=False,
+                                                                    pse_data=pse_data)
+    # データセットの数
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
-    # convert label 1-5 to 0-4
-    y_train-=1
-    y_test-=1
-    # convert2one-hot
-    #y_train = tf.one_hot(y_train, n_class)
-    #y_test = tf.one_hot(y_test, n_class)
-    # change x shape
-    x_train = x_train[:,:,:,np.newaxis]
-    x_test = x_test[:,:,:,np.newaxis]
+
+    # カスタムトレーニングのために作成
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+    train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(batch_size)
     val_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
     val_dataset = val_dataset.batch(batch_size)
+
+    # wandbの初期化
+    wandb.init(name = name, 
+           project = project,
+           tags = my_tags,
+           config= {"test name":test_name,
+                    "date id":date_id,
+                    "test wake before replaced":ss_test_dict[5],
+                    "test rem before replaced":ss_test_dict[4],
+                    "test nr1 before replaced":ss_test_dict[3],
+                    "test nr2 before replaced":ss_test_dict[2],
+                    "test nr34 before replaced":ss_test_dict[1],
+                    "train wake before replaced":ss_train_dict[5],
+                    "train rem before replaced":ss_train_dict[4],
+                    "train nr1 before replaced":ss_train_dict[3],
+                    "train nr2 before replaced":ss_train_dict[2],
+                    "train nr34 before replaced":ss_train_dict[1]})
     
     inputs = tf.keras.Input(shape=(128, 512, 1))
     outputs = edl_classifier_2d(x=inputs, n_class=n_class, has_attention=has_attention)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
+    # 最適化関数の設定
     optimizer = tf.keras.optimizers.Adam()
-    # TODO : どのような形で引数に渡すべきかmnistの例をもとに調査する
+    # メトリクスの作成
     # true side : カテゴリカルな状態，pred side : クラスの次元数（ソフトマックスをかける前）
     train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
@@ -73,7 +64,7 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
                {
                    "train num":x_train.shape[0],
                     "test num":x_test.shape[0],
-                    "date id":id,  # モデル読み込み時にフォルダ名を特定するために必要な情報
+                    "date id":date_id,  # モデル読み込み時にフォルダ名を特定するために必要な情報
                     "test wake before replaced":ss_test_dict[5],
                     "test rem before replaced":ss_test_dict[4],
                     "test nr1 before replaced":ss_test_dict[3],
@@ -89,7 +80,7 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
     # エポックのループ
     for epoch in range(epochs):
         # ロス関数はエポックごとにアニーリングを変えるので中に書く
-        loss_fn = EDLLoss(K=n_class, annealing=epoch/epochs)
+        loss_fn = EDLLoss(K=n_class, annealing=(1-epoch/epochs))
         print(f"エポック:{epoch}")
         # エポック内のバッチサイズごとのループ
         for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
@@ -145,33 +136,31 @@ def main(name, project, train, test, epochs=1, my_tags=None, mul_num=False,
     # wandbへの記録終了
     wandb.finish()
 
-# ================================================ #
-#  *                ループ処理
-# ================================================ #
 
 if __name__ == '__main__':   
-
-    # sleep_studyのモデルの保存やfigureの保存のために必要なオブジェクト
-    fd = FindsDir("sleep")
-    # 前処理パッケージ
-    pre_process = PreProcess()
-    # データセット作成パッケージ
-    load_sleep_data = LoadSleepData(data_type="spectrogram")  # TODO : input_file_nameで指定したファイル名はload_data_allを使う際はいらない
+    # 環境設定
+    tf.keras.backend.set_floatx('float32')
+    # tf.config.run_functions_eagerly(True)
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    
+    # ハイパーパラメータの設定
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    datasets = load_sleep_data.load_data_all()
-    # TODO : test-idと名前を紐づける
-    for test_id in range(9):
-        (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id)
-        id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    pse_data = True
     
-        #checkpointPath = os.path.join(os.environ["sleep"], "models", name, attention_tag, 
-        #                              "ss_"+str(sleep_stage), "cp-{epoch:04d}.ckpt")
-        cm_file_name = os.path.join(os.environ["sleep"], "analysis", f"{test_id}", f"confusion_matrix_{id}.csv")
-        pre_process.check_path_auto(cm_file_name)    
-        main(name = list(Utils().name_dict.keys())[test_id], project = "edl",
-             train=train, test=test, epochs=10, mul_num=MUL_NUM,
-             my_tags=["loss_all", f"train:1:{MUL_NUM}", attention_tag],
-             checkpoint_path=None, has_attention = has_attention, 
-             my_confusion_file_name=cm_file_name, id=id)
+    # オブジェクトの作成
+    load_sleep_data = LoadSleepData(data_type="spectrogram")
+    pre_process = PreProcess(load_sleep_data)
+    datasets = load_sleep_data.load_data(load_all=True, pse_data=pse_data)
+
+    # ループの開始
+    for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
+        date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        (train, test) = pre_process.split_train_test_from_records(datasets, test_name, pse_data=pse_data)
+
+        main(name = "edl", project = "edl",pre_process=pre_process,train=train, 
+             test=test,epoch=100, save_model=True, has_attention=has_attention,
+             my_tags=[f"{test_name}", f"train:1:{MUL_NUM}", attention_tag],date_id=date_id,
+             pse_data=pse_data,test_name=test_name)

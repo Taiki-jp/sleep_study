@@ -4,15 +4,17 @@ from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.keras import backend as K
 
+# EDLのロス関数
 class EDLLoss(tf.keras.losses.Loss):
+    
     def __init__(self, K, annealing, name='custom_edl_loss', reduction='auto'):
         super().__init__(name=name, reduction=reduction)
         self.K = K
         self.annealing = annealing
         pass
     
-    def call(self, y_true, evidence):  # TODO : alphaじゃなくて確率の出力を渡した方が良い？
-        #print("alpha", alpha)
+    def call(self, y_true, evidence):
+        # y_trueはone-hotじゃない状態で送られてくること
         alpha = evidence+1
         return self.loss_eq5(y_true=y_true, alpha=alpha)
     
@@ -41,7 +43,7 @@ class EDLLoss(tf.keras.losses.Loss):
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
         # 損失関数:lambda * KL_div
         KL_reg =  self.KL((alpha - 1)*(1-y_true) + 1)
-        return L_err + L_var + 0.05*KL_reg
+        return L_err + L_var + self.annealing*KL_reg
     
     def get_config(self):
         config = super().get_config()
@@ -64,3 +66,15 @@ class MyLoss(tf.keras.losses.Loss):
         # y_true = ops.convert_to_tensor_v2_with_dispatch(y_true)
         #return K.sparse
         return K.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True, axis=self.axis)
+    
+if __name__ == "__main__":
+    import os
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+    np.random.seed(0)
+    y_true = np.random.randint(0, 4, 10)
+    evidence = np.random.rand(10, 5).astype('float32')
+    edl_loss = EDLLoss(K=5, annealing=0.1)
+    loss = edl_loss.call(y_true=y_true, evidence=evidence)
+    print("y_true : ", y_true)
+    print("evidence", evidence)
+    print(loss)
