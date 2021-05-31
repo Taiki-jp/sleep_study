@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # 環境設定
     try:
         tf.keras.backend.set_floatx('float32')
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
     except:
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     
     # ハイパーパラメータの設定
     MUL_NUM = 1
-    has_attention = True
+    has_attention = False
     attention_tag = "attention" if has_attention else "no-attention"
     pse_data = False
     

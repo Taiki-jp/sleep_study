@@ -168,8 +168,8 @@ class PreProcess():
         # inset_channel_axis
         if insert_channel_axis:
             print("- チャンネル方向に軸を追加します")
-            x_train = x_train[:,:,:,np.newaxis].astype('float32')
-            x_test = x_test[:,:,:,np.newaxis].astype('float32')
+            x_train = x_train[:,:,:,np.newaxis]  #.astype('float32')
+            x_test = x_test[:,:,:,np.newaxis] #.astype('float32')
 
         if self.verbose == 0:
             print("*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n", Counter(y_train))
