@@ -12,4 +12,4 @@ custom_model/
 model_saved_by_save_method/
 
 logs/
-!pre_process.py
+.pytest_cache/
