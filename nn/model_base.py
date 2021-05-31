@@ -207,7 +207,6 @@ class EDLModelBase(tf.keras.Model):
     def test_step(self, data):
         # Unpack the data
         x, y = data
-
         # Compute predictions
         evidence = self(x, training=False)
         alpha = evidence+1
@@ -216,10 +215,27 @@ class EDLModelBase(tf.keras.Model):
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
+        # 不確かさのログを取る
+        u_dict = self.u_accuracy(y, y_pred, uncertainty, 0.5)
         loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
-        return {m.name: m.result() for m in self.metrics}
+        metrics_dict = {m.name: m.result() for m in self.metrics}
+        metrics_dict.update(u_dict)
+        return metrics_dict
+    
+    @tf.function
+    def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
+        assert np.ndim(uncertainty) == 2  # (batch, 1)
+        assert y_true.shape == y_pred.shape  # (batch, n_class)
+        _y_true_list = list()
+        _y_pred_list = list()
+        for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
+            if _u > u_threshold:
+                _y_true_list.append(_y_true)
+                _y_pred_list.append(_y_pred)
+        u_acc = tf.keras.metrics.categorical_accuracy(np.array(y_true), np.array(y_pred))
+        return {"u_acc" : u_acc}
     
 if __name__ == "__main__":
     import os

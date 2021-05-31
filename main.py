@@ -1,14 +1,13 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
-from collections import Counter
-import numpy as np
+from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
 from nn.model_base import EDLModelBase, edl_classifier_2d
 from nn.losses import EDLLoss
-from wandb.keras import WandbCallback
+from nn.metrics import custom_metric
 
 def main(name, project, train, test,
          pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
@@ -37,7 +36,7 @@ def main(name, project, train, test,
     model = EDLModelBase(inputs=inputs, outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(),
                   loss=EDLLoss(K=n_class, annealing=0.1),
-                  metrics=["accuracy"])
+                  metrics=["accuracy", custom_metric])
     
     # tensorboard作成
     log_dir = f"logs/my_edl/{test_name}/"+date_id
@@ -55,7 +54,7 @@ if __name__ == '__main__':
     # 環境設定
     try:
         tf.keras.backend.set_floatx('float32')
-        #tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
     except:
@@ -65,9 +64,9 @@ if __name__ == '__main__':
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = False
+    pse_data = True
     pse_data_tag = "psedata" if pse_data else "sleepdata"
-    epochs = 100
+    epochs = 5
     
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type="spectrogram")
@@ -78,7 +77,7 @@ if __name__ == '__main__':
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)
 
-        main(name = f"edl-{test_name}", project = "edl",pre_process=pre_process,train=train, 
+        main(name = f"edl-{test_name}", project = "edl-test",pre_process=pre_process,train=train, 
              test=test,epochs=epochs, save_model=True, has_attention=has_attention,
              my_tags=[f"{test_name}", f"train:1:{MUL_NUM}", attention_tag, pse_data_tag],
              date_id=date_id, pse_data=pse_data,test_name=test_name)
