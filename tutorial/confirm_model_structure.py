@@ -1,6 +1,5 @@
 # モデルの学習構造がしっかりできていることを確認する
 import os
-
 from tensorflow.python.keras.backend import shape
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 from nn.model_base import EDLModelBase
@@ -108,7 +107,8 @@ model.fit(x, y, epochs=50)
 model.save("model_saved_by_save_method")
 
 # 保存したモデルの読み込み
-loaded_model = tf.keras.models.load_model("model_saved_by_save_method/",custom_objects={"EDLLoss":EDLLoss(K=5)})
+loaded_model = tf.keras.models.load_model("model_saved_by_save_method/",
+                                          custom_objects={"EDLLoss":EDLLoss(K=5,annealing=0.1)})
 
 # モデルの評価
 loaded_model.evaluate(x, y)

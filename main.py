@@ -1,6 +1,6 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
@@ -36,7 +36,7 @@ def main(name, project, train, test,
     model = EDLModelBase(inputs=inputs, outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(),
                   loss=EDLLoss(K=n_class, annealing=0.1),
-                  metrics=["accuracy", custom_metric])
+                  metrics=["accuracy"])
     
     # tensorboard作成
     log_dir = f"logs/my_edl/{test_name}/"+date_id
@@ -64,9 +64,9 @@ if __name__ == '__main__':
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = True
+    pse_data = False
     pse_data_tag = "psedata" if pse_data else "sleepdata"
-    epochs = 5
+    epochs = 100
     
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type="spectrogram")
