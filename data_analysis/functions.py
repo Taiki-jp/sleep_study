@@ -3,6 +3,8 @@ from keras import backend as K
 import tensorflow as tf
 from keras.models import load_model
 import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.decomposition import PCA
 
 # ref : https://www.kaggle.com/kabirnagpal/xception-resnet-learn-how-to-stack
 def recall_m(y_true, y_pred):
@@ -26,3 +28,19 @@ def f1_m(y_true, y_pred):
     precision = precision_m(y_true, y_pred)
     recall = recall_m(y_true, y_pred)
     return 2*((precision*recall)/(precision+recall+K.epsilon()))
+
+# pca
+def make_pca(data=None, pse_data=True, path=None):
+    if pse_data:
+        digits = datasets.load_digits()
+        X_reduced = PCA(n_components=2).fit_transform(digits.data)
+        plt.scatter(X_reduced[:,0], X_reduced[:,1], c=digits.target)
+        plt.colorbar()
+        plt.show()
+    else:
+        print("TODO : 実装してね")
+
+# t-sne
+
+if __name__ == "__main__":
+    make_pca()
