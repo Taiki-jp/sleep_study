@@ -30,13 +30,11 @@ class EDLLoss(tf.keras.losses.Loss):
              tf.math.lgamma(S_alpha) - tf.reduce_sum(tf.math.lgamma(alpha),axis=1,keepdims=True) + \
              tf.reduce_sum(tf.math.lgamma(beta),axis=1,keepdims=True) - tf.math.lgamma(tf.reduce_sum(beta,axis=1,keepdims=True))
         return KL
-    
+    # NOTE : y_trueがどのような形で入っているかに注意する
+    # （実行は通るが、損失関数が訳分からなくなる）
     def loss_eq5(self, y_true, alpha):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1)
         # 2乗誤差
-
-        # FIXME : eager executionのときのみエラーが起こらない
-
         L_err = tf.reduce_sum((y_true-(alpha/S))**2, axis=1, keepdims=True)  # (32, 1, 5)
         # ディリクレ分布の分散
         L_var = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)  # (32, 1)

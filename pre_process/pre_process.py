@@ -176,6 +176,7 @@ class PreProcess():
 
         # convert to one-hot vector
         if to_one_hot_vector:
+            print("- one-hotベクトルを出力します")
             y_train = tf.one_hot(y_train, class_size)
             y_test = tf.one_hot(y_test, class_size)
             
