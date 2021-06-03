@@ -368,8 +368,8 @@ class Utils():
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
         for thresh_hold in thresh_hold_list:
-            tmp_y_pred = y_pred[uncertainty<thresh_hold]
-            tmp_y_true = y[uncertainty<thresh_hold]
+            tmp_y_pred = y_pred[uncertainty<=thresh_hold]
+            tmp_y_true = y[uncertainty<=thresh_hold]
             sum_true = sum(tmp_y_pred==tmp_y_true)
             sum_existing = len(tmp_y_true)
             acc = sum_true/sum_existing
