@@ -1,6 +1,6 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
