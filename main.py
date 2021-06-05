@@ -1,6 +1,6 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # 環境設定
     try:
         tf.keras.backend.set_floatx('float32')
-        tf.config.run_functions_eagerly(True)
+        #tf.config.run_functions_eagerly(True)
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
     except:

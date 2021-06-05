@@ -50,10 +50,12 @@ def main(name, project, train, test,
         # Utilsオブジェクト作成
         utils = Utils()
         # 混合行列をwandbに送信
+        """
         utils.conf_mat2Wandb(y=y, evidence=evidence, 
                              train_or_test=train_or_test,
                              test_label=test_name,
                              date_id=date_id)
+        """
         # 不確かさのヒストグラムをwandbに送信
         utils.u_hist2Wandb(y=y, evidence=evidence, 
                            train_or_test=train_or_test,
@@ -82,7 +84,7 @@ if __name__ == '__main__':
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = False
+    pse_data = True
     pse_data_tag = "psedata" if pse_data else "sleepdata"
     
     # オブジェクトの作成
@@ -90,6 +92,8 @@ if __name__ == '__main__':
     pre_process = PreProcess(load_sleep_data)
     datasets = load_sleep_data.load_data(load_all=True, pse_data=pse_data)
 
+    
+    # enn x inception
     data_id_list = ["20210601-051642",
                     "20210601-053406",
                     "20210602-120441",   #yamamoto : "20210601-055045",
@@ -99,6 +103,19 @@ if __name__ == '__main__':
                     "20210601-065654",
                     "20210602-165042", #hiromoto : ""20210601-071330",
                     "20210601-073045"]
+    
+    
+    """ enn x no inception
+    data_id_list = ["20210604-070048",
+                    "20210604-071219",
+                    "20210604-072311",
+                    "20210604-073420",
+                    "20210604-074528",
+                    "20210604-075638",
+                    "20210604-080726",
+                    "20210604-081841",
+                    "20210604-083019"]
+    """
     
     for test_id, (test_name, date_id) in enumerate(zip(load_sleep_data.sl.name_list, data_id_list)):
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)

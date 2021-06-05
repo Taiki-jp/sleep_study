@@ -40,7 +40,7 @@ def edl_classifier_2d(x, n_class, has_attention=True):
     x = _conv2d_bn(x, 192, 3, 3, padding='valid')
     x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
     
-    """
+    
     # mixed 1: 35 x 35 x 288
     branch1x1 = _conv2d_bn(x, 64, 1, 1)  
     branch5x5 = _conv2d_bn(x, 48, 1, 1)
@@ -58,7 +58,7 @@ def edl_classifier_2d(x, n_class, has_attention=True):
         attention = tf.keras.layers.Activation('sigmoid')(attention)
         
         x *= attention
-    """
+    
     
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(n_class**2)(x)

@@ -365,6 +365,8 @@ class Utils():
         true_list = list()
         # 残ったサンプル数のリスト
         existing_list = list()
+        # 閾値の空リスト
+        _thresh_hold_list =list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
         for thresh_hold in thresh_hold_list:
@@ -372,29 +374,33 @@ class Utils():
             tmp_y_true = y[uncertainty<=thresh_hold]
             sum_true = sum(tmp_y_pred==tmp_y_true)
             sum_existing = len(tmp_y_true)
+            if sum_existing == 0:
+                print("trueラベルがありませんでした")
+                continue
             acc = sum_true/sum_existing
             acc_list.append(acc)
             true_list.append(sum_true)
             existing_list.append(sum_existing)
+            _thresh_hold_list.append(thresh_hold)
         
         # グラフの作成
         fig = plt.figure()
         ax1 = fig.add_subplot(1,1,1)
         # 五角形のプロット
-        ax1.scatter(thresh_hold_list, acc_list, c="#f46d43", label="accuracy", marker="p")
+        ax1.scatter(_thresh_hold_list, acc_list, c="#f46d43", label="accuracy", marker="p")
         # なぞる
-        ax1.plot(thresh_hold_list, acc_list, c="#f46d43", linestyle=":")
+        ax1.plot(_thresh_hold_list, acc_list, c="#f46d43", linestyle=":")
         ax1.set_xlabel('uncertainty threshold')
         ax1.set_ylabel('accuracy')
         ax2 = ax1.twinx()
         # 三角形のプロット
-        ax2.scatter(thresh_hold_list, true_list, c="#43caf4", label='true_num', marker="^")
+        ax2.scatter(_thresh_hold_list, true_list, c="#43caf4", label='true_num', marker="^")
         # なぞる
-        ax2.plot(thresh_hold_list, true_list, c="#43caf4", linestyle=":")
+        ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
         # 四角形のプロット
-        ax2.scatter(thresh_hold_list, existing_list, c="#43f4c6", label='all_num', marker="s")
+        ax2.scatter(_thresh_hold_list, existing_list, c="#43f4c6", label='all_num', marker="s")
         # なぞる
-        ax2.plot(thresh_hold_list, existing_list, c="#43f4c6", linestyle=":")
+        ax2.plot(_thresh_hold_list, existing_list, c="#43f4c6", linestyle=":")
         ax2.set_ylabel('samples')
         ax1.legend()
         ax2.legend()
