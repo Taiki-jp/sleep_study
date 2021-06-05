@@ -219,12 +219,12 @@ class EDLModelBase(tf.keras.Model):
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
         # 不確かさのログを取る
-        u_dict = self.u_accuracy(y, y_pred, uncertainty, 0.5)
+        # u_dict = self.u_accuracy(y, y_pred, uncertainty, 0.5)
         loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
         metrics_dict = {m.name: m.result() for m in self.metrics}
-        metrics_dict.update(u_dict)
+        # metrics_dict.update(u_dict)
         return metrics_dict
     
     @tf.function
