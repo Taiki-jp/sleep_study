@@ -1,14 +1,13 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
-from collections import Counter
-import numpy as np
+from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
 from nn.model_base import EDLModelBase, edl_classifier_2d
 from nn.losses import EDLLoss
-from wandb.keras import WandbCallback
+from nn.metrics import custom_metric
 
 def main(name, project, train, test,
          pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
@@ -78,7 +77,7 @@ if __name__ == '__main__':
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)
 
-        main(name = f"edl-{test_name}", project = "edl",pre_process=pre_process,train=train, 
+        main(name = f"edl-{test_name}", project = "edl-test",pre_process=pre_process,train=train, 
              test=test,epochs=epochs, save_model=True, has_attention=has_attention,
              my_tags=[f"{test_name}", f"train:1:{MUL_NUM}", attention_tag, pse_data_tag],
              date_id=date_id, pse_data=pse_data,test_name=test_name)

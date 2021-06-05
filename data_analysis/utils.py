@@ -2,7 +2,6 @@ import pickle, datetime, os, wandb
 from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
 from pre_process.my_setting import *
-SetsPath().set()
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
@@ -17,8 +16,9 @@ from collections import Counter
 from keras.utils import plot_model
 from IPython.display import SVG
 from keras.utils.vis_utils import model_to_dot
-
+import sys
 import numpy
+import tensorflow as tf
 
 # 便利な関数をまとめたもの    
 class Utils():
@@ -118,14 +118,34 @@ class Utils():
         plt.show() 
 
     # wandbに画像のログを送る
-    def save_image2wandb(self, image, dir2 = "confusion_matrix", 
-                         fileName = "cm", to_wandb = False):
+    def save_image2Wandb(self, image, dir2="confusion_matrix", 
+                         fileName="cm", to_wandb = False,
+                         train_or_test=None, test_label=None,
+                         date_id=None):
         sns.heatmap(image, annot = True, cmap = "Blues", fmt = "d")
-        path = os.path.join(self.figure_dir, dir2, fileName+"_"+str(self.date_id)+".png")
-        plt.savefig(path)
+        plt.xlabel("pred")
+        plt.ylabel('actual')
+        # 保存するフォルダ名を取得
+        path = os.path.join(self.figure_dir, 
+                            dir2, test_label, 
+                            train_or_test)
+        # パスを通す
+        self.check_path_auto(path=path)
+        # ファイル名を指定して保存
+        plt.savefig(os.path.join(path,fileName+"_"+date_id+".png"))
+        
         if to_wandb:
-            im_read = plt.imread(path)
-            wandb.log({f"{dir2}":[wandb.Image(im_read, caption = f"{fileName}")]})
+            im_read = plt.imread(os.path.join(path,fileName+"_"+date_id+".png"))
+            wandb.log({f"{dir2}:{train_or_test}":[wandb.Image(im_read, caption = f"{fileName}")]})
+        plt.clf()
+        return
+
+    # wandbにグラフのログを送る
+    def save_graph2Wandb(self, path, name, train_or_test):
+        im_read = plt.imread(path)
+        # 画像送信
+        wandb.log({f"{name}:{train_or_test}":[wandb.Image(im_read,caption=f"{name}")]})
+        # 画像削除
         plt.clf()
         return
 
@@ -184,7 +204,7 @@ class Utils():
         file_path = ''
         # FIXME : dir_list の開始地点はインデックスが5以上のTaikiSenjuの下にする
         # NOTE : root_dirを睡眠のディレクトリとすることでその下を確認する
-        _, root_dir_name = self.project_dir
+        _, root_dir_name = os.path.split(self.project_dir)
         for _ in dir_list:
             if dir_list[0] == root_dir_name:
                 # 先頭要素をpop（睡眠のディレクトリまでpop）
@@ -201,72 +221,33 @@ class Utils():
             file_path = os.path.join(file_path, dir_name)
             self.check_path(file_path)
 
-    def make_confusion_matrix(self, y_true, y_pred, using_pandas = False):
-        """混合マトリクスを作成するメソッド
-
-        Args:
-            x ([array]]): [入力データ]
-            y ([array]]): [正解ラベル]
-        """
+    # 混合行列を作成
+    def make_confusion_matrix(self, y_true, y_pred, n_class=5):
+        # カテゴリカルのデータ(y_true, y_pred)であることを想定
         try:
             assert np.ndim(y_true)==1
         except:
             print("正解データはlogitsで入力してください（one-hotじゃない形で！）")
             sys.exit(1)
         try:
-            assert np.ndim(y_pred)==2
+            assert np.ndim(y_pred)==1
         except:
-            print("予測ラベルは確率で出力してください")
-        y_pred = np.argmax(y_pred, axis=1) 
+            print("予測ラベルはlogitsで入力してください（one-hotじゃない形で！）")
         
-        # ラベルの番号を睡眠段階に読み替える
-        # 5段階の睡眠段階の際はこの方法で良い
-        # y_trueはtensorflowのオブジェクトで値を変更できないみたいなので、
-        # _y_trueを代わりに作成してそっちに入れる
-        _y_true = [i for i in range(y_true.shape[0])]
-        _y_pred = [i for i in range(y_pred.shape[0])]
+        # 混合行列を作成
+        cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
         
-        for counter, true_label in enumerate(y_true.numpy()):
-            if true_label==0:
-                _y_true[counter]="nr34"
-            elif true_label==1:
-                _y_true[counter]="nr2"
-            elif true_label==2:
-                _y_true[counter]="nr1"
-            elif true_label==3:
-                _y_true[counter]="rem"
-            elif true_label==4:
-                _y_true[counter]="wake"
-            else:
-                print("sleep stage is out of range")
-                sys.exit(1)
-                
-        for counter, pred_label in enumerate(y_pred):
-            if pred_label==0:
-                _y_pred[counter]="nr34"
-            elif pred_label==1:
-                _y_pred[counter]="nr2"
-            elif pred_label==2:
-                _y_pred[counter]="nr1"
-            elif pred_label==3:
-                _y_pred[counter]="rem"
-            elif pred_label==4:
-                _y_pred[counter]="wake"
-            else:
-                print("sleep stage is out of range")
-                sys.exit(1)
-                
-        cm = confusion_matrix(y_true=_y_true, y_pred=_y_pred)
-        
-        if using_pandas:
-            try:
-                df = pd.DataFrame(cm,
-                                  index = ["wake", "rem", "nr1", "nr2", "nr34"],
-                                  columns = ["wake", "rem", "nr1", "nr2", "nr34"])
-            except:
-                df = pd.DataFrame(cm)
-            return cm, df
-        return cm, None
+        # 正解ラベルのクラス数に応じてラベル名を変更する
+        if n_class == 5:
+            labels = ["nr34","nr2","nr1","rem","wake"]
+        elif n_class == 4:
+            labels = ["nr34","nr12","rem","wake"]
+        elif n_class == 3:
+            labels = ["nrem","rem","wake"]
+        elif n_class == 2:
+            labels = ["non-target", "target"]
+        df = pd.DataFrame(cm, columns=labels, index=labels)
+        return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas = False):
         """混合マトリクスを作成するメソッド
@@ -288,6 +269,152 @@ class Utils():
             return cm, df
         return cm, None
 
+    # ヒストグラムを作成・保存
+    def make_histgram(self, true_label_array=None, false_label_array=None,
+                      dir2='histgram', file_name='hist',train_or_test=None,
+                      test_label=None, date_id=None):
+        plt.style.use('default')
+        sns.set()
+        sns.set_style('whitegrid')
+        sns.set_palette('Set1')
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        _true_label_array = list()
+        _false_label_array = list()
+        for u_in_true in true_label_array:
+            _true_label_array.append(u_in_true[0])
+        for u_in_false in false_label_array:
+            _false_label_array.append(u_in_false[0])
+        
+        # colorの参考：https://www.colorhexa.com/43caf4
+        ax.hist([_true_label_array, _false_label_array], bins=10,
+                label=("TRUE", "FALSE"), stacked=True,
+                color=["#43caf4", "#f44372"])
+        ax.set_xlabel('uncertainty')
+        ax.set_ylabel('samples')
+        plt.legend()
+        # 保存するフォルダ名を取得
+        path = os.path.join(self.figure_dir, 
+                            dir2, test_label, 
+                            train_or_test)
+        self.check_path_auto(path)
+        plt.savefig(os.path.join(path,file_name+"_"+date_id+".png"))
+    
+    # 混合行列をwandbに送信
+    def conf_mat2Wandb(self, y, evidence, 
+                       train_or_test,
+                       test_label,
+                       date_id):
+        alpha = evidence+1
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        y_pred = alpha/S
+        _, n_class = y_pred.shape
+        # カテゴリカルに変換
+        y_pred = np.argmax(y_pred, axis=1) 
+        # ラベル付き混合行列を返す
+        cm = self.make_confusion_matrix(y_true=y, y_pred=y_pred, n_class=n_class)
+        # seabornを使ってグラフを作成し保存
+        self.save_image2Wandb(image=cm, to_wandb=True, train_or_test=train_or_test,
+                              test_label=test_label, date_id=date_id)
+        return
+
+    # 不確かさのヒストグラムをwandbに送信
+    def u_hist2Wandb(self, y, evidence, train_or_test,
+                     test_label, date_id, dir2='histgram'):
+        alpha = evidence+1
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        y_pred = alpha/S
+        _, n_class = y_pred.shape
+        # カテゴリカルに変換
+        y_pred = np.argmax(y_pred, axis=1) 
+        
+        uncertainty = n_class/tf.reduce_sum(alpha, axis=1, keepdims=True)
+        # true_label, false_labelに分類する
+        true_label_array = uncertainty.numpy()[y==y_pred]
+        false_label_array = uncertainty.numpy()[y!=y_pred]
+        # ヒストグラムを作成
+        self.make_histgram(true_label_array=true_label_array,
+                           false_label_array=false_label_array,
+                           train_or_test=train_or_test,
+                           test_label=test_label,
+                           date_id=date_id)
+        file_path = os.path.join(self.figure_dir, 
+                            dir2, test_label, 
+                            train_or_test,
+                            'hist'+"_"+date_id+".png")
+        # wandbに送信
+        self.save_graph2Wandb(path=file_path, name='hist', train_or_test=train_or_test)
+    
+    # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
+    def u_threshold_and_acc2Wandb(self, y, evidence, test_label,
+                                  train_or_test, date_id):
+        alpha = evidence+1
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        y_pred = alpha/S
+        _, n_class = y_pred.shape
+        # カテゴリカルに変換
+        y_pred = np.argmax(y_pred, axis=1)
+        uncertainty = n_class/tf.reduce_sum(alpha, axis=1, keepdims=True)
+        # 1次元に落とし込む
+        uncertainty = tf.reshape(uncertainty, -1)
+        # listに落とし込む
+        uncertainty = [u.numpy() for u in uncertainty]
+        # 一致率のリスト
+        acc_list = list()
+        # 正解数のリスト
+        true_list = list()
+        # 残ったサンプル数のリスト
+        existing_list = list()
+        # 閾値の空リスト
+        _thresh_hold_list =list()
+        # 閾値のリスト
+        thresh_hold_list = np.arange(0.1, 1.1, 0.1)
+        for thresh_hold in thresh_hold_list:
+            tmp_y_pred = y_pred[uncertainty<=thresh_hold]
+            tmp_y_true = y[uncertainty<=thresh_hold]
+            sum_true = sum(tmp_y_pred==tmp_y_true)
+            sum_existing = len(tmp_y_true)
+            if sum_existing == 0:
+                print("trueラベルがありませんでした")
+                continue
+            acc = sum_true/sum_existing
+            acc_list.append(acc)
+            true_list.append(sum_true)
+            existing_list.append(sum_existing)
+            _thresh_hold_list.append(thresh_hold)
+        
+        # グラフの作成
+        fig = plt.figure()
+        ax1 = fig.add_subplot(1,1,1)
+        # 五角形のプロット
+        ax1.scatter(_thresh_hold_list, acc_list, c="#f46d43", label="accuracy", marker="p")
+        # なぞる
+        ax1.plot(_thresh_hold_list, acc_list, c="#f46d43", linestyle=":")
+        ax1.set_xlabel('uncertainty threshold')
+        ax1.set_ylabel('accuracy')
+        ax2 = ax1.twinx()
+        # 三角形のプロット
+        ax2.scatter(_thresh_hold_list, true_list, c="#43caf4", label='true_num', marker="^")
+        # なぞる
+        ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
+        # 四角形のプロット
+        ax2.scatter(_thresh_hold_list, existing_list, c="#43f4c6", label='all_num', marker="s")
+        # なぞる
+        ax2.plot(_thresh_hold_list, existing_list, c="#43f4c6", linestyle=":")
+        ax2.set_ylabel('samples')
+        ax1.legend()
+        ax2.legend()
+        plt.legend()
+        path = os.path.join(self.figure_dir, 
+                            'uncertainty', 
+                            test_label,
+                            train_or_test)
+        self.check_path_auto(path=path)
+        file_path = os.path.join(path,'uncertainty'+'_'+date_id+'.png')
+        plt.savefig(file_path)
+        self.save_graph2Wandb(path=file_path, name='uncertainty', train_or_test=train_or_test)
+        return
+     
 if __name__ == '__main__':
     
     # seedによるランダム性を確認する

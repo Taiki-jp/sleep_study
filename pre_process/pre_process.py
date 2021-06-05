@@ -176,6 +176,7 @@ class PreProcess():
 
         # convert to one-hot vector
         if to_one_hot_vector:
+            print("- one-hotベクトルを出力します")
             y_train = tf.one_hot(y_train, class_size)
             y_test = tf.one_hot(y_test, class_size)
             
@@ -423,16 +424,18 @@ class PreProcess():
     
     # 仮データの作成
     def make_pse_sleep_data(self, n_class):
-        batch_size = 100
+        batch_size = 1000
         if self.data_type == "spectrum":
             print("spectrum型の仮データを作成します")
             input_shape = (batch_size, 512, 1)
         elif self.data_type == "spectrogram":
             print("spectrogram型の仮データを作成します")
             input_shape  = (batch_size, 128, 512, 1)
-        x_train = tf.random.normal(shape=input_shape)
+        # x_train = tf.random.normal(shape=input_shape)
+        x_train = tf.random.uniform(shape=input_shape,minval=-1,maxval=1)
         y_train = np.random.randint(0, n_class-1, size=batch_size)
-        x_test = tf.random.normal(shape=input_shape)
+        # x_test = tf.random.normal(shape=input_shape)
+        x_test = tf.random.uniform(shape=input_shape,minval=-1,maxval=1)
         y_test = np.random.randint(0, n_class-1, size=batch_size)
         return(x_train, y_train), (x_test, y_test)
      
