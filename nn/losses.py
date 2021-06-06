@@ -42,6 +42,14 @@ class EDLLoss(tf.keras.losses.Loss):
         KL_reg =  self.KL((alpha - 1)*(1-y_true) + 1)
         return L_err + L_var + self.annealing*KL_reg
     
+    def loss_eq4(self, y_true, alpha):
+        return
+    
+    def loss_eq3(self, y_trur, alpha):
+        return
+    
+    
+    
     def get_config(self):
         config = super().get_config()
         config.update({"K":self.K, "annealing":self.annealing})

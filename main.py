@@ -8,7 +8,6 @@ from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
 from nn.model_base import EDLModelBase, edl_classifier_2d
 from nn.losses import EDLLoss
-from nn.metrics import custom_metric
 
 def main(name, project, train, test,
          pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
@@ -27,8 +26,7 @@ def main(name, project, train, test,
     wandb.init(name = name, 
                project = project,
                tags = my_tags,
-               config= {"test name":test_name,
-                        "date id":date_id},
+               config= {"test name":test_name, "date id":date_id},
                sync_tensorboard=True)
            
     # モデルの作成とコンパイル
