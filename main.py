@@ -82,7 +82,8 @@ if __name__ == '__main__':
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)
         # tagの設定
-        my_tags = [f"{test_name}", f"train:1:{MUL_NUM}", attention_tag, pse_data_tag]
+        my_tags = [f"{test_name}", pse_data_tag,
+                   attention_tag, inception_tag]
         
         main(name=f"edl-{test_name}",project=wandb_project,pre_process=pre_process,train=train, 
              test=test,epochs=epochs,save_model=True,has_attention=has_attention,my_tags=my_tags,
