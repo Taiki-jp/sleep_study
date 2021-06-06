@@ -13,3 +13,5 @@ model_saved_by_save_method/
 
 logs/
 .pytest_cache/
+
+!*.ipynb
