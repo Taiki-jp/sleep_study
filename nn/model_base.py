@@ -7,7 +7,7 @@ from tensorflow.python.keras.backend import shape
 #           function APIによるモデル構築
 # ================================================ #
 
-def edl_classifier_2d(x, n_class, has_attention=True):
+def edl_classifier_2d(x, n_class, has_attention=True, has_inception=True):
     tf.random.set_seed(0)
     # convolution AND batch normalization
     def _conv2d_bn(x, filters, num_row, num_col,
@@ -40,26 +40,25 @@ def edl_classifier_2d(x, n_class, has_attention=True):
     x = _conv2d_bn(x, 192, 3, 3, padding='valid')
     x = tf.keras.layers.MaxPooling2D((3,3), strides=(2,2))(x)
     
-    
+    if has_inception:
     # mixed 1: 35 x 35 x 288
-    branch1x1 = _conv2d_bn(x, 64, 1, 1)  
-    branch5x5 = _conv2d_bn(x, 48, 1, 1)
-    branch5x5 = _conv2d_bn(branch5x5, 64, 5, 5)  
-    branch3x3dbl = _conv2d_bn(x, 64, 1, 1)
-    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)
-    branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)    
-    branch_pool = tf.keras.layers.AveragePooling2D(
-        (3, 3), strides=(1, 1), padding='same')(x)
-    branch_pool = _conv2d_bn(branch_pool, 64, 1, 1)
-    x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
-                                    axis=-1, name='mixed1')  # (13, 13, 288)
-    if has_attention:
-        attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)  # (13, 13, 1)
-        attention = tf.keras.layers.Activation('sigmoid')(attention)
-        
-        x *= attention
-    
-    
+        branch1x1 = _conv2d_bn(x, 64, 1, 1)  
+        branch5x5 = _conv2d_bn(x, 48, 1, 1)
+        branch5x5 = _conv2d_bn(branch5x5, 64, 5, 5)  
+        branch3x3dbl = _conv2d_bn(x, 64, 1, 1)
+        branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)
+        branch3x3dbl = _conv2d_bn(branch3x3dbl, 96, 3, 3)    
+        branch_pool = tf.keras.layers.AveragePooling2D(
+            (3, 3), strides=(1, 1), padding='same')(x)
+        branch_pool = _conv2d_bn(branch_pool, 64, 1, 1)
+        x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                                        axis=-1, name='mixed1')  # (13, 13, 288)
+        if has_attention:
+            attention = tf.keras.layers.Conv2D(1, kernel_size=3, padding='same')(x)  # (13, 13, 1)
+            attention = tf.keras.layers.Activation('sigmoid')(attention)
+
+            x *= attention
+
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(n_class**2)(x)
     x = tf.keras.layers.Activation('relu')(x)
