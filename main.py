@@ -41,6 +41,7 @@ def main(name, project, train, test,
                   metrics=["accuracy"])
     
     # tensorboard作成
+    # log_dir = os.path.join(os.environ["sleep"], "logs", "my_edl", f"{test_name}", date_id)
     log_dir = f"logs/my_edl/{test_name}/"+date_id
     tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     
@@ -65,12 +66,13 @@ if __name__ == '__main__':
     MUL_NUM = 1
     has_attention = True
     attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = True
+    pse_data = False
     pse_data_tag = "psedata" if pse_data else "sleepdata"
     epochs = 100
     has_inception = False
     inception_tag = "inception" if has_inception else "no-inception"
     wandb_project = "test" if pse_data else "edl-test"
+    batch_size = 32
     
     
     # オブジェクトの作成
@@ -87,4 +89,5 @@ if __name__ == '__main__':
         
         main(name=f"edl-{test_name}",project=wandb_project,pre_process=pre_process,train=train, 
              test=test,epochs=epochs,save_model=True,has_attention=has_attention,my_tags=my_tags,
-             date_id=date_id,pse_data=pse_data,test_name=test_name,has_inception=has_inception)
+             date_id=date_id,pse_data=pse_data,test_name=test_name,has_inception=has_inception,
+             batch_size=batch_size)
