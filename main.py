@@ -1,6 +1,6 @@
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
 # tf.config.run_functions_eagerly(True)
 from wandb.keras import WandbCallback
@@ -19,7 +19,8 @@ def main(name, project, train, test,
                                                                     test=test, 
                                                                     is_storchastic=False,
                                                                     pse_data=pse_data,
-                                                                    to_one_hot_vector=False)
+                                                                    to_one_hot_vector=False,
+                                                                    each_data_size=5000)
     # データセットの数
     print(f"training data : {x_train.shape}")
 
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     HAS_INCEPTION = True
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
-    BATCH_SIZE = 4
+    BATCH_SIZE = 32
     N_CLASS = 5
     DATA_TYPE = "spectrum"
     
