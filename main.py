@@ -6,7 +6,7 @@ import tensorflow as tf
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
-from nn.model_base import EDLModelBase, edl_classifier_2d
+from nn.model_base import EDLModelBase, edl_classifier_2d, edl_classifier_1d
 from nn.losses import EDLLoss
 
 def main(name, project, train, test,
@@ -33,8 +33,9 @@ def main(name, project, train, test,
                sync_tensorboard=True)
            
     # モデルの作成とコンパイル
-    inputs = tf.keras.Input(shape=(128, 512, 1))
-    outputs = edl_classifier_2d(x=inputs, n_class=n_class, has_attention=has_attention, has_inception=has_inception)
+    # inputs = tf.keras.Input(shape=(128, 512, 1))
+    inputs = tf.keras.Input(shape=(512, 1))
+    outputs = edl_classifier_1d(x=inputs, n_class=n_class, has_attention=has_attention, has_inception=has_inception)
     model = EDLModelBase(inputs=inputs, outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(),
                   loss=EDLLoss(K=n_class, annealing=0.1),
@@ -66,17 +67,18 @@ if __name__ == '__main__':
     MUL_NUM = 1
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    PSE_DATA = True
+    PSE_DATA = False
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     EPOCHS = 100
-    HAS_INCEPTION = False
+    HAS_INCEPTION = True
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
-    BATCH_SIZE = 32
+    BATCH_SIZE = 4
     N_CLASS = 5
+    DATA_TYPE = "spectrum"
     
     # オブジェクトの作成
-    load_sleep_data = LoadSleepData(data_type="spectrum", n_class=N_CLASS)
+    load_sleep_data = LoadSleepData(data_type=DATA_TYPE, n_class=N_CLASS)
     pre_process = PreProcess(load_sleep_data)
     datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
 
@@ -85,7 +87,8 @@ if __name__ == '__main__':
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=PSE_DATA)
         # tagの設定
         my_tags = [f"{test_name}", PSE_DATA_TAG,
-                   ATTENTION_TAG, INCEPTION_TAG]
+                   ATTENTION_TAG, INCEPTION_TAG,
+                   DATA_TYPE]
         
         main(name=f"edl-{test_name}",project=WANDB_PROJECT,pre_process=pre_process,train=train, 
              test=test,epochs=EPOCHS,save_model=True,has_attention=HAS_ATTENTION,my_tags=my_tags,

@@ -4,7 +4,65 @@ import tensorflow as tf
 from tensorflow.python.keras.backend import shape
 
 # ================================================ #
-#           function APIによるモデル構築
+#           function APIによるモデル構築(1d-conv)
+# ================================================ #
+
+def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
+    tf.random.set_seed(0)
+    # convolution AND batch normalization
+    def _conv1d_bn(x, filters, num_col,
+                   padding='same', strides=1,name=None):
+        if name is not None:
+            bn_name = name+'_bn'
+            conv_name = name+'_conv'
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv1D(filters, num_col,
+                                   strides=strides,
+                                   padding=padding,
+                                   use_bias=False,
+                                   name=conv_name)(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation('relu', name=name)(x)
+        return x
+
+    # 畳み込み開始01
+    x = _conv1d_bn(x, 32, 3, strides=2, padding='valid')
+    x = _conv1d_bn(x, 32, 3, padding='valid')
+    x = _conv1d_bn(x, 64, 3)
+    x = tf.keras.layers.MaxPooling1D(3, strides=2)(x)
+    # 畳み込み開始02
+    x = _conv1d_bn(x, 80, 1, padding='valid')
+    x = _conv1d_bn(x, 192, 3, padding='valid')
+    x = tf.keras.layers.MaxPooling1D(3, strides=2)(x)
+    
+    if has_inception:
+    # mixed 1: 35 x 35 x 288
+        branch1x1 = _conv1d_bn(x, 64, 1)  
+        branch5x5 = _conv1d_bn(x, 48, 1)
+        branch5x5 = _conv1d_bn(branch5x5, 64, 5)  
+        branch3x3dbl = _conv1d_bn(x, 64, 1)
+        branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+        branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)    
+        branch_pool = tf.keras.layers.AveragePooling1D(3, strides=1, padding='same')(x)
+        branch_pool = _conv1d_bn(branch_pool, 64, 1)
+        x = tf.keras.layers.concatenate([branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                                        axis=-1, name='mixed1')  # (13, 13, 288)
+        if has_attention:
+            attention = tf.keras.layers.Conv1D(1, kernel_size=3, padding='same')(x)  # (13, 13, 1)
+            attention = tf.keras.layers.Activation('sigmoid')(attention)
+            x *= attention
+
+    x = tf.keras.layers.GlobalAveragePooling1D()(x)
+    x = tf.keras.layers.Dense(n_class**2)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    x = tf.keras.layers.Dense(n_class)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+# ================================================ #
+#           function APIによるモデル構築(2d-conv)
 # ================================================ #
 
 def edl_classifier_2d(x, n_class, has_attention=True, has_inception=True):
@@ -320,12 +378,47 @@ if __name__ == "__main__":
                   callbacks=[tensorboard_callback],
                   batch_size=4)
         return
-    
+
+    # edl_classifierのテストコード
+    def edl_classifier_1d_checker():
+        # 入力のサイズ
+        batch_size = 10
+        n_class = 5
+        input_shape = (batch_size, 512, 1)
+        x = tf.random.normal(shape=input_shape)
+        # 範囲はクラス数-1
+        y = [random.randint(0, n_class-1) for _ in range(batch_size)]
+        y = np.array(y)
+
+        # モデルの確認(edl_classifier_2d)
+        # shapeはバッチサイズ以降の形を指定
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        outputs = edl_classifier_1d(x=inputs, n_class=n_class,
+                                    has_attention=True)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+        # モデルのコンパイル
+        model.compile(optimizer=tf.keras.optimizers.Adam(),
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
+
+        # コールバックのためにグラフを作成
+        log_dir = "logs/my_random_fit_graph/"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
+        # 訓練
+        model.fit(x=x, y=y, 
+                  epochs=5, 
+                  callbacks=[tensorboard_callback],
+                  batch_size=4)
+        return
+
     # チェックしたい関数（クラス）のみTrueにする
     check_edl_classifier_2d = False
     check_model_base = False
     check_create_model_base = False
-    check_edl_model_base = True
+    check_edl_model_base = False
+    check_edl_classifier_1d = True
     
     # edl_classifierのモデルをチェックしたいとき
     if check_edl_classifier_2d:
@@ -336,6 +429,8 @@ if __name__ == "__main__":
         create_model_base_checker()
     if check_edl_model_base:
         edl_model_base_checker()
+    if check_edl_classifier_1d:
+        edl_classifier_1d_checker()
     
     
     
