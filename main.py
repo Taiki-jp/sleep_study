@@ -44,7 +44,7 @@ def main(name, project, train, test,
     # log_dir = os.path.join(os.environ["sleep"], "logs", "my_edl", f"{test_name}", date_id)
     log_dir = f"logs/my_edl/{test_name}/"+date_id
     tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    
+     
     model.fit(x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test),
               epochs=epochs, callbacks=[tf_callback, WandbCallback()], verbose=2)
     
@@ -64,30 +64,30 @@ if __name__ == '__main__':
     
     # ハイパーパラメータの設定
     MUL_NUM = 1
-    has_attention = True
-    attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = False
-    pse_data_tag = "psedata" if pse_data else "sleepdata"
-    epochs = 100
-    has_inception = False
-    inception_tag = "inception" if has_inception else "no-inception"
-    wandb_project = "test" if pse_data else "edl-test"
-    batch_size = 32
-    
+    HAS_ATTENTION = True
+    ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
+    PSE_DATA = True
+    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
+    EPOCHS = 100
+    HAS_INCEPTION = False
+    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
+    WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
+    BATCH_SIZE = 32
+    N_CLASS = 5
     
     # オブジェクトの作成
-    load_sleep_data = LoadSleepData(data_type="spectrogram")
+    load_sleep_data = LoadSleepData(data_type="spectrum", n_class=N_CLASS)
     pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=pse_data)
+    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
 
     for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=pse_data)
+        (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=PSE_DATA)
         # tagの設定
-        my_tags = [f"{test_name}", pse_data_tag,
-                   attention_tag, inception_tag]
+        my_tags = [f"{test_name}", PSE_DATA_TAG,
+                   ATTENTION_TAG, INCEPTION_TAG]
         
-        main(name=f"edl-{test_name}",project=wandb_project,pre_process=pre_process,train=train, 
-             test=test,epochs=epochs,save_model=True,has_attention=has_attention,my_tags=my_tags,
-             date_id=date_id,pse_data=pse_data,test_name=test_name,has_inception=has_inception,
-             batch_size=batch_size)
+        main(name=f"edl-{test_name}",project=WANDB_PROJECT,pre_process=pre_process,train=train, 
+             test=test,epochs=EPOCHS,save_model=True,has_attention=HAS_ATTENTION,my_tags=my_tags,
+             date_id=date_id,pse_data=PSE_DATA,test_name=test_name,has_inception=HAS_INCEPTION,
+             batch_size=BATCH_SIZE, n_class=N_CLASS)

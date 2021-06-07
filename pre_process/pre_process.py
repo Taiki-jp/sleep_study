@@ -47,7 +47,7 @@ class PreProcess():
                      insert_channel_axis=True,
                      to_one_hot_vector=True,
                      pse_data = False):
-
+        # NOTE : when true, make pse_data based on the data type which specified in load_sleep_data object
         if pse_data:
             print("仮の睡眠データを作成します")
             return self.make_pse_sleep_data(n_class=class_size)
@@ -165,11 +165,17 @@ class PreProcess():
         y_train = self.change_label(y_data=y_train, n_class=class_size, target_class=target_ss)
         y_test = self.change_label(y_data=y_test, n_class=class_size, target_class=target_ss)
         
-        # inset_channel_axis
-        if insert_channel_axis:
-            print("- チャンネル方向に軸を追加します")
-            x_train = x_train[:,:,:,np.newaxis]  #.astype('float32')
-            x_test = x_test[:,:,:,np.newaxis] #.astype('float32')
+        # inset_channel_axis based on data type
+        if self.data_type == "spectrum":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_train = x_train[:,:,np.newaxis]  #.astype('float32')
+                x_test = x_test[:,:,np.newaxis] #.astype('float32')
+        elif self.data_type == "spectrogram":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_train = x_train[:,:,:,np.newaxis]  #.astype('float32')
+                x_test = x_test[:,:,:,np.newaxis] #.astype('float32')
 
         if self.verbose == 0:
             print("*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n", Counter(y_train))
@@ -229,6 +235,7 @@ class PreProcess():
     
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
     def split_train_test_from_records(self, records, test_id, pse_data):
+        # NOTE : pse_data is needed for avoiding split data
         if pse_data:
             print("仮データのためスキップします")
             return (None, None)
@@ -450,13 +457,18 @@ class PreProcess():
 
 if __name__ == "__main__":
     from pre_process.load_sleep_data import LoadSleepData
-    load_sleep_data = LoadSleepData(data_type="spectrogram", verbose=0)
+    PSE_DATA = False
+    load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0, n_class=5)
     pre_process = PreProcess(load_sleep_data)
     # 全員読み込む
-    #records = load_sleep_data.load_data(load_all=True)
+    records = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA, name=None)
     # テストと訓練にスプリット
-    #(train, test) = pre_process.split_train_test_from_records(records=records, test_id=0)
+    (train, test) = pre_process.split_train_test_from_records(records=records, test_id=0, pse_data=PSE_DATA)
     # 読み込みとsplitを同時に行う
-    (train, test) = pre_process.split_train_test_data(load_all=True, test_name="H_Li")
-    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, test=test, is_storchastic=False)
+    # (train, test) = pre_process.split_train_test_data(load_all=True, test_name="H_Li")
+    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, test=test, is_storchastic=False, pse_data=PSE_DATA)
     print(x_train.shape)
+    # 1d が本当にデータ入っているかの確認 -> 確認済み
+    # import matplotlib.pyplot as plt
+    # plt.plot(x_train[0])
+    # plt.show()
