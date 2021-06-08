@@ -6,7 +6,6 @@ from tensorflow.python.keras.backend import shape
 # ================================================ #
 #           function APIによるモデル構築(1d-conv)
 # ================================================ #
-
 def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
     tf.random.set_seed(0)
     # convolution AND batch normalization
@@ -26,16 +25,18 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
         x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
         x = tf.keras.layers.Activation('relu', name=name)(x)
         return x
-
+    # start convolution from 512/4 -> 128
+    x = tf.keras.layers.Conv1D(3, 4, strides=4, name="shrink_tensor_layer")(x)
+    x = tf.keras.layers.Activation('relu')(x)
     # 畳み込み開始01
-    x = _conv1d_bn(x, 32, 3, strides=2, padding='valid')
-    x = _conv1d_bn(x, 32, 3, padding='valid')
-    x = _conv1d_bn(x, 64, 3)
-    x = tf.keras.layers.MaxPooling1D(3, strides=2)(x)
+    x = _conv1d_bn(x, 32, 3, strides=2, padding='valid', name="first_layer")
+    x = _conv1d_bn(x, 32, 3, padding='valid', name="second_layer")
+    x = _conv1d_bn(x, 64, 3, name="third_layer")
+    x = tf.keras.layers.MaxPooling1D(3, strides=2, name="first_max_pool")(x)
     # 畳み込み開始02
-    x = _conv1d_bn(x, 80, 1, padding='valid')
-    x = _conv1d_bn(x, 192, 3, padding='valid')
-    x = tf.keras.layers.MaxPooling1D(3, strides=2)(x)
+    x = _conv1d_bn(x, 80, 1, padding='valid', name="forth_layer")
+    x = _conv1d_bn(x, 192, 3, padding='valid', name="fifth_layer")
+    x = tf.keras.layers.MaxPooling1D(3, strides=2, name="second_max_pool")(x)
     
     if has_inception:
     # mixed 1: 35 x 35 x 288
@@ -271,13 +272,13 @@ class EDLModelBase(tf.keras.Model):
         evidence = self(x, training=False)
         alpha = evidence+1
         y_pred = alpha/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+        # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
         # 不確かさのログを取る
         # u_dict = self.u_accuracy(y, y_pred, uncertainty, 0.5)
-        loss = self.compiled_loss(y, alpha)  # TODO : これいる？
+        # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
         metrics_dict = {m.name: m.result() for m in self.metrics}
