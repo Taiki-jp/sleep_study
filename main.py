@@ -68,13 +68,13 @@ if __name__ == '__main__':
     MUL_NUM = 1
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    PSE_DATA = True
+    PSE_DATA = False
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
-    EPOCHS = 10
+    EPOCHS = 100
     HAS_INCEPTION = True
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
-    BATCH_SIZE = 8
+    BATCH_SIZE = 32
     N_CLASS = 5
     DATA_TYPE = "spectrum"
     
