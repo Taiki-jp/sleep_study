@@ -49,7 +49,7 @@ history = model.fit(
 )
 
 # Set up a logs directory, so Tensorboard knows where to look for files
-log_dir='/logs/imdb-example/'
+log_dir='logs/imdb-example/'
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
