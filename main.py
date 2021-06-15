@@ -48,8 +48,8 @@ def main(name, project, train, test,
     tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
      
     model.fit(x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test),
-              epochs=epochs, callbacks=[tf_callback, WandbCallback()], verbose=2,
-              validation_steps=20)
+              epochs=epochs, callbacks=[tf_callback, WandbCallback()], verbose=2,)
+              #validation_steps=20)
     
     if save_model:
         path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
