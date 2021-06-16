@@ -66,7 +66,6 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
-    MUL_NUM = 1
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA = False

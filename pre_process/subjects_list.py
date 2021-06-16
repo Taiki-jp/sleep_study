@@ -16,7 +16,49 @@ class SubjectsList(object):
         self.name_dict = None
         self.spectrogram_date = "20210201-055748"  # スペクトログラム
         self.spectrum_date = "20210320-011750"  # スペクトラム版
-        
+        # attn x incpt x spc_2d
+        self.date_id_list_attnt_incpt_spc_2d = ["20210601-051642",
+                                                "20210601-053406",
+                                                "20210602-120441",   #yamamoto : "20210601-055045",
+                                                "20210601-060739",
+                                                "20210601-062423",
+                                                "20210601-064055",
+                                                "20210601-065654",
+                                                "20210602-165042"] #hiromoto : ""20210601-071330",
+        # attn x incpt x spc_1d
+        self.date_id_list_attnt_incpt_spc_1d = ["20210608-144244",
+                                                "20210608-151256",
+                                                "20210608-154059",
+                                                "20210608-160954",
+                                                "20210608-163811",
+                                                "20210608-170631",
+                                                "20210608-173335",
+                                                "20210608-180219",
+                                                "20210608-183218"]
+        # attn x spc_2d
+        self.date_id_list_attnt_spc_2d = ["20210604-070048",
+                                          "20210604-071219",
+                                          "20210604-072311",
+                                          "20210604-073420",
+                                          "20210604-074528",
+                                          "20210604-075638",
+                                          "20210604-080726",
+                                          "20210604-081841",
+                                          "20210604-083019"]
+        # attn x spc_1d
+        self.date_id_list_attnt_spc_1d = list()
+        # incpt x spc_2d
+        self.date_id_list_incpt_spc_2d = list()
+        # incpt x spec_1d
+        self.date_id_list_incpt_spc_1d = list()
+        # spec_2d
+        self.date_id_list_spc_2d = list()
+        # spec_1d
+        self.date_id_list_spc_1d = list()
+
+    
+
+    
     def sets_filename(self, data_type, n_class):
         if data_type == "spectrum":
             self.name_dict = {name : name+"_"+self.spectrum_date+".sav" for name in self.name_list}

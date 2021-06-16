@@ -23,7 +23,7 @@ import tensorflow as tf
 # 便利な関数をまとめたもの    
 class Utils():
     
-    def __init__(self) -> None:
+    def __init__(self, file_reader) -> None:
         self.project_dir = os.environ['sleep']
         self.figure_dir = os.path.join(self.project_dir, "figures")
         self.video_dir = os.path.join(self.project_dir, "videos")
@@ -31,7 +31,7 @@ class Utils():
         self.analysis_dir = os.path.join(self.project_dir, "analysis")
         self.models_dir = os.path.join(self.project_dir, "models")
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.fr = FileReader()
+        self.fr = file_reader
         self.name_list = self.fr.sl.name_list
         self.name_dict = self.fr.sl.name_dict
         self.ss_list = self.fr.sl.ss_list
