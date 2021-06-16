@@ -71,7 +71,7 @@ with codecs.open(os.path.join(log_dir, 'metadata.tsv'), "w", 'utf-8-sig') as f:
 weights = tf.Variable(model.layers[0].get_weights()[0][1:])
 # Create a checkpoint from embedding, the filename and key are
 # name of the tensor.
-checkpoint = tf.train.Checkpoint(embedding=weights)
+checkpoint = tf.train.Checkpoint()
 checkpoint.save(os.path.join(log_dir, "embedding.ckpt"))
 
 # Set up config
