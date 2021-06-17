@@ -1,5 +1,6 @@
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.pre_process import PreProcess
+from data_analysis.py_color import PyColor
 import numpy as np
 import sys, os
 import matplotlib.pyplot as plt
@@ -15,18 +16,18 @@ from nn.losses import EDLLoss
 def main(train, test,
          pre_process, hidden_layer_id,test_name,
          data_type, my_tags=None,
-         pse_data=False, date_id=None,
-         utils=None):
+         pse_data=False, date_id=None):
 
     # データセットの作成
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
                                                                     test=test, 
                                                                     is_storchastic=False,
                                                                     pse_data=pse_data,
-                                                                    to_one_hot_vector=False)
+                                                                    to_one_hot_vector=False,
+                                                                    is_shuffle=False)
     
     # モデルの読み込み（コンパイル済み）
-    print(f"*** {test_name}のモデルを読み込みます ***")
+    print(f"{py_color.RETURN}, *** {test_name}のモデルを読み込みます ***, {py_color.END}")
     path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
     model = tf.keras.models.load_model(path, custom_objects={"EDLLoss":EDLLoss(K=5,annealing=0.1)})
     print(f"*** {test_name}のモデルを読み込みました ***")
@@ -59,12 +60,12 @@ def main(train, test,
         label_path = os.path.join(log_dir, "metadata.tsv")
         with open(label_path, "w") as f:
             f.write("index\tlabel\n")
-            for index, label in enumerate(y_test):
+            for index, label in enumerate(y):
                 f.write(f"{index}\t{str(label)}\n")
         # チェックポイントの作成
         embedding_var = tf.Variable(result, name="dense")
         check_point_file = os.path.join(log_dir, "embedding.ckpt")
-        ckpt = tf.train.Checkpoint(embedding=embedding_var)
+        ckpt = tf.train.Checkpoint(embedding=embedding_var) 
         ckpt.save(check_point_file)
         # projectorの設定
         config = projector.ProjectorConfig()
@@ -113,6 +114,7 @@ if __name__ == '__main__':
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE)
     pre_process = PreProcess(load_sleep_data)
     datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
+    py_color = PyColor()
 
     # 読み込むモデルの日付リストを返す
     date_id_list = load_date_id_list(has_attention=HAS_ATTENTION,
