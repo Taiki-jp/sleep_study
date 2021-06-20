@@ -32,7 +32,11 @@ class LoadSleepData():
                                        data_type=self.data_type)
 
 if __name__ == "__main__":
+    from collections import Counter
     load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0, n_class=5)
     data = load_sleep_data.load_data(load_all=True, pse_data=False, name=None)
-    print("data_len : ", len(data))
+    # 各被験者について睡眠段階の量をチェック
+    for each_data in data:
+        ss = [record.ss for record in each_data]
+        print(Counter(ss))
     

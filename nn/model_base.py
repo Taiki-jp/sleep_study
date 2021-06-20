@@ -6,6 +6,19 @@ from tensorflow.python.keras.backend import shape
 # ================================================ #
 #           function APIによるモデル構築(1d-conv)
 # ================================================ #
+
+def edl_classifier4psedo_data(x, use_bias, hidden_dim):
+    x = tf.keras.layers.Dense(hidden_dim, activation='relu', 
+                              use_bias=use_bias)(x)
+    x = tf.keras.layers.Dense(hidden_dim, activation='relu',
+                              use_bias=use_bias)(x)
+    x = tf.keras.layers.Dense(2, activation='relu',
+                              use_bias=use_bias)(x)
+    return x
+
+# ================================================ #
+#           function APIによるモデル構築(1d-conv)
+# ================================================ #
 def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
     tf.random.set_seed(0)
     # convolution AND batch normalization
