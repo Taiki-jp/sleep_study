@@ -24,6 +24,7 @@ def main(train,
                                                                     is_shuffle=False,
                                                                     each_data_size=100)
     # hidden_layer_idがNoneのときは入力空間を渡す
+    # FIXME : cannot drow when spectrogram come
     if hidden_layer_id == "input":
         train_test_label = ["train", "test"]
         train_test_holder = [(x_train, y_train), (x_test, y_test)]
@@ -142,7 +143,7 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
-    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrum")
+    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrogram")
     HIDDEN_LAYER_ID = "input"
     
     # オブジェクトの作成
