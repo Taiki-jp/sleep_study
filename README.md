@@ -5,9 +5,6 @@
 # DEMO
  ![my_alt](gallery/my_network.png "my_title")
 ENNの構造は上記の通り（InceptionV3の一部を利用’）
-
- ![my_alt](gallery/psedo_result.gif "my_title")
-ENNの構造は上記の通り（InceptionV3の一部を利用’）
  
 # Features
  
