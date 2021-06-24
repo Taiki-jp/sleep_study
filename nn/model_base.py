@@ -20,10 +20,9 @@ def edl_classifier4psedo_data(x, use_bias, hidden_dim):
 #           function APIによるモデル構築(1d-conv)
 # ================================================ #
 def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
-    tf.random.set_seed(0)
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col,
-                   padding='same', strides=1,name=None):
+                   padding='same',strides=1,name=None):
         if name is not None:
             bn_name = name+'_bn'
             conv_name = name+'_conv'
@@ -80,7 +79,6 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
 # ================================================ #
 
 def edl_classifier_2d(x, n_class, has_attention=True, has_inception=True):
-    tf.random.set_seed(0)
     # convolution AND batch normalization
     def _conv2d_bn(x, filters, num_row, num_col,
                    padding='same', strides=(1,1),name=None):

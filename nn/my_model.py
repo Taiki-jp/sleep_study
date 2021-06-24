@@ -210,7 +210,6 @@ class MyInceptionAndAttention(tf.keras.Model):
     
     def __init__(self, n_classes, hight, width, findsDirObj, channel=1, is_attention=True):
         super().__init__()
-        tf.random.set_seed(0)
         self.n_classes = n_classes
         self.hight = hight
         self.width = width
@@ -427,7 +426,6 @@ class MyInceptionAndAttentionAnd1dCNN(tf.keras.Model):
                  batch=None,
                  is_attention=True):
         super().__init__()
-        tf.random.set_seed(0)
         self.n_classes = n_classes
         self.vec_dim = vec_dim
         self.timesteps = timesteps

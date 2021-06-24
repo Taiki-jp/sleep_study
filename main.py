@@ -1,8 +1,10 @@
 from data_analysis.utils import Utils
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
+# NOTE : ここでシードを固定してみる
+tf.random.set_seed(100)
 # tf.config.run_functions_eagerly(True)
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
@@ -68,11 +70,12 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
+    TEST_RUN = True
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA = True
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
-    EPOCHS = 100
+    EPOCHS = 10
     HAS_INCEPTION = True
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
@@ -98,3 +101,6 @@ if __name__ == '__main__':
              test=test,epochs=EPOCHS,save_model=True,has_attention=HAS_ATTENTION,my_tags=my_tags,
              date_id=date_id,pse_data=PSE_DATA,test_name=test_name,has_inception=HAS_INCEPTION,
              batch_size=BATCH_SIZE, n_class=N_CLASS, utils=utils)
+        # testの時は一人の被験者で止める
+        if TEST_RUN:
+            break
