@@ -1,3 +1,4 @@
+from data_analysis.utils import Utils
 import os, datetime, wandb
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -12,7 +13,7 @@ from nn.losses import EDLLoss
 def main(name, project, train, test,
          pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
          n_class=5, pse_data=False, test_name=None, date_id=None, has_attention=False,
-         has_inception=True):
+         has_inception=True, utils=None):
 
     # データセットの作成
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
@@ -31,7 +32,8 @@ def main(name, project, train, test,
                config= {"test name":test_name, "date id":date_id,
                         "batch_size":batch_size, "attention":has_attention,
                         "inception":has_inception},
-               sync_tensorboard=True)
+               sync_tensorboard=True,
+               dir=utils.project_dir)
            
     # モデルの作成とコンパイル
     # inputs = tf.keras.Input(shape=(128, 512, 1))
@@ -44,7 +46,7 @@ def main(name, project, train, test,
     
     # tensorboard作成
     # log_dir = os.path.join(os.environ["sleep"], "logs", "my_edl", f"{test_name}", date_id)
-    log_dir = f"logs/my_edl/{test_name}/"+date_id
+    log_dir = os.path.join(utils.project_dir, "my_edl", test_name, date_id)
     tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
      
     model.fit(x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test),
@@ -52,7 +54,7 @@ def main(name, project, train, test,
               #validation_steps=20)
     
     if save_model:
-        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+        path = os.path.join(utils.models_dir, test_name, date_id)
         model.save(path)
     wandb.finish()
     
@@ -68,7 +70,7 @@ if __name__ == '__main__':
     # ハイパーパラメータの設定
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    PSE_DATA = False
+    PSE_DATA = True
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     EPOCHS = 100
     HAS_INCEPTION = True
@@ -82,6 +84,7 @@ if __name__ == '__main__':
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE, n_class=N_CLASS)
     pre_process = PreProcess(load_sleep_data)
     datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
+    utils = Utils(file_reader=load_sleep_data.fr)
 
     for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -94,4 +97,4 @@ if __name__ == '__main__':
         main(name=f"edl-{test_name}",project=WANDB_PROJECT,pre_process=pre_process,train=train, 
              test=test,epochs=EPOCHS,save_model=True,has_attention=HAS_ATTENTION,my_tags=my_tags,
              date_id=date_id,pse_data=PSE_DATA,test_name=test_name,has_inception=HAS_INCEPTION,
-             batch_size=BATCH_SIZE, n_class=N_CLASS)
+             batch_size=BATCH_SIZE, n_class=N_CLASS, utils=utils)
