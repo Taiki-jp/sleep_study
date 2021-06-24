@@ -1,13 +1,74 @@
+# sleep study
+
+2020.4 - 2022.3 までの睡眠の研究まとめ
+ 
+# DEMO
+ ![my_alt](gallery/my_network.png "my_title")
+ENNの構造は上記の通り（InceptionV3の一部を利用’）
+
+ ![my_alt](gallery/psedo_result.gif "my_title")
+ENNの構造は上記の通り（InceptionV3の一部を利用’）
+ 
+# Features
+ 
+"hoge"のセールスポイントや差別化などを説明する
+ 
+# Requirement
+ 
+"hoge"を動かすのに必要なライブラリなどを列挙する
+ 
+* huga 3.5.2
+* hogehuga 1.0.2
+ 
+# Installation
+ 
+Requirementで列挙したライブラリなどのインストール方法を説明する
+ 
+```bash
+pip install huga_package
+```
+ 
+# Usage
+ 
+DEMOの実行方法など、"hoge"の基本的な使い方を説明する
+ 
+```bash
+git clone https://github.com/hoge/~
+cd examples
+python demo.py
+```
+ 
+# Note
+ 
+注意点などがあれば書く
+ 
+# Author
+ 
+作成情報を列挙する
+ 
+* 作成者
+* 所属
+* E-mail
+ 
+# License
+ライセンスを明示する
+ 
+"hoge" is under [MIT license](https://en.wikipedia.org/wiki/MIT_License).
+ 
+社内向けなら社外秘であることを明示してる
+ 
+"hoge" is Confidential.
+
 # sleep_study
 
 <strong>nnによる睡眠段階推定手法</strong>
 
 ## 各ブランチの説明
-- master : dnn の分類
-- edl : evidential deep learning による分類
-- edl_1d : 同上（ただし入力データはスペクトラムであり、畳み込みは1次元）
-- more_edl : evidential deep learning にeuを学習される機構の提案
-
+- master : 無駄なファイルを除いた一番軽量なブランチ
+- feature/edl : evidential deep learning による分類（要削除）
+- feature/edl_1d : evidential deep learning のメイン開発ブランチ（のちにedlに吸収）
+- feature/psedo_data : 仮のデータを使った実験ブランチ
+- fix/feauture/edl : feature/edl の修正用ブランチ
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
 - fix: バグの修正
