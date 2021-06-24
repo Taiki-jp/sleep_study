@@ -1,9 +1,9 @@
-from data_analysis.utils import Utils
-import os, datetime, wandb
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
 tf.random.set_seed(100)
+import os, datetime, wandb
+from data_analysis.utils import Utils
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
