@@ -1,11 +1,9 @@
 from data_analysis.utils import Utils
 import os, datetime, wandb
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import tensorflow as tf
-# NOTE : ここでシードを固定してみる
 tf.random.set_seed(100)
-# tf.config.run_functions_eagerly(True)
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
@@ -15,7 +13,7 @@ from nn.losses import EDLLoss
 def main(name, project, train, test,
          pre_process,epochs=1, save_model=False, my_tags=None, batch_size=32, 
          n_class=5, pse_data=False, test_name=None, date_id=None, has_attention=False,
-         has_inception=True, utils=None):
+         has_inception=True, utils=None, data_type=None):
 
     # データセットの作成
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
@@ -24,36 +22,39 @@ def main(name, project, train, test,
                                                                     pse_data=pse_data,
                                                                     to_one_hot_vector=False,
                                                                     each_data_size=5000)
-    # データセットの数
+    # データセットの数を表示
     print(f"training data : {x_train.shape}")
 
     # wandbの初期化
-    wandb.init(name = name, 
-               project = project,
-               tags = my_tags,
-               config= {"test name":test_name, "date id":date_id,
-                        "batch_size":batch_size, "attention":has_attention,
-                        "inception":has_inception},
-               sync_tensorboard=True,
-               dir=utils.project_dir)
+    wandb.init(name=name,project=project,tags=my_tags,
+               config={"test name":test_name, "date id":date_id,
+                       "batch_size":batch_size, "attention":has_attention,
+                       "inception":has_inception},
+               sync_tensorboard=True,dir=utils.project_dir)
            
     # モデルの作成とコンパイル
-    # inputs = tf.keras.Input(shape=(128, 512, 1))
-    inputs = tf.keras.Input(shape=(512, 1))
-    outputs = edl_classifier_1d(x=inputs, n_class=n_class, has_attention=has_attention, has_inception=has_inception)
+    if data_type == "spectrum":
+        shape = (512, 1)
+    elif data_type == "spectrogram":
+        shape = (128, 512, 1)
+    else:
+        # correct here based on your model
+        shape = (512, 1)
+    inputs = tf.keras.Input(shape=shape)
+    outputs = edl_classifier_1d(x=inputs,n_class=n_class,
+                                has_attention=has_attention, 
+                                has_inception=has_inception)
     model = EDLModelBase(inputs=inputs, outputs=outputs)
     model.compile(optimizer=tf.keras.optimizers.Adam(),
-                  loss=EDLLoss(K=n_class, annealing=0.1),
+                  loss=EDLLoss(K=n_class,annealing=0.1),
                   metrics=["accuracy"])
     
     # tensorboard作成
-    # log_dir = os.path.join(os.environ["sleep"], "logs", "my_edl", f"{test_name}", date_id)
     log_dir = os.path.join(utils.project_dir, "my_edl", test_name, date_id)
     tf_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
      
     model.fit(x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test),
               epochs=epochs, callbacks=[tf_callback, WandbCallback()], verbose=2,)
-              #validation_steps=20)
     
     if save_model:
         path = os.path.join(utils.models_dir, test_name, date_id)
@@ -66,6 +67,7 @@ if __name__ == '__main__':
         tf.keras.backend.set_floatx('float32')
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        # tf.config.run_functions_eagerly(True)
     except:
         print("*** cpuで計算します ***")
     
@@ -100,7 +102,8 @@ if __name__ == '__main__':
         main(name=f"edl-{test_name}",project=WANDB_PROJECT,pre_process=pre_process,train=train, 
              test=test,epochs=EPOCHS,save_model=True,has_attention=HAS_ATTENTION,my_tags=my_tags,
              date_id=date_id,pse_data=PSE_DATA,test_name=test_name,has_inception=HAS_INCEPTION,
-             batch_size=BATCH_SIZE, n_class=N_CLASS, utils=utils)
+             batch_size=BATCH_SIZE, n_class=N_CLASS, utils=utils, data_type=DATA_TYPE)
+
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
