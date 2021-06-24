@@ -10,22 +10,17 @@ ENNの構造は上記の通り（InceptionV3の一部を利用）
 仮のデータを用いた実験結果
 
 # Features
- 
-"hoge"のセールスポイントや差別化などを説明する
+
+* <strong>nnによる睡眠段階推定手法</strong>
  
 # Requirement
  
-"hoge"を動かすのに必要なライブラリなどを列挙する
- 
-* huga 3.5.2
-* hogehuga 1.0.2
- 
-# Installation
- 
-Requirementで列挙したライブラリなどのインストール方法を説明する
+ * requirements.txtに記載の通り
+
+# Installation 
  
 ```bash
-pip install huga_package
+pip install -r requirements.txt
 ```
  
 # Usage
@@ -59,7 +54,6 @@ python demo.py
  
 "hoge" is Confidential.
 
-# sleep_study
 
 <strong>nnによる睡眠段階推定手法</strong>
 
