@@ -3,9 +3,12 @@
 2020.4 - 2022.3 までの睡眠の研究まとめ
  u
 # DEMO
- ![my_alt](gallery/my_network.png "my_title")
-ENNの構造は上記の通り（InceptionV3の一部を利用’）
+ ![net_alt](gallery/my_network.png "my_network")
+ENNの構造は上記の通り（InceptionV3の一部を利用）
  
+ ![git_alt](gallery/out.gif "my_psedo")
+仮のデータを用いた実験結果
+
 # Features
  
 "hoge"のセールスポイントや差別化などを説明する
