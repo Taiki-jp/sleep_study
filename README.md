@@ -14,7 +14,6 @@ ENNの構造は上記の通り（InceptionV3の一部を利用）
 * <strong>nnによる睡眠段階推定手法</strong>
  
 # Requirement
- 
  * requirements.txtに記載の通り
 
 # Installation 
@@ -63,7 +62,8 @@ python demo.py
 - feature/edl_1d : evidential deep learning のメイン開発ブランチ（のちにedlに吸収）
 - feature/psedo_data : 仮のデータを使った実験ブランチ
 - fix/feauture/edl : feature/edl の修正用ブランチ
-- feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良
+- feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良（masterにマージ済み）
+- feature/shift_window_in_any_length : 窓のずらし方を任意の幅にできるように改良
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
