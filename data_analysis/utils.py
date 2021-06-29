@@ -19,6 +19,7 @@ from keras.utils.vis_utils import model_to_dot
 import sys
 import numpy
 import tensorflow as tf
+from data_analysis.my_color import MyColor
 
 # 便利な関数をまとめたもの    
 class Utils():
@@ -269,37 +270,73 @@ class Utils():
             return cm, df
         return cm, None
 
-    # ヒストグラムを作成・保存
-    def make_histgram(self, true_label_array=None, false_label_array=None,
-                      dir2='histgram', file_name='hist',train_or_test=None,
-                      test_label=None, date_id=None):
+    # ヒストグラムの作成・保存のひな形（渡したtarget_arrayの分ヒストグラムを作成）
+    def _make_histgram(self, 
+                       target_array : list,
+                       dir2 : str, 
+                       file_name : str,
+                       train_or_test : bool = False,
+                       test_label : str = None, 
+                       date_id : str = None,
+                       hist_label : list = None,
+                       axis_label : dict = {"x" : "uncertainty",
+                                            "y" : "samples"},
+                       color_obj : MyColor = MyColor()):
         plt.style.use('default')
         sns.set()
         sns.set_style('whitegrid')
         sns.set_palette('Set1')
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
-        _true_label_array = list()
-        _false_label_array = list()
-        for u_in_true in true_label_array:
-            _true_label_array.append(u_in_true[0])
-        for u_in_false in false_label_array:
-            _false_label_array.append(u_in_false[0])
-        
-        # colorの参考：https://www.colorhexa.com/43caf4
-        ax.hist([_true_label_array, _false_label_array], bins=10,
-                label=("TRUE", "FALSE"), stacked=True,
-                color=["#43caf4", "#f44372"])
-        ax.set_xlabel('uncertainty')
-        ax.set_ylabel('samples')
+        target_len = len(target_array)
+        try:    
+            assert len(color_obj.__dict__) > target_len
+        except:
+            print("your color is smaller than target array")
+            sys.exit(1)
+        colors = list(color_obj.__dict__.values())[2:2+target_len]
+        ax.hist(target_array, 
+                bins=10,
+                label=hist_label, 
+                stacked=True,
+                color=colors)
+        ax.set_xlabel(axis_label["x"])
+        ax.set_ylabel(axis_label["y"])
         plt.legend()
         # 保存するフォルダ名を取得
         path = os.path.join(self.figure_dir, 
                             dir2, test_label, 
                             train_or_test)
-        self.check_path_auto(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        # 保存
         plt.savefig(os.path.join(path,file_name+"_"+date_id+".png"))
-    
+
+    # ヒストグラムを作成・保存
+    def make_histgram_true_or_false(self, 
+                                    true_label_array : list = None, 
+                                    false_label_array : list = None,
+                                    dir2 : str = 'histgram', 
+                                    file_name : str = 'hist',
+                                    train_or_test : list = None,
+                                    test_label : str = None, 
+                                    date_id : str = None,
+                                    hist_label : list = ["True", "False"],
+                                    axis_label : dict = {"x" : "uncertainty",
+                                                         "y" : "samples"},
+                                    color_obj : object = None):
+
+        self._make_histgram(target_array=[true_label_array,
+                                          false_label_array],
+                            dir2 = dir2,
+                            file_name=file_name,
+                            train_or_test=train_or_test,
+                            test_label=test_label,
+                            date_id=date_id,
+                            hist_label=hist_label,
+                            axis_label=axis_label,
+                            color_obj=color_obj)
+         
     # 混合行列をwandbに送信
     def conf_mat2Wandb(self, y, evidence, 
                        train_or_test,
@@ -320,31 +357,71 @@ class Utils():
 
     # 不確かさのヒストグラムをwandbに送信
     def u_hist2Wandb(self, y, evidence, train_or_test,
-                     test_label, date_id, dir2='histgram'):
+                     test_label, date_id, dir2='histgram',
+                     separate_each_ss=False):
+        # 各睡眠段階に分けて表示するかどうか
         alpha = evidence+1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         y_pred = alpha/S
         _, n_class = y_pred.shape
         # カテゴリカルに変換
         y_pred = np.argmax(y_pred, axis=1) 
-        
         uncertainty = n_class/tf.reduce_sum(alpha, axis=1, keepdims=True)
-        # true_label, false_labelに分類する
-        true_label_array = uncertainty.numpy()[y==y_pred]
-        false_label_array = uncertainty.numpy()[y!=y_pred]
-        # ヒストグラムを作成
-        self.make_histgram(true_label_array=true_label_array,
-                           false_label_array=false_label_array,
-                           train_or_test=train_or_test,
-                           test_label=test_label,
-                           date_id=date_id)
+        
+        if not separate_each_ss:
+            # true_label, false_labelに分類する
+            true_label_array = uncertainty.numpy()[y==y_pred]
+            false_label_array = uncertainty.numpy()[y!=y_pred]
+            true_label_array = [label[0] for label in true_label_array]
+            false_label_array = [label[0] for label in false_label_array]
+            # ヒストグラムを作成
+            self.make_histgram_true_or_false(true_label_array=true_label_array,
+                                             false_label_array=false_label_array,
+                                             train_or_test=train_or_test,
+                                             test_label=test_label,
+                                             date_id=date_id)
+        
+        else:
+            # 各睡眠段階に分割する
+            nrem34_list = uncertainty.numpy()[y==0]
+            nrem2_list = uncertainty.numpy()[y==1]
+            nrem1_list = uncertainty.numpy()[y==2]
+            rem_list = uncertainty.numpy()[y==3]
+            wake_list = uncertainty.numpy()[y==4]
+            nrem34_list = [nrem34[0] for nrem34 in nrem34_list]
+            nrem2_list = [nrem2[0] for nrem2 in nrem2_list]
+            nrem1_list = [nrem1[0] for nrem1 in nrem1_list]
+            rem_list = [rem[0] for rem in rem_list]
+            wake_list = [wake[0] for wake in wake_list]
+            
+            ss_list = [nrem34_list,
+                       nrem2_list,
+                       nrem1_list,
+                       rem_list,
+                       wake_list]
+            
+            hist_label = ["nrem34",
+                          "nrem2",
+                          "nrem1",
+                          "rem",
+                          "wake"]
+            
+            # ヒストグラムを作成
+            self._make_histgram(target_array = ss_list,
+                                dir2 = "histgram",
+                                file_name = "hist",
+                                train_or_test = train_or_test,
+                                test_label = test_label,
+                                date_id = date_id,
+                                hist_label = hist_label)
+            
         file_path = os.path.join(self.figure_dir, 
                             dir2, test_label, 
                             train_or_test,
                             'hist'+"_"+date_id+".png")
         # wandbに送信
         self.save_graph2Wandb(path=file_path, name='hist', train_or_test=train_or_test)
-    
+   
     # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
     def u_threshold_and_acc2Wandb(self, y, evidence, test_label,
                                   train_or_test, date_id):

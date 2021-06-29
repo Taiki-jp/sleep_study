@@ -58,10 +58,14 @@ def main(train,
             projector.visualize_embeddings(log_dir, config)
     else:
         # モデルの読み込み（コンパイル済み）
-        print(f"{py_color.CYAN}{py_color.RETURN}*** {test_name}のモデルを読み込みます ***{py_color.END}")
+        print(py_color.CYAN, py_color.RETURN,
+              f"*** {test_name}のモデルを読み込みます ***",
+              py_color.END)
         path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
         model = tf.keras.models.load_model(path, custom_objects={"EDLLoss":EDLLoss(K=5,annealing=0.1)})
-        print(f"*** {test_name}のモデルを読み込みました ***")
+        print(py_color.CYAN, py_color.RETURN,
+              f"*** {test_name}のモデルを読み込みました ***",
+              py_color.END)
         # 新しいモデルの作成
         new_model = tf.keras.Model(inputs=model.input,
                                    outputs=model.layers[hidden_layer_id].output)
@@ -143,8 +147,8 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
-    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrogram")
-    HIDDEN_LAYER_ID = "input"
+    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrum")
+    HIDDEN_LAYER_ID = -5
     
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE, verbose=1)

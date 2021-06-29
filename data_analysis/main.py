@@ -55,10 +55,12 @@ def main(name, project, train, test,
                              test_label=test_name,
                              date_id=date_id)
         # 不確かさのヒストグラムをwandbに送信
-        utils.u_hist2Wandb(y=y, evidence=evidence, 
+        utils.u_hist2Wandb(y=y, 
+                           evidence=evidence, 
                            train_or_test=train_or_test,
                            test_label=test_name,
-                           date_id=date_id)
+                           date_id=date_id,
+                           separate_each_ss=True)
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(y=y, evidence=evidence, 
                                         train_or_test=train_or_test,
@@ -101,7 +103,7 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
-    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrum")
+    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrogram")
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
