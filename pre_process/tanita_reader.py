@@ -1,16 +1,7 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
 from numpy.lib.function_base import hamming
-from my_setting import *
-SetsPath().set()
-from csv_reader import CsvReader
+from pre_process.csv_reader import CsvReader
 import pandas as pd
-
-# ================================================ #
-# *タニタのマットセンサのデータを読み込むクラス作成
-# ================================================ #
+import os
 
 class TanitaReader(CsvReader):
     def __init__(self, 
@@ -32,10 +23,6 @@ class TanitaReader(CsvReader):
                                   usecols=[1, 3],
                                   header=0)
         return _read()
-
-# ================================================ #
-# *            試験用メイン関数
-# ================================================ #
 
 if __name__ == '__main__':
     import numpy as np

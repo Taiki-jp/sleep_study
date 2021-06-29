@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 import seaborn as sns
 from tensorflow.keras.datasets import mnist
-from load_sleep_data import LoadSleepData
+from pre_process.load_sleep_data import LoadSleepData
 from sklearn.datasets import make_classification
 from imblearn.over_sampling import SMOTE
 from collections import Counter
@@ -31,17 +31,21 @@ class Utils():
         self.tmp_dir = os.path.join(self.project_dir, "tmps")
         self.analysis_dir = os.path.join(self.project_dir, "analysis")
         self.models_dir = os.path.join(self.project_dir, "models")
+        self.pre_processed_dir = os.path.join(self.project_dir, "datas", "pre_processed_data")
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.fr = file_reader
         self.name_list = self.fr.sl.name_list
         self.name_dict = self.fr.sl.name_dict
         self.ss_list = self.fr.sl.ss_list
     
-    def dump_with_pickle(self, data, fd, file_name):
+    def dump_with_pickle(self, data, file_name,
+                         data_type, fit_pos):
         
-        file_path = os.path.join(fd.returnDataPath(),
-                                "pre_processed_data",
-                                file_name+'_'+self.id+'.sav')
+        file_path = os.path.join(self.pre_processed_dir,
+                                 data_type, fit_pos)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        file_path = os.path.join(file_path, file_name+"_"+self.id+".sav")
         pickle.dump(data, open(file_path, 'wb'))
         
     def showSpectrogram(self, *datas, num=4, path = False):

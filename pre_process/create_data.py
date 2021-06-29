@@ -1,54 +1,95 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
-from random import sample
-from matplotlib.pyplot import autoscale, magnitude_spectrum
-from record import Record, multipleRecords
-from my_setting import *
-SetsPath().set()
-from scipy import fftpack
-from statistics import mean, median, variance, stdev
+from data_analysis.py_color import PyColor
+from pre_process.record import Record, multipleRecords
 import numpy as np
 from scipy.signal import hamming
-from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
-# ================================================ #
-# *     データの加工を行うクラスの作成
-# ================================================ #
+import os, sys
 
 class CreateData(object):
-    """Tanita のデータと睡眠段階のデータを Record に変換する
-    """
     def __init__(self):
-        pass
+        return
 
-    def makeSpectrum(self, tanita_data, psg_data, kernel_size, stride):
-        # NOTE : record_lenは公式から簡単に求められる
+    def makeSpectrum(self, 
+                     tanita_data, 
+                     psg_data, 
+                     kernel_size, 
+                     stride,
+                     fit_pos = "middle"):
+        # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
+        # ↑図を描くとわかりやすい
         record_len = int((len(tanita_data)-kernel_size)/stride)+1
         records = multipleRecords(record_len)
-        start_points_list = [i for i in range(0, len(tanita_data)-1024, stride)]
+        start_points_list = [i for i in range(0, len(tanita_data)-kernel_size, stride)]
+        # record オブジェクトの数と 開始ポイントの数（fftを行う数）がそろっていることを確認
         assert record_len == len(start_points_list)
         
         def _make(start_point, record):
-            end_point = start_point+kernel_size
-            amped = hamming(len(tanita_data['val'][start_point:end_point])) * tanita_data['val'][start_point:end_point]
-            fft = np.fft.fft(amped) / (len(tanita_data['val'][start_point:end_point]) / 2.0)
+            end_point = start_point+kernel_size-1
+            amped = hamming(len(tanita_data['val'][start_point:end_point+1])) * tanita_data['val'][start_point:end_point+1]
+            fft = np.fft.fft(amped) / (len(tanita_data['val'][start_point:end_point+1]) / 2.0)
             fft = 20 * np.log10(np.abs(fft))
             fft = fft[:int(kernel_size/2)]
             record.spectrum = fft
-            record.time = tanita_data['time'][int((start_point+end_point)/2)]
+            if fit_pos == "top":
+                fit_index = start_point
+            elif fit_pos == "middle":
+                fit_index = int((start_point+end_point)/2)
+            elif fit_pos == "bottom":
+                fit_index = end_point
+            else:
+                print("exception occured")
+                sys.exit(1)
+            record.time = tanita_data['time'][fit_index]
         
-        def _match(record):
-            for counter, psg_time in enumerate(psg_data["time"]):
-                if psg_time == record.time:
-                    record.ss = psg_data["ss"][counter]
+        def _match(record, start_point):
+            # psgの時間とrecordの時間(tanita)が等しい自国のときの睡眠段階を代入
+            # まず公式に合致すれば，ループ処理をしなくて済む
+            if fit_pos == "top":
+                _index = int(start_point/stride)
+            elif fit_pos == "middle":
+                _index = int((start_point+(kernel_size/2))/stride)
+            elif fit_pos == "bottom":
+                _index = int((start_point+kernel_size)/stride) - 1
+            else:
+                print("exception occured")
+                sys.exit(1)
+            
+            # インデックスがpsgのサイズを超えていないかどうか
+            # タニタのセンサのけつがそろってないと起こりうる
+            # これを回避したければ，タニタのけつの時間をpsgにそろえる
+            if (_index + 1) >= psg_data.shape[0]:
+                print(PyColor.RED,
+                      "tanita data is out of psg data",
+                      PyColor.END)
+                return False
+            
+            else:
+                # 公式に合致する際はループを回さなくて済む
+                if psg_data["time"][_index] == record.time:
+                    record.ss = psg_data["ss"][_index]
+                    return True
+                
+                # 公式に合致しない場合は，愚直に全体を探索
+                else:
+                    for counter, psg_time in enumerate(psg_data["time"]):
+                        if psg_time == record.time:
+                            record.ss = psg_data["ss"][counter]
+                            return True
+                    
+                    # タニタの時刻がすべてのpsgのデータに合致しないとき
+                    # タニタの時間がpsgと比較して早すぎると起こる可能性あり（比較的最初に起こる）
+                    if record.ss == None:
+                        print(PyColor.RED,
+                              "record.time did not match any rule",
+                              PyColor.END)
+                        sys.exit(1)
         
         for start_point, record in tqdm(zip(start_points_list, records)):
             _make(start_point=start_point, record=record)
-            _match(record=record)
+            has_match = _match(record=record, start_point=start_point)
+            if not has_match:
+                break
         return records
     
     def makeSpectrogram(self, tanita_data, psg_data, sampleLen=1024, timeLen = 128):
@@ -122,22 +163,19 @@ class CreateData(object):
             return records
         return _make()
 
-# ================================================ #
-# *            試験用メイン関数
-# ================================================ #
-
 if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
-    from tanita_reader import TanitaReader
-    from psg_reader import PsgReader
-    from record import Record
-    m_createData = CreateData()
-    m_tanitaReader = TanitaReader('H_Hayashi')
-    m_tanitaReader.readCsv()
-    m_psgReader = PsgReader('H_Hayashi')
-    m_psgReader.readCsv()
-    m_record = Record()
-    data = m_tanitaReader.df['val'][0:1024+511]
-    spectroGram = m_createData.makeSpectrogram(tanita_data=m_tanitaReader.df, psg_data=m_psgReader.df)
-    plt.imshow(m_record.spectrogram)
+    from pre_process.tanita_reader import TanitaReader
+    from pre_process.psg_reader import PsgReader
+    from pre_process.record import Record
+    CD = CreateData()
+    tanita = TanitaReader('H_Hayashi')
+    tanita.readCsv()
+    psg = PsgReader('H_Hayashi')
+    psg.readCsv()
+    record = Record()
+    data = tanita.df['val'][0:1024+511]
+    spectroGram = CD.makeSpectrogram(tanita_data=tanita.df,
+                                     psg_data=psg.df)
+    plt.imshow(record.spectrogram)

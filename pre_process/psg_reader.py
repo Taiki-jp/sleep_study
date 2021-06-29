@@ -1,11 +1,6 @@
-# ================================================ #
-# *            ライブラリのインポート
-# ================================================ #
-
-from my_setting import *
-SetsPath().set()
-from csv_reader import CsvReader
+from pre_process.csv_reader import CsvReader
 import pandas as pd
+import os
 
 # ================================================ #
 # *     睡眠段階のデータを読み込むクラス作成
@@ -32,11 +27,6 @@ class PsgReader(CsvReader):
                                   header=0)
         return _read()
     
-# ================================================ #
-# *            試験用メイン関数
-# ================================================ #
-
-# main として実行していない時は ファイル名（この場合は csv_reader）として __name__ に入っている
 if __name__ == '__main__':
     m_psgReader = PsgReader('H_Hayashi')
     m_psgReader.readCsv()

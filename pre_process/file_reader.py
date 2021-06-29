@@ -1,10 +1,5 @@
 import pickle, sys, os
 from pre_process.subjects_list import SubjectsList
-# NOTE : pickleは保存時と読み込み時のパスの指定を同じ方法で書かなければならないみたい
-# FIXME : 出来るだけ、pathのappendをしたくないので変更案が出れば修正
-from pre_process.my_setting import SetsPath
-SetsPath().set()
-import record
 
 class FileReader(object):
     def __init__(self, n_class):

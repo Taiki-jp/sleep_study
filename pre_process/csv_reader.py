@@ -2,7 +2,7 @@
 # *            ライブラリのインポート
 # ================================================ #
 
-from my_setting import FindsDir
+from pre_process.my_setting import FindsDir
 import pandas as pd
 import sys, os
 
