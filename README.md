@@ -63,6 +63,8 @@ python demo.py
 - feature/edl_1d : evidential deep learning のメイン開発ブランチ（のちにedlに吸収）
 - feature/psedo_data : 仮のデータを使った実験ブランチ
 - fix/feauture/edl : feature/edl の修正用ブランチ
+- feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良
+
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
 - fix: バグの修正
