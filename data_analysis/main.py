@@ -29,7 +29,8 @@ def main(name, project, train, test,
                project = project,
                tags = my_tags,
                config= {"test name":test_name,
-                        "date id":date_id})
+                        "date id":date_id},
+               dir = utils.project_dir)
     
     # モデルの読み込み（コンパイル済み）
     if load_model:
