@@ -65,6 +65,8 @@ python demo.py
 - feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良（masterにマージ済み）
 - feature/shift_window_in_any_length : 窓のずらし方を任意の幅にできるように改良（masterにマージ済み）
 - feature/sep_learning
+- feature/deep_learning : EUが原因で間違っているように見えるので、多層化により一致率向上を目指す
+- feature/rnn : 時系列を考慮したNNの構築
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
