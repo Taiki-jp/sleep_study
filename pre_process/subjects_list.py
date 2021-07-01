@@ -1,4 +1,4 @@
-import sys
+import sys, os
 
 # NOTE : ここ以外で被験者の名前のリストを作成しない
 class SubjectsList(object):
@@ -13,6 +13,24 @@ class SubjectsList(object):
                          "H_Takadama", 
                          "H_Hiromoto", 
                          "H_Kashiwazaki"]
+        self.sas_name_list = ["sas_5993",
+                              "sas_30929",
+                              "sas_33792",
+                              "sas_35818",
+                              "sas_35866",
+                              "sas_35997",
+                              "sas_36162",
+                              "sas_36350",
+                              "sas_36765"]
+        # 追加分の健常者
+        self.added_name_list = os.path.join(os.environ["sleep"],
+                                            "datas",
+                                            "adding_sleep_datas")
+        # 追加分のSAS
+        self.added_sas_name_list = os.path.join(os.environ["sleep"],
+                                                "datas",
+                                                "sas_datasets")
+                                            
         self.name_dict = None
         self.spectrogram_date = "20210201-055748"  # スペクトログラム
         # previous : "20210320-011750"
@@ -22,6 +40,10 @@ class SubjectsList(object):
         # middle(1) : "20210630-024223"
         # top(1) : "20210630-023745"
         # bottom(1) : "20210630-024629"
+        # bottom(4) : "20210701-145039"
+        # middle(4) : "20210701-183500"
+        # ? : "20210701-165511"
+        # top(4) : "20210701-203340"
         self.spectrum_date = "20210630-032737"  #   # スペクトラム版
         # attn x incpt x spc_2d
         self.date_id_list_attnt_incpt_spc_2d = ["20210601-051642",

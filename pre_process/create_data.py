@@ -86,8 +86,8 @@ class CreateData(object):
                         print(PyColor.RED,
                               "record.time did not match any rule",
                               PyColor.END)
-                        sys.exit(1)
 
+            # NOTE : noneがキャッチされる場所（たくさんNoneがキャッチされている場合は無駄にオブジェクトを作成している可能性がある）
             if record.ss == None:
                 print(PyColor.RED_FLASH,
                       "note here",

@@ -11,8 +11,8 @@ import sys
 # ハイパーパラメータの設定
 DATA_TYPE = "spectrum"
 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-FIT_POS = "bottom"
-STRIDE = 1
+FIT_POS = "top"
+STRIDE = 4
 
 # オブジェクトの作成
 CD = CreateData()
