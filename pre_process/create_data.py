@@ -19,9 +19,10 @@ class CreateData(object):
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         # ↑図を描くとわかりやすい
         record_len = int((len(tanita_data)-kernel_size)/stride)+1
+        print(f"make {record_len} datas")
         records = multipleRecords(record_len)
-        start_points_list = [i for i in range(0, len(tanita_data)-kernel_size, stride)]
-        # record オブジェクトの数と 開始ポイントの数（fftを行う数）がそろっていることを確認
+        start_points_list = [i for i in range(0, stride * record_len, stride)]
+        # TODO : recordを無駄に作成してしまう恐れあり（本当はend_pointに合わせてレコードを作ったほうが良い？）
         assert record_len == len(start_points_list)
         
         def _make(start_point, record):
@@ -43,14 +44,15 @@ class CreateData(object):
             record.time = tanita_data['time'][fit_index]
         
         def _match(record, start_point):
-            # psgの時間とrecordの時間(tanita)が等しい自国のときの睡眠段階を代入
+            # psgの時間とrecordの時間(tanita)が等しい時刻のときの睡眠段階を代入
             # まず公式に合致すれば，ループ処理をしなくて済む
+            # NOTE : 16Hzはタニタのセンサ固有の値
             if fit_pos == "top":
-                _index = int(start_point/stride)
+                _index = int(start_point/16)
             elif fit_pos == "middle":
-                _index = int((start_point+(kernel_size/2))/stride)
+                _index = int((start_point+(kernel_size/2))/16)
             elif fit_pos == "bottom":
-                _index = int((start_point+kernel_size)/stride) - 1
+                _index = int((start_point+kernel_size)/16) - 1
             else:
                 print("exception occured")
                 sys.exit(1)
@@ -79,17 +81,28 @@ class CreateData(object):
                     
                     # タニタの時刻がすべてのpsgのデータに合致しないとき
                     # タニタの時間がpsgと比較して早すぎると起こる可能性あり（比較的最初に起こる）
+                    # 逆にタニタのデータが多すぎると起こる可能性あり
                     if record.ss == None:
                         print(PyColor.RED,
                               "record.time did not match any rule",
                               PyColor.END)
                         sys.exit(1)
+
+            if record.ss == None:
+                print(PyColor.RED_FLASH,
+                      "note here",
+                      PyColor.END)
         
         for start_point, record in tqdm(zip(start_points_list, records)):
             _make(start_point=start_point, record=record)
             has_match = _match(record=record, start_point=start_point)
             if not has_match:
                 break
+        from collections import Counter
+
+        data = [record.ss for record in records]
+        print(Counter(data))
+        
         return records
     
     def makeSpectrogram(self, tanita_data, psg_data, sampleLen=1024, timeLen = 128):

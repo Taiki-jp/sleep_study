@@ -12,7 +12,8 @@ class LoadSleepData():
         self.sl.sets_filename(data_type=self.data_type, n_class=n_class)
         self.verbose = verbose
     
-    def load_data(self, name=None, load_all=False, pse_data=False):
+    def load_data(self, name=None, load_all=False, pse_data=False,
+                  fit_pos = None):
         # NOTE : pse_data is needed for avoiding to load data
         if pse_data:
             print("仮データのため、何も読み込みません")
@@ -23,7 +24,8 @@ class LoadSleepData():
             for name in self.sl.name_list:
                 records.extend(self.fr.load_normal(name=name, 
                                                    verbose=self.verbose, 
-                                                   data_type=self.data_type))
+                                                   data_type=self.data_type,
+                                                   fit_pos=fit_pos))
             return records        
         else:
             print("*** 一人の被験者を読み込みます ***")
@@ -34,7 +36,8 @@ class LoadSleepData():
 if __name__ == "__main__":
     from collections import Counter
     load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0, n_class=5)
-    data = load_sleep_data.load_data(load_all=True, pse_data=False, name=None)
+    data = load_sleep_data.load_data(load_all=True, pse_data=False, name=None,
+                                     fit_pos="bottom")
     # 各被験者について睡眠段階の量をチェック
     for each_data in data:
         ss = [record.ss for record in each_data]

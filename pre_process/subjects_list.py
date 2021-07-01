@@ -15,7 +15,14 @@ class SubjectsList(object):
                          "H_Kashiwazaki"]
         self.name_dict = None
         self.spectrogram_date = "20210201-055748"  # スペクトログラム
-        self.spectrum_date = "20210320-011750"  # スペクトラム版
+        # previous : "20210320-011750"
+        # middle(16) : "20210630-015133"
+        # top(16) : 20210630-015349
+        # bottom(16) : 20210630-014416
+        # middle(1) : "20210630-024223"
+        # top(1) : "20210630-023745"
+        # bottom(1) : "20210630-024629"
+        self.spectrum_date = "20210630-032737"  #   # スペクトラム版
         # attn x incpt x spc_2d
         self.date_id_list_attnt_incpt_spc_2d = ["20210601-051642",
                                                 "20210601-053406",

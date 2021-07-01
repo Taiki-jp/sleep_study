@@ -11,7 +11,8 @@ import sys
 # ハイパーパラメータの設定
 DATA_TYPE = "spectrum"
 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-FIT_POS = "top"
+FIT_POS = "bottom"
+STRIDE = 1
 
 # オブジェクトの作成
 CD = CreateData()
@@ -38,7 +39,7 @@ for name in FR.sl.name_list:
     records.append(CD.makeSpectrum(tanita.df, 
                                    psg.df, 
                                    kernel_size=1024, 
-                                   stride=16,
+                                   stride=STRIDE,
                                    fit_pos=FIT_POS))
     utils.dump_with_pickle(records, name, data_type=DATA_TYPE,
                            fit_pos = FIT_POS)
