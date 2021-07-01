@@ -64,7 +64,7 @@ python demo.py
 - fix/feauture/edl : feature/edl の修正用ブランチ
 - feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良（masterにマージ済み）
 - feature/shift_window_in_any_length : 窓のずらし方を任意の幅にできるように改良（masterにマージ済み）
-- feature/sep_learning
+- feature/sep_learning : 不確かさの大きさに応じてデータセットを作成
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
