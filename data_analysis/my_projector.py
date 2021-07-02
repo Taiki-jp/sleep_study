@@ -22,7 +22,7 @@ def main(train,
                                                                     pse_data=pse_data,
                                                                     to_one_hot_vector=False,
                                                                     is_shuffle=False,
-                                                                    each_data_size=100)
+                                                                    each_data_size=5000)
     # hidden_layer_idがNoneのときは入力空間を渡す
     # FIXME : cannot drow when spectrogram come
     if hidden_layer_id == "input":
@@ -148,12 +148,12 @@ if __name__ == '__main__':
     
     # ハイパーパラメータの設定
     (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrum")
-    HIDDEN_LAYER_ID = -5
+    HIDDEN_LAYER_ID = "input"
     
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE, verbose=1)
     pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
+    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA, fit_pos="middle")
     py_color = PyColor()
 
     # 読み込むモデルの日付リストを返す
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                                      data_type=DATA_TYPE,
                                      lsd=load_sleep_data)
     
-    for test_id, (test_name, date_id) in enumerate(zip(load_sleep_data.sl.name_list, date_id_list)):
+    for test_id, (test_name, date_id) in enumerate(zip(load_sleep_data.sl.added_name_list, range(100))):
         (train, test) = pre_process.split_train_test_from_records(datasets,
                                                                   test_id=test_id, 
                                                                   pse_data=PSE_DATA)

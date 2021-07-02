@@ -148,18 +148,18 @@ class PreProcess():
         else:
             print("spectrum or spectrogramを指定してください")
             sys.exit(1)
-        
-        # max正規化をするかどうか
-        if normalize==True:
-            print("- max正規化を行います")
-            self.max_norm(x_train)
-            self.max_norm(x_test)
 
         # Noneの処理をするかどうか
         if catch_none==True:
             print("- noneの処理を行います")
             x_train, y_train = self.catch_none(x_train, y_train)
             x_test, y_test = self.catch_none(x_test, y_test)
+        
+        # max正規化をするかどうか
+        if normalize==True:
+            print("- max正規化を行います")
+            self.max_norm(x_train)
+            self.max_norm(x_test)
         
         # 睡眠段階のラベルを0 -（クラス数-1）にする
         y_train = self.change_label(y_data=y_train, n_class=class_size, target_class=target_ss)
@@ -241,7 +241,7 @@ class PreProcess():
             return (None, None)
         test_records = records[test_id]
         train_records = list()
-        for i in range(9):
+        for i in range(len(records)):
             train_records.extend(records[i])
         return (train_records, test_records)
     
@@ -310,11 +310,14 @@ class PreProcess():
         import pandas as pd
         x_data = list(x_data)
         y_data = list(y_data)
+        # 保存用のリストを確保
+        _x_data = list()
+        _y_data = list()
         for num, ss in enumerate(y_data):
-            if pd.isnull(ss):
-                x_data.pop(num)
-                y_data.pop(num)
-        return np.array(x_data), np.array(y_data).astype(np.int32)
+            if not pd.isnull(ss):
+                _x_data.append(x_data[num])
+                _y_data.append(y_data[num])
+        return np.array(_x_data), np.array(_y_data).astype(np.int32)
     
     # ラベルをクラス数に合わせて変更
     def change_label(self, y_data, n_class, target_class=None):

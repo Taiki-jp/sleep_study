@@ -9,9 +9,9 @@ import os
 class PsgReader(CsvReader):
     def __init__(self, 
                  personDir,
-                 fileName='sleepStage.csv',
+                 fileName='_sleepStage.csv',
                  target_problem='sleep',
-                 loadDir='datas/raw_data'):
+                 loadDir='datas/adding_sleep_datas'):
         super().__init__(target_problem, loadDir, personDir, fileName)
 
     def readCsv(self):
@@ -22,8 +22,8 @@ class PsgReader(CsvReader):
         def _read():
             #print(f"*** read {filePath} ***")
             self.df = pd.read_csv(filePath, 
-                                  names=('time', 'ss'),
-                                  usecols=[0, 2],
+                                #   names=('time', 'ss'),
+                                  usecols=["time", "ss"],
                                   header=0)
         return _read()
     

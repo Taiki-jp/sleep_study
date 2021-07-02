@@ -1,4 +1,5 @@
 from pre_process.file_reader import FileReader
+import os
 
 class LoadSleepData():
     # NOTE : n_class is needed because sets_filename method of file_reader is called in here
@@ -21,7 +22,7 @@ class LoadSleepData():
         if load_all:
             print("*** すべての被験者を読み込みます（load_dataの引数:nameは無視します） ***")
             records = list()
-            for name in self.sl.name_list:
+            for name in self.sl.added_name_list:
                 records.extend(self.fr.load_normal(name=name, 
                                                    verbose=self.verbose, 
                                                    data_type=self.data_type,

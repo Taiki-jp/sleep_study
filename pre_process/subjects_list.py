@@ -1,4 +1,5 @@
 import sys, os
+import glob
 
 # NOTE : ここ以外で被験者の名前のリストを作成しない
 class SubjectsList(object):
@@ -25,14 +26,24 @@ class SubjectsList(object):
         # 追加分の健常者
         self.added_name_list = os.path.join(os.environ["sleep"],
                                             "datas",
-                                            "adding_sleep_datas")
+                                            "adding_sleep_datas",
+                                            "*")
+        self.added_name_list = glob.glob(self.added_name_list)
+        _temp = list()
+        for __data in self.added_name_list:
+            _, _added_name = os.path.split(__data)
+            _temp.append(_added_name)
+        self.added_name_list = _temp
         # 追加分のSAS
         self.added_sas_name_list = os.path.join(os.environ["sleep"],
                                                 "datas",
-                                                "sas_datasets")
+                                                "sas_datasets",
+                                                "*")
+        self.added_sas_name_list = glob.glob(self.added_sas_name_list)
                                             
         self.name_dict = None
         self.spectrogram_date = "20210201-055748"  # スペクトログラム
+        self.added_name_dict = None
         # previous : "20210320-011750"
         # middle(16) : "20210630-015133"
         # top(16) : 20210630-015349
@@ -44,7 +55,8 @@ class SubjectsList(object):
         # middle(4) : "20210701-183500"
         # ? : "20210701-165511"
         # top(4) : "20210701-203340"
-        self.spectrum_date = "20210630-032737"  #   # スペクトラム版
+        # middle(64), adding : "20210702-134016"
+        self.spectrum_date = "20210702-134016"  #   # スペクトラム版
         # attn x incpt x spc_2d
         self.date_id_list_attnt_incpt_spc_2d = ["20210601-051642",
                                                 "20210601-053406",
@@ -90,9 +102,9 @@ class SubjectsList(object):
     
     def sets_filename(self, data_type, n_class):
         if data_type == "spectrum":
-            self.name_dict = {name : name+"_"+self.spectrum_date+".sav" for name in self.name_list}
+            self.added_name_dict = {name : name+"_"+self.spectrum_date+".sav" for name in self.added_name_list}
         elif data_type == "spectrogram":
-            self.name_dict = {name : name+"_"+self.spectrogram_date+".sav" for name in self.name_list}
+            self.added_name_dict = {name : name+"_"+self.spectrogram_date+".sav" for name in self.added_name_list}
         else:
             print(f"data_typeを正しく指定してください")
             sys.exit(1)

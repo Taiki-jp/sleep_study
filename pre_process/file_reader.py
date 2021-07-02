@@ -15,9 +15,9 @@ class FileReader(object):
 
     def load_normal(self, name, verbose=0, data_type=None, fit_pos="middle"):
         # ファイル名が指定されておらず、データ型が与えられたときはsetメソッドを呼ぶ
-        if data_type is not None and self.sl.name_dict==None:
+        if data_type is not None and self.sl.added_name_dict==None:
             self.sl.sets_filename(data_type=data_type, n_class=self.n_class)
-        file_name = self.sl.name_dict[name]
+        file_name = self.sl.added_name_dict[name]
         path = os.path.join(self.dir_name,
                             data_type,
                             fit_pos,

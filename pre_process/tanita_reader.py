@@ -6,9 +6,9 @@ import os
 class TanitaReader(CsvReader):
     def __init__(self, 
                  personDir, 
-                 fileName='signal_after.csv', 
+                 fileName='_signal_after.csv', 
                  target_problem='sleep', 
-                 loadDir='datas/raw_data'):
+                 loadDir='datas/adding_sleep_datas'):
         super().__init__(target_problem, loadDir, personDir, fileName)
     
     def readCsv(self):
@@ -19,8 +19,8 @@ class TanitaReader(CsvReader):
         def _read():
             #print(f"*** read {filePath} ***")
             self.df = pd.read_csv(filePath, 
-                                  names=('time', 'val'),
-                                  usecols=[1, 3],
+                                #   names=('time', 'val'),
+                                  usecols=["time", "sensor1"],
                                   header=0)
         return _read()
 

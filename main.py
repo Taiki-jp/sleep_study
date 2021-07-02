@@ -1,3 +1,4 @@
+from typing import Counter
 import tensorflow as tf
 tf.random.set_seed(100)
 import os, datetime, wandb
@@ -72,12 +73,12 @@ if __name__ == '__main__':
         print("*** cpuで計算します ***")
     
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    PSE_DATA = True
+    PSE_DATA = False
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
-    EPOCHS = 10
+    EPOCHS = 100
     HAS_INCEPTION = True
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if PSE_DATA else "edl-test"
@@ -88,10 +89,10 @@ if __name__ == '__main__':
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE, n_class=N_CLASS)
     pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
+    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA, fit_pos="middle")
     utils = Utils(file_reader=load_sleep_data.fr)
 
-    for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
+    for test_id, test_name in enumerate(load_sleep_data.sl.added_name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         (train, test) = pre_process.split_train_test_from_records(datasets, test_id=test_id, pse_data=PSE_DATA)
         # tagの設定
