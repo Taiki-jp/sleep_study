@@ -1,0 +1,44 @@
+{
+    "prev_datasets": {
+        "spectrum": {
+            "id": "20210702-134016"
+        },
+        "spectrogram": {
+            "id": "20210201-055748"
+        }
+    },
+    "spectrum": {
+        "bottom": {
+            "stride_1": "20210630-024629",
+            "stride_4": "20210701-145039",
+            "stride_16": "20210630-014416"
+        },
+        "middle": {
+            "stride_1": "20210630-024223",
+            "stride_4": "20210701-183500",
+            "stride_16": "20210630-015133"
+        },
+        "top": {
+            "stride_1": "20210630-023745",
+            "stride_4": "20210701-203340",
+            "stride_16": "20210630-015349"
+        }
+    },
+    "spectrogram": {
+        "bottom": {
+            "stride_1": "",
+            "stride_4": "",
+            "stride_16": ""
+        },
+        "middle": {
+            "stride_1": "",
+            "stride_4": "",
+            "stride_16": ""
+        },
+        "top": {
+            "stride_1": "",
+            "stride_4": "",
+            "stride_16": ""
+        }
+    }
+}

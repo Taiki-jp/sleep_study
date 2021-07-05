@@ -15,6 +15,7 @@ date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 FIT_POS = "middle"
 STRIDE = 512
 
+
 # オブジェクトの作成
 CD = CreateData()
 FR = FileReader(n_class=5)  # TODO : ここにクラス数を指定する必要がないけど、FileReaderの実装上必要になっている
