@@ -20,7 +20,7 @@ def multipleRecords(num):
         
 
 if __name__ == '__main__':
-    import numpy as np
+    # Recordオブジェクト内の要素を出力する
     import matplotlib.pyplot as plt
     from data_analysis.py_color import PyColor
     record = Record()

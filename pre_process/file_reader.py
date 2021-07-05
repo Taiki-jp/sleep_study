@@ -2,12 +2,12 @@ import pickle, sys, os
 from pre_process.subjects_list import SubjectsList
 from pre_process.record import Record
 from pre_process.my_setting import SetsPath
-SetsPath().set()
-import record
+from pre_process.record import Record
 
 class FileReader(object):
     def __init__(self, n_class):
         self.sl = SubjectsList()
+        self.sl.load()
         # データの保存先（パスを指定） NOTE : 本当は絶対パスの設定は一か所にまとめたいけど，
         # 現在の実装ではutilsを循環参照してしまうので，仕方なく下で定義
         self.dir_name = os.path.join(os.environ['sleep'], "datas", "pre_processed_data")
