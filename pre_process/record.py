@@ -1,14 +1,16 @@
-class Record(object):
+from dataclasses import dataclass
+import numpy as np
 
-    def __init__(self):
-        self.time = None
-        self.spectrumRaw = None
-        self.spectrum = None
-        self.spectrogramRaw = None
-        self.spectrogram = None
-        self.waveletRaw = None
-        self.wavelet = None
-        self.ss = None
+@dataclass
+class Record(object):
+    time : str = ""
+    spectrum_raw : np.ndarray = np.array([]) 
+    spectrum : np.ndarray = np.array([])
+    spectrogram_raw : np.ndarray = np.array([])
+    spectrogram : np.ndarray = np.array([])
+    wavelet_raw : np.ndarray = np.array([])
+    wavelet : np.ndarray = np.array([])
+    ss : int = None
 
 def multipleRecords(num):
     tmp = []
@@ -20,5 +22,10 @@ def multipleRecords(num):
 if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
+    from data_analysis.py_color import PyColor
     record = Record()
-    print(record.time)
+    for key, val in record.__dict__.items():
+        print(PyColor.GREEN,
+              f"key : {key}, ",
+              f"val : {val}",
+              PyColor.END)
