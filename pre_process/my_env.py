@@ -1,18 +1,23 @@
 import os, sys
-from pre_process.file_reader import FileReader
+from dataclasses import dataclass
 import datetime
 
+@dataclass
 class MyEnv():
-    def __init__(self) -> None:
-        self.project_dir : str = os.environ["sleep"]
-        self.figure_dir : str = os.path.join(self.project_dir, "figures")
-        self.video_dir : str = os.path.join(self.project_dir, "videos")
-        self.tmp_dir : str = os.path.join(self.project_dir, "tmps")
-        self.analysis_dir : str = os.path.join(self.project_dir, "analysis")
-        self.models_dir : str = os.path.join(self.project_dir, "models")
-        self.pre_processed_dir : str = os.path.join(self.project_dir, "datas", "pre_processed_data")
-        self.id : str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.name_list = self.fr.sl.name_list
-        self.name_dict = self.fr.sl.name_dict
-        self.ss_list = self.fr.sl.ss_list
-      
+    project_dir : str = os.environ["sleep"]
+    figure_dir : str = os.path.join(project_dir, "figures")
+    video_dir : str = os.path.join(project_dir, "videos")
+    tmp_dir : str = os.path.join(project_dir, "tmps")
+    analysis_dir : str = os.path.join(project_dir, "analysis")
+    models_dir : str = os.path.join(project_dir, "models")
+    pre_processed_dir : str = os.path.join(project_dir, "datas", "pre_processed_data")
+    id : str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    
+if __name__ == "__main__":
+    from data_analysis.py_color import PyColor
+    my_env = MyEnv()
+    for key, val in my_env.__dict__.items():
+        print(PyColor.GREEN,
+              "key, ", key,
+              "val, ", val,
+              PyColor.END)
