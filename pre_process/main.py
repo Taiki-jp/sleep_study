@@ -3,13 +3,14 @@ from data_analysis.utils import Utils
 from pre_process.tanita_reader import TanitaReader
 from pre_process.psg_reader import PsgReader
 from pre_process.create_data import CreateData
+from pre_process.my_env import MyEnv
 from tqdm import tqdm
 from data_analysis.py_color import PyColor
 import datetime
 import sys
 import os
 
-# ハイパーパラメータの設定
+# ハイパーパラメータの読み込み
 DATA_TYPE = "spectrum"
 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 FIT_POS = "middle"
@@ -18,8 +19,10 @@ STRIDE = 512
 
 # オブジェクトの作成
 CD = CreateData()
-FR = FileReader(n_class=5)  # TODO : ここにクラス数を指定する必要がないけど、FileReaderの実装上必要になっている
-FR.sl.sets_filename(data_type=DATA_TYPE, n_class=5)  # TODO : 同上
+FR = FileReader()
+
+target_folders = FR.my_env.set_raw_folder_path(is_normal=True,
+                                               is_previous=True)
 utils = Utils(file_reader=FR)
 
 for name in FR.sl.added_name_list:

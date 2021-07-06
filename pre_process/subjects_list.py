@@ -1,17 +1,9 @@
 import sys, os, glob, json
-from dataclasses import dataclass
+from pre_process.json_base import JsonBase
 
-class SubjectsList(object):
-    json_file : str = os.path.join(os.environ["userprofile"],
-                                   "git",
-                                   "sleep_study",
-                                   "pre_process",
-                                   "subjects_list.json")
-    json_dict : dict = {}
-    prev_names : list = []
-    prev_sass : list = []
-    foll_names : list = []
-    foll_sass : list = []
+class SubjectsList(JsonBase):
+    def __init__(self) -> None:
+        super().__init__(json_filename="./subjects_list.json")
     
     def load(self) -> None:
         with open(self.json_file) as f:
