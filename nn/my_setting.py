@@ -1,18 +1,21 @@
-import os, sys
+import os
+import sys
+
 
 class SetsPath(object):
     # 一度しか set メソッドを実行しないためのクラス変数
     executedFlag = False
-    
+
     def __init__(self):
-        """git/ 以下にあるプログラムのための必要なフォルダをインポートするために設定する
-        FIXME : この書き方は避けるべきであり、相対パスや実行ファイルの階層や実行方法を変更することにより実行できるようにすること
-        """
-        self.dataAnalysis = os.path.join(os.environ["git"], "sleep_study", "data_analysis")
-        self.preProcess = os.path.join(os.environ["git"], "sleep_study", "pre_process")
-        self.nn = os.path.join(os.environ['git'], "sleep_study", "nn")
+        self.dataAnalysis = os.path.join(
+            os.environ["git"], "sleep_study", "data_analysis"
+        )
+        self.preProcess = os.path.join(
+            os.environ["git"], "sleep_study", "pre_process"
+        )
+        self.nn = os.path.join(os.environ["git"], "sleep_study", "nn")
         pass
-    
+
     def set(self):
         """
         この操作は一度しか行わない
@@ -21,7 +24,7 @@ class SetsPath(object):
         """
         if not SetsPath.executedFlag:
             for _, value in self.__dict__.items():
-                if callable(value) == False:
+                if callable(value) is False:
                     sys.path.append(value)
             # ANCHOR : ここで実行した設定を呼び出し元のファイルで継続するにはどうするとよいか？
             # TODO : 方法１（別々のosを呼び出してprintで値を確認する）
@@ -30,22 +33,24 @@ class SetsPath(object):
             os.environ["WANDB_SILENT"] = "true"
             # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
             SetsPath.executedFlag = True
-        
-        
+
+
 class FindsDir(object):
-    """target_problem によって保存するフォルダを分けるためのクラス
-    """
+    """target_problem によって保存するフォルダを分けるためのクラス"""
+
     def __init__(self, target_problem):
         """初期化メソッド
 
         Args:
             target_problem ([string]): [dirDictの中からtarget_problemを選ぶ]
         """
-        self.dirDict = {"sleep" : "sleep_study",
-                        "test" : "test",
-                        "oxford" : "oxford"}
+        self.dirDict = {
+            "sleep": "sleep_study",
+            "test": "test",
+            "oxford": "oxford",
+        }
         self.target_problem = target_problem
-        
+
     def returnDirName(self):
         """ディレクトリ名だけが欲しい時はこちらのメソッドを呼び出す
         (ex)
@@ -57,7 +62,7 @@ class FindsDir(object):
         """
         dirName = self.dirDict[self.target_problem]
         return dirName
-    
+
     def returnFilePath(self):
         """プロジェクトのパスが欲しい時はこちらのメソッドを呼び出す
         (ex)
@@ -66,8 +71,5 @@ class FindsDir(object):
         Returns:
             [type]: [description]
         """
-        path = os.path.join(os.environ['sleep'])
+        path = os.path.join(os.environ["sleep"])
         return path
-    
-    
-    
