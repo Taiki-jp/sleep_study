@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 
 class JsonBase(object):
@@ -20,17 +21,29 @@ class JsonBase(object):
     def load(self) -> None:
         with open(self.json_file) as f:
             self.json_dict = json.load(f)
-        # 各jsonファイルで下のキーワード，変数名を変更する
-        # self.prev_names = self.json_dict["prev_subjects_name"]
-        # self.prev_sass = self.json_dict["prev_sas_name"]
-        # self.foll_names = self.json_dict["following_subjects_name"]
-        # self.foll_sass = self.json_dict["following_sas_name"]
+
+    def dump(self, keys: list, value: str) -> None:
+        # 辞書であり，keysが入っている間はキーを入れる
+        key_len = len(keys)
+        if key_len > 3:
+            print(PyColor.RED_FLASH, f"キーは3までの長さまでしか実装されていません", PyColor.END)
+            sys.exit(1)
+        # TODO : もっと賢い書き方無いかな？
+        if key_len == 1:
+            self.json_dict[keys[0]] = value
+        elif key_len == 2:
+            self.json_dict[keys[0]][keys[1]] = value
+        elif key_len == 3:
+            self.json_dict[keys[0]][keys[1]][keys[2]] = value
+        with open(self.json_file, "w") as f:
+            json.dump(self.json_dict, f, indent=4)
 
 
 if __name__ == "__main__":
     from data_analysis.py_color import PyColor
 
-    sl = JsonBase("./pre_process.json")
-    sl.load()
-    for key, val in sl.__dict__.items():
+    jb = JsonBase("pre_processed_id.json")
+    jb.load()
+    for key, val in jb.__dict__.items():
         print(PyColor.GREEN, "key, ", key, "val, ", val, PyColor.END)
+    jb.dump(keys=["spectrum", "middle", "stride_1"], value="")
