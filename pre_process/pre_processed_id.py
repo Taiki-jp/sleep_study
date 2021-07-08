@@ -10,6 +10,7 @@ class PreProcessedId(JsonBase):
         with open(self.json_file) as f:
             self.json_dict = json.load(f)
         self.prev_datasets = self.json_dict["prev_datasets"]
+        # NOTE : 下は使わないかも
         self.spectrum = self.json_dict["spectrum"]
         self.spectrogram = self.json_dict["spectrogram"]
 
@@ -21,3 +22,4 @@ if __name__ == "__main__":
     ppi.load()
     for key, val in ppi.__dict__.items():
         print(PyColor.GREEN, "key, ", key, "val, ", val, PyColor.END)
+    print(PyColor.YELLOW, ppi.prev_datasets, PyColor.END)
