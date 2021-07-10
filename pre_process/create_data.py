@@ -30,6 +30,8 @@ class CreateData(object):
         # スタートポイントはストライドのサイズでずらして、
         # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
+        # psgのデータ数を保持
+        psg_len, _ = psg_data.shape
         # psgの最後の時間を保存しておく（_match用）
         _time_psg = datetime.datetime.strptime(
             psg_data["time"].iloc[-1], "%H:%M:%S"
@@ -77,13 +79,20 @@ class CreateData(object):
             fit_index = _set_fit_pos(start_point, end_point)
             # NOTE: なぜ .iloc を使う必要があるのか
             record.time = tanita_data["time"].iloc[fit_index]
-            _time_tanita = datetime.datetime.strptime(record.time, "%H:%M:%S")
+            _time_tanita = datetime.datetime.strptime(
+                tanita_data["time"].iloc[end_point], "%H:%M:%S"
+            )
             _time_delta = _time_psg - _time_tanita
             # 時刻がオーバー（負）、かつ経過秒数が22時間以上であれば終了したとみなす
-            # （日付がデータに入っていればもっと正確にできる）
+            # （日付がデータに入っていればもっと正確にできる） tanitaのけつの時間と比較する
             if _time_delta.days < 0 and _time_delta.seconds / 60 / 60 > 22:
                 return False, None
-            return True, fit_index
+            # psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
+            elif psg_len <= fit_index // 16:
+                print(PyColor.RED_FLASH, "実装上あまりここには来てほしくない", PyColor.END)
+                return False, None
+            else:
+                return True, fit_index
 
         def _match(record: Record, start_point: int, fit_index: int) -> None:
             # psgの時間とrecordの時間(tanita)が等しい時刻のときの睡眠段階を代入
