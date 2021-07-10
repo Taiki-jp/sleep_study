@@ -18,6 +18,7 @@ class PyColor:
     RED_FLASH = "\033[05;41m"  # 赤背景+点滅
     BOLD = "\033[1m"  # 太字
     END = "\033[0m"
+    GREEN_FLASH = "\33[05;32m"
 
 
 if __name__ == "__main__":
@@ -28,4 +29,4 @@ if __name__ == "__main__":
     print(my_color.BLUE, my_color.RETURN, "hoge", my_color.END)
     print(my_color.RED_FLASH, "hoge", my_color.END)
     print(my_color.CYAN, my_color.BOLD, "hoge", my_color.END)
-    time.sleep(10)
+    print(my_color.GREEN_FLASH, "this is green flash", my_color.END)

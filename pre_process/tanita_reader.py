@@ -7,28 +7,26 @@ import os
 class TanitaReader(CsvReader):
     def __init__(
         self,
-        personDir,
-        fileName="_signal_after.csv",
-        target_problem="sleep",
-        loadDir="datas/adding_sleep_datas",
+        person_dir: str,
+        file_name: str = "signal_after.csv",
+        verbose: int = 0,
+        is_previous: bool = True,
+        columns: list = [1, 3],
+        names: list = ["time", "ss"],
     ):
-        super().__init__(target_problem, loadDir, personDir, fileName)
-
-    def readCsv(self):
-        filePath = os.path.join(
-            self.rootDirName, self.loadDir, self.personDirName, self.fileName
+        super().__init__(
+            person_dir=person_dir,
+            file_name=file_name,
+            verbose=verbose,
+            is_previous=is_previous,
+            columns=columns,
+            names=names,
         )
-
-        def _read():
-            # print(f"*** read {filePath} ***")
-            self.df = pd.read_csv(
-                filePath,
-                #   names=('time', 'val'),
-                usecols=["time", "sensor1"],
-                header=0,
-            )
-
-        return _read()
+        if not is_previous:
+            # ファイル名の先頭に_を入れる
+            self.file_name = "_" + file_name
+            # 2列目と3列目をとってくる
+            self.columns = [1, 2]
 
 
 if __name__ == "__main__":

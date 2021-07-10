@@ -5,7 +5,6 @@ from pre_process.subjects_list import SubjectsList
 from pre_process.record import Record  # noqa
 from pre_process.my_env import MyEnv
 from data_analysis.py_color import PyColor
-from pre_process.pre_processed_id import PreProcessedId
 
 
 class FileReader(object):
@@ -14,8 +13,6 @@ class FileReader(object):
         self.sl: SubjectsList = SubjectsList()
         self.sl.load()
         self.my_env: MyEnv = MyEnv()
-        self.ppi = PreProcessedId()
-        self.ppi.load()
         self.sl.load()
 
     # ファイルを読み込むためにファイルパスと被験者名を指定する
@@ -43,17 +40,12 @@ class FileReader(object):
 
 
 if __name__ == "__main__":
-    # 既存のデータは仕方なくこれでインポートが必要
-
-    # sys.path.append("c:/users/takadamalab/git/sleep_study/pre_process")
-    # from record import Record
-
     fr = FileReader()
     data01 = fr.load(
         name="H_Li",
         path_list=[
             "previous_dataset",
-            "H_Li_" + fr.ppi.prev_datasets["spectrum"]["id"] + ".sav",
+            "H_Li_" + fr.my_env.ppi.prev_datasets["spectrum"]["id"] + ".sav",
         ],
     )
     data02 = fr.load(
@@ -61,7 +53,9 @@ if __name__ == "__main__":
         path_list=[
             "spectrum",
             "middle",
-            "140703_Li_" + fr.ppi.spectrum["middle"]["stride_16"] + ".sav",
+            "140703_Li_"
+            + fr.my_env.ppi.spectrum["middle"]["stride_16"]
+            + ".sav",
         ],
     )
     datas = [data01, data02]

@@ -1,147 +1,123 @@
+import datetime
 from data_analysis.py_color import PyColor
+from collections import Counter
 from pre_process.record import Record, multipleRecords
 import numpy as np
 from scipy.signal import hamming
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import sys
+import pandas as pd
 
 
 class CreateData(object):
     def __init__(self):
         return
 
-    def makeSpectrum(
-        self, tanita_data, psg_data, kernel_size, stride, fit_pos="middle"
-    ):
+    def make_spectrum(
+        self,
+        tanita_data: pd.core.frame.DataFrame,
+        psg_data: pd.core.frame.DataFrame,
+        kernel_size: int,
+        stride: int,
+        fit_pos: str = "middle",
+    ) -> list:
+        # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
-        # ↑図を描くとわかりやすい
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
-        print(f"make {record_len} datas")
+        print(f"make {record_len} spectrum datas")
         records = multipleRecords(record_len)
+        # スタートポイントはストライドのサイズでずらして、
+        # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
-        # TODO : recordを無駄に作成してしまう恐れあり（本当はend_pointに合わせてレコードを作ったほうが良い？）
-        try:
-            assert record_len == len(start_points_list)
-        except AssertionError:
-            print(
-                "tanita_len",
-                len(tanita_data),
-                "record len",
-                record_len,
-                "start point len",
-                len(start_points_list),
-            )
-            sys.exit(3)
+        # psgの最後の時間を保存しておく（_match用）
+        _time_psg = datetime.datetime.strptime(
+            psg_data["time"].iloc[-1], "%H:%M:%S"
+        )
 
-        def _make(start_point, record):
+        def _set_fit_pos_function():
+            def __set_top(start_point: int, end_point: int):
+                return start_point
+
+            def __set_middle(start_point: int, end_point: int):
+                return int((start_point + end_point) / 2)
+
+            def __set_bottom(start_point: int, end_point: int):
+                return end_point
+
+            if fit_pos == "top":
+                return __set_top
+            elif fit_pos == "middle":
+                return __set_middle
+            elif fit_pos == "bottom":
+                return __set_bottom
+            else:
+                print("exception occured")
+                sys.exit(1)
+
+        # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
+        _set_fit_pos = _set_fit_pos_function()
+
+        # 実際のスペクトル作成と時間の記録
+        def _make(start_point: list, record: Record) -> tuple:
             end_point = start_point + kernel_size - 1
             try:
                 amped = (
                     hamming(
-                        len(
-                            tanita_data["sensor1"][start_point : end_point + 1]
-                        )
+                        len(tanita_data["ss"][start_point : end_point + 1])
                     )
-                    * tanita_data["sensor1"][start_point : end_point + 1]
+                    * tanita_data["ss"][start_point : end_point + 1]
                 )
-            except Exception:
-                print("tmp stop")
-            fft = np.fft.fft(amped) / (
-                len(tanita_data["sensor1"][start_point : end_point + 1]) / 2.0
-            )
+            except IndexError:
+                print(f"{end_point+1}は tanita の長さを超えてます")
+            fft = np.fft.fft(amped) / (kernel_size / 2.0)
             fft = 20 * np.log10(np.abs(fft))
             fft = fft[: int(kernel_size / 2)]
             record.spectrum = fft
-            if fit_pos == "top":
-                fit_index = start_point
-            elif fit_pos == "middle":
-                fit_index = int((start_point + end_point) / 2)
-            elif fit_pos == "bottom":
-                fit_index = end_point
-            else:
-                print("exception occured")
-                sys.exit(1)
+            fit_index = _set_fit_pos(start_point, end_point)
+            # NOTE: なぜ .iloc を使う必要があるのか
             record.time = tanita_data["time"].iloc[fit_index]
+            _time_tanita = datetime.datetime.strptime(record.time, "%H:%M:%S")
+            _time_delta = _time_psg - _time_tanita
+            # 時刻がオーバー（負）、かつ経過秒数が22時間以上であれば終了したとみなす
+            # （日付がデータに入っていればもっと正確にできる）
+            if _time_delta.days < 0 and _time_delta.seconds / 60 / 60 > 22:
+                return False, None
+            return True, fit_index
 
-        def _match(record, start_point):
+        def _match(record: Record, start_point: int, fit_index: int) -> None:
             # psgの時間とrecordの時間(tanita)が等しい時刻のときの睡眠段階を代入
             # まず公式に合致すれば，ループ処理をしなくて済む
             # NOTE : 16Hzはタニタのセンサ固有の値
-            if fit_pos == "top":
-                _index = int(start_point / 16)
-            elif fit_pos == "middle":
-                _index = int((start_point + (kernel_size / 2)) / 16)
-            elif fit_pos == "bottom":
-                _index = int((start_point + kernel_size) / 16) - 1
-            else:
-                print("exception occured")
+            # トリムしてある場合はループ処理をしないので超高速
+            # record.timeによって終了条件確認
+            # 1. Noneであれば、例外としてcontinueする
+            if record.time is None:
+                print(PyColor.RED_FLASH, "Noneの時刻が入ってきました", PyColor.END)
+            try:
+                record.ss = psg_data["ss"][fit_index]
+            except IndentationError:
+                print(
+                    PyColor.RED_FLASH,
+                    f"{fit_index}はpsgの長さを超えています",
+                    PyColor.END,
+                )
                 sys.exit(1)
 
-            # インデックスがpsgのサイズを超えていないかどうか
-            # タニタのセンサのけつがそろってないと起こりうる
-            # これを回避したければ，タニタのけつの時間をpsgにそろえる
-            if (_index + 1) >= psg_data.shape[0]:
-                print(
-                    PyColor.RED, "tanita data is out of psg data", PyColor.END
-                )
-                return False
-
-            else:
-                # 公式に合致する際はループを回さなくて済む
-                # datetime オブジェクトを使用する
-                # if datetime.datetime.strptime(psg_data["time"].iloc[_index],
-                # "%H%M%S") == datetime.datetime.strptime(
-                #     record.time, "%H%M%S"):
-                # 文字列の長さによって付け足す
-                # if len(psg_data["time"].iloc[_index]) == 5:
-                #     __psg_time = "0" + psg_data["time"].iloc[_index]
-                # if __psg_time == record.time:
-                #     record.ss = psg_data["ss"].iloc[_index]
-                #     return True
-
-                # 公式に合致しない場合は，愚直に全体を探索
-                # else:
-                for counter, psg_time in enumerate(psg_data["time"]):
-                    try:
-                        assert type(psg_time) == str
-                    except Exception:
-                        print("catcher")
-                    if len(psg_time) == 7:
-                        __psg_time = "0" + psg_time
-                    else:
-                        __psg_time = psg_time
-                    # if datetime.datetime.strptime(psg_time,
-                    # "%H%M%S") == datetime.datetime.strptime(
-                    #     record.time, "%H%M%S"):
-                    if __psg_time == record.time:
-                        record.ss = psg_data["ss"].iloc[counter]
-                        return True
-
-                    # タニタの時刻がすべてのpsgのデータに合致しないとき
-                    # タニタの時間がpsgと比較して早すぎると起こる可能性あり（比較的最初に起こる）
-                    # 逆にタニタのデータが多すぎると起こる可能性あり
-                    # if record.ss == None:
-                    #     print(PyColor.RED,
-                    #           "record.time did not match any rule",
-                    #           PyColor.END)
-
-            # NOTE : noneがキャッチされる場所
-            # （たくさんNoneがキャッチされている場合は無駄にオブジェクトを作成している可能性がある）
-            # if record.ss == None:
-            #     print(PyColor.RED_FLASH,
-            #           "note here",
-            #           PyColor.END)
-
         for start_point, record in tqdm(zip(start_points_list, records)):
-            _make(start_point=start_point, record=record)
-            has_match = _match(record=record, start_point=start_point)
-            if not has_match:
+            (can_make, _fit_index) = _make(
+                start_point=start_point, record=record
+            )
+            if not can_make:
                 break
-        from collections import Counter
+            _match(
+                start_point=start_point,
+                record=record,
+                fit_index=int(_fit_index / 16),
+            )
 
         data = [record.ss for record in records]
-        print(Counter(data))
+        print(f"睡眠段階：{Counter(data)}")
 
         return records
 
@@ -169,19 +145,15 @@ class CreateData(object):
                         )
                         break
                     amped = (
-                        hamming(len(tanita_data["sensor1"][start:stop]))
-                        * tanita_data["sensor1"][start:stop]
+                        hamming(len(tanita_data["ss"][start:stop]))
+                        * tanita_data["ss"][start:stop]
                     )
                     fft = np.fft.fft(amped) / (
-                        len(tanita_data["sensor1"][start:stop]) / 2.0
+                        len(tanita_data["ss"][start:stop]) / 2.0
                     )
                     fft = 20 * np.log10(np.abs(fft))
                     fft = list(
-                        fft[
-                            : int(
-                                len(tanita_data["sensor1"][start:stop]) / 2.0
-                            )
-                        ]
+                        fft[: int(len(tanita_data["ss"][start:stop]) / 2.0)]
                     )
                     spectroGram.append(fft)
                 record.spectrogram = spectroGram

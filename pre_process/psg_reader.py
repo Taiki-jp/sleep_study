@@ -6,31 +6,26 @@ import os
 class PsgReader(CsvReader):
     def __init__(
         self,
-        personDir,
-        fileName="_sleepStage.csv",
-        target_problem="sleep",
-        loadDir="datas/adding_sleep_datas",
+        person_dir: str,
+        file_name: str = "sleepStage.csv",
+        verbose: int = 0,
+        is_previous: bool = True,
+        columns: list = [0, 2],
+        names: list = ["time", "ss"],
     ):
-        super().__init__(target_problem, loadDir, personDir, fileName)
 
-    def readCsv(self):
-        filePath = os.path.join(
-            self.rootDirName, self.loadDir, self.personDirName, self.fileName
+        super().__init__(
+            person_dir=person_dir,
+            file_name=file_name,
+            verbose=verbose,
+            columns=columns,
+            names=names,
         )
-
-        def _read():
-            # print(f"*** read {filePath} ***")
-            self.df = pd.read_csv(
-                filePath,
-                #   names=('time', 'ss'),
-                usecols=["time", "ss"],
-                header=0,
-            )
-
-        return _read()
+        if not is_previous:
+            self.file_name = "_" + file_name
+            self.columns = [1, 2]
 
 
 if __name__ == "__main__":
-    m_psgReader = PsgReader("H_Hayashi")
-    m_psgReader.readCsv()
-    m_psgReader.df
+    psg = PsgReader("H_Hayashi")
+    psg.read_csv(columns=[1, 3], names=["time", "ss"])

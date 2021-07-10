@@ -1,25 +1,49 @@
-from pre_process.my_setting import FindsDir
 import pandas as pd
 import os
+from pre_process.my_env import MyEnv
+from data_analysis.py_color import PyColor
 
 
-class CsvReader(FindsDir):
-    def __init__(self, target_problem, load_dir, person_dir, filename):
-        super().__init__(target_problem=target_problem)
-        self.root_dirname = self.return_filepath()
-        self.load_dir = load_dir
-        self.personDirName = person_dir
-        self.fileName = filename
+class CsvReader(object):
+    def __init__(
+        self,
+        person_dir: str,
+        file_name: str,
+        verbose: int = 0,
+        is_previous: bool = True,
+        columns: list = list(),
+        names: list = list(),
+    ):
+        self.person_dir = person_dir
+        self.file_name = file_name
         self.df = None
+        self.verbose = verbose
+        self.is_previous = is_previous
+        self.columns = columns
+        self.names = names
 
     def read_csv(self):
-        filePath = os.path.join(
-            self.rootDirName, self.loadDir, self.personDirName, self.fileName
-        )
+        file_path = os.path.join(self.person_dir, self.file_name)
 
         def _read():
-            print(f"*** read {filePath} ***")
-            self.df = pd.read_csv(filePath)
+            if self.verbose == 0:
+                print(
+                    PyColor.GREEN,
+                    f"*** read {self.person_dir} ***",
+                    PyColor.END,
+                )
+            elif self.verbose == 1:
+                _, name = os.path.split(self.person_dir)
+                print(PyColor.GREEN, f"*** read {name} ***", PyColor.END)
+            else:
+                pass
+
+            if bool(self.names):
+                self.df = pd.read_csv(
+                    file_path, usecols=self.columns, names=self.names, header=0
+                )
+            else:
+                self.df = pd.read_csv(file_path, usecols=self.columns)
 
         return _read()
 
