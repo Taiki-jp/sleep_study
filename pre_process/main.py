@@ -9,7 +9,6 @@ from data_analysis.py_color import PyColor
 import datetime
 import os
 from pre_process.json_base import JsonBase
-from concurrent.futures import ThreadPoolExecutor
 
 
 def main():
@@ -37,9 +36,7 @@ def main():
     # 実験を効率よくするためにランダムに並べ替える
     target_folders = random.sample(target_folders, len(target_folders))
 
-    tpe = ThreadPoolExecutor(max_workers=10)
-
-    def prep_para(target):
+    for target in target_folders:
         _, name = os.path.split(target)
         tanita = TanitaReader(target, is_previous=IS_PREVIOUS)
         psg = PsgReader(target, is_previous=IS_PREVIOUS)
@@ -71,10 +68,6 @@ def main():
         utils.dump_with_pickle(
             records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
         )
-
-    for target in target_folders:
-        tpe.submit(prep_para(target=target))
-        tpe.shutdown()
 
         # jsonへの書き込み
     JB.dump(keys=[DATA_TYPE, FIT_POS, f"stride_{str(STRIDE)}"], value=date_id)
