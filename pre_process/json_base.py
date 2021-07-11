@@ -25,8 +25,8 @@ class JsonBase(object):
     def dump(self, keys: list, value: str) -> None:
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
-        if key_len > 3:
-            print(PyColor.RED_FLASH, f"キーは3までの長さまでしか実装されていません", PyColor.END)
+        if key_len > 4:
+            print(PyColor.RED_FLASH, f"キーは4までの長さまでしか実装されていません", PyColor.END)
             sys.exit(1)
         # TODO : もっと賢い書き方無いかな？
         if key_len == 1:
@@ -35,6 +35,8 @@ class JsonBase(object):
             self.json_dict[keys[0]][keys[1]] = value
         elif key_len == 3:
             self.json_dict[keys[0]][keys[1]][keys[2]] = value
+        elif key_len == 4:
+            self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]] = value
         with open(self.json_file, "w") as f:
             json.dump(self.json_dict, f, indent=4)
 
