@@ -1,11 +1,10 @@
 from pre_process.file_reader import FileReader
+from pre_process.my_env import MyEnv
 
-
+# 前処理後の睡眠データを読み込むためのメソッドを集めたクラス
 class LoadSleepData:
-    # NOTE : n_class is needed
-    # because sets_filename method of file_reader is called in here
     def __init__(self, data_type, verbose=0, n_class=5):
-        self.fr = FileReader(n_class=n_class)
+        self.fr = FileReader()
         # NOTE : filereaderのsubjects_listを持ってくること
         self.sl = self.fr.sl
         # NOTE : オブジェクト生成時にデータの種類を決める（ファイル名が決まる）
@@ -13,9 +12,10 @@ class LoadSleepData:
         # data_typeが決まった時点で読み込むファイル名は決まるのでここでsets_filenameを行う（基本ここで呼ばれる）
         self.sl.sets_filename(data_type=self.data_type, n_class=n_class)
         self.verbose = verbose
+        self.env = MyEnv()
 
     def load_data(
-        self, name=None, load_all=False, pse_data=False, fit_pos=None
+        self, name: str=None, load_all=False, pse_data=False, fit_pos=None, kernel_size: int = 0, is_previous: bool=False, data_type: str="", stride: int=0
     ):
         # NOTE : pse_data is needed for avoiding to load data
         if pse_data:
@@ -26,13 +26,12 @@ class LoadSleepData:
             records = list()
             for name in self.sl.added_name_list:
                 records.extend(
-                    self.fr.load_normal(
-                        name=name,
-                        verbose=self.verbose,
-                        data_type=self.data_type,
-                        fit_pos=fit_pos,
-                    )
-                )
+                    self.env.set_processed_filepath(is_previous=is_previous,
+                                                    data_type=data_type,
+                                                    subject=name,
+                                                    stride=stride,
+                                                    fit_pos=fit_pos,
+                                                    kernel_size=kernel_size))
             return records
         else:
             print("*** 一人の被験者を読み込みます ***")

@@ -45,6 +45,7 @@ class MyEnv:
         subject: str,
         stride: int = 0,
         fit_pos: str = "",
+        kernel_size: int = 0,
     ) -> dict:
         if is_previous:
             date_id = self.ppi.prev_datasets[data_type]["id"]
@@ -56,7 +57,7 @@ class MyEnv:
         else:
             date_id = self.ppi.json_dict[data_type][fit_pos][
                 f"stride_{stride}"
-            ]
+            ][f"kernel_{kernel_size}"]
             path = os.path.join(
                 self.pre_processed_dir,
                 data_type,
