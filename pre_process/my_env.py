@@ -38,6 +38,7 @@ class MyEnv:
             sys.exit(2)
         return glob.glob(root_abs)
 
+    # 前処理後のファイルを指定して読み込む
     def set_processed_filepath(
         self,
         is_previous: bool,
@@ -46,7 +47,7 @@ class MyEnv:
         stride: int = 0,
         fit_pos: str = "",
         kernel_size: int = 0,
-    ) -> dict:
+    ) -> str:
         if is_previous:
             date_id = self.ppi.prev_datasets[data_type]["id"]
             path = os.path.join(
