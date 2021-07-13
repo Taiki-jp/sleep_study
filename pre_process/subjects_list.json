@@ -43,10 +43,8 @@
         "141002_Hayashi",
         "141003_Kashiwazaki_F",
         "141006_Hiromoto",
-        "141010_Kashiwazaki_F",
         "141014_Kumazawa_F",
         "141015_Hiromoto",
-        "141022_Ishii",
         "141024_Kawasaki_F",
         "141027_Kawasaki",
         "141029_Umezawa",
@@ -57,8 +55,6 @@
         "141128_Sato_Minato",
         "141204_Tatebe",
         "141205_Fujitsuka",
-        "141212_Saito",
-        "141215_Tomura",
         "141217_Sugimoto",
         "141219_Usui",
         "151104_Nagae",
@@ -70,7 +66,6 @@
         "151118_Tomoko_Nagae",
         "151119_Tomoko_Nagae",
         "151120_Tanaka",
-        "151125_Umenai",
         "151126_Tanaka",
         "151127_Tanaka",
         "151201_Tomoko_Nagae",
@@ -140,5 +135,12 @@
         "54823",
         "54838",
         "55128"
+    ],
+    "unused": [
+        "141010_Kashiwazaki_F",
+        "141022_Ishii",
+        "141212_Saito",
+        "141215_Tomura",
+        "151125_Umenai"
     ]
 }
