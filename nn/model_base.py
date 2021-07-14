@@ -21,7 +21,14 @@ def edl_classifier4psedo_data(x, use_bias, hidden_dim):
 # ================================================ #
 #           function APIによるモデル構築(1d-conv)
 # ================================================ #
-def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
+def edl_classifier_1d(
+    x,
+    n_class: int,
+    has_attention: bool = True,
+    has_inception: bool = True,
+    has_dropout: bool = False,
+    is_mul_layer: bool = False,
+):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
         if name is not None:
@@ -43,7 +50,7 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
         return x
 
     # start convolution from 512/4 -> 128
-    x = tf.keras.layers.Conv1D(3, 4, strides=4, name="shrink_tensor_layer")(x)
+    x = tf.keras.layers.Conv1D(3, 4, strides=2, name="shrink_tensor_layer")(x)
     x = tf.keras.layers.Activation("relu")(x)
     # 畳み込み開始01
     x = _conv1d_bn(x, 32, 3, strides=2, padding="valid", name="first_layer")
@@ -67,24 +74,47 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
             3, strides=1, padding="same"
         )(x)
         branch_pool = _conv1d_bn(branch_pool, 64, 1)
+        # (13, 13, 288)
         x = tf.keras.layers.concatenate(
             [branch1x1, branch5x5, branch3x3dbl, branch_pool],
             axis=-1,
             name="mixed1",
-        )  # (13, 13, 288)
+        )
+
+        # mixed 2: 35 x 35 x 288
+        if is_mul_layer:
+            branch1x1 = _conv1d_bn(x, 64, 1)
+            branch5x5 = _conv1d_bn(x, 48, 1)
+            branch5x5 = _conv1d_bn(branch5x5, 64, 5)
+            branch3x3dbl = _conv1d_bn(x, 64, 1)
+            branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+            branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+            branch_pool = tf.keras.layers.AveragePooling1D(
+                3, strides=1, padding="same"
+            )(x)
+            branch_pool = _conv1d_bn(branch_pool, 64, 1)
+            # (13, 13, 288)
+            x = tf.keras.layers.concatenate(
+                [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                axis=-1,
+                name="mixed2",
+            )
+
         if has_attention:
+            # (13, 13, 1)
             attention = tf.keras.layers.Conv1D(
                 1, kernel_size=3, padding="same"
-            )(
-                x
-            )  # (13, 13, 1)
+            )(x)
             attention = tf.keras.layers.Activation("sigmoid")(attention)
             x = tf.multiply(x, attention)
-            # x *= attention
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+    if has_dropout:
+        x = tf.keras.layers.Dropout(0.2)
     x = tf.keras.layers.Dense(n_class ** 2)(x)
     x = tf.keras.layers.Activation("relu")(x)
+    if has_dropout:
+        x = tf.keras.layers.Dropout(0.2)
     x = tf.keras.layers.Dense(n_class)(x)
     x = tf.keras.layers.Activation("relu")(x)
     return x

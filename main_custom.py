@@ -1,3 +1,4 @@
+from random import sample
 import sys
 from data_analysis.py_color import PyColor
 import os
@@ -6,15 +7,17 @@ import wandb
 import tensorflow as tf
 from collections import Counter
 from pre_process.pre_process import PreProcess
-from pre_process.load_sleep_data import LoadSleepData
 from nn.model_base import edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
+import numpy as np
+from data_analysis.utils import Utils
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
 
 def main(
+    utils,
     name,
     project,
     train,
@@ -39,12 +42,19 @@ def main(
 
     # データセットの作成
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
-        train=train, test=test, is_storchastic=False, pse_data=pse_data
+        train=train,
+        test=test,
+        is_storchastic=False,
+        pse_data=pse_data,
+        each_data_size=sample_size,
     )
+    # カテゴリカルに変換
+    y_train = np.argmax(y_train, axis=1)
+    y_test = np.argmax(y_test, axis=1)
     # データセットの数
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
+    ss_test_dict = Counter(y_train)
 
     # カスタムトレーニングのために作成
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -58,16 +68,16 @@ def main(
     added_config = {
         "attention": has_attention,
         "inception": has_inception,
-        "test wake before replaced": ss_test_dict[5],
-        "test rem before replaced": ss_test_dict[4],
-        "test nr1 before replaced": ss_test_dict[3],
-        "test nr2 before replaced": ss_test_dict[2],
-        "test nr34 before replaced": ss_test_dict[1],
-        "train wake before replaced": ss_train_dict[5],
-        "train rem before replaced": ss_train_dict[4],
-        "train nr1 before replaced": ss_train_dict[3],
-        "train nr2 before replaced": ss_train_dict[2],
-        "train nr34 before replaced": ss_train_dict[1],
+        "test wake before replaced": ss_test_dict[4],
+        "test rem before replaced": ss_test_dict[3],
+        "test nr1 before replaced": ss_test_dict[2],
+        "test nr2 before replaced": ss_test_dict[1],
+        "test nr34 before replaced": ss_test_dict[0],
+        "train wake before replaced": ss_train_dict[4],
+        "train rem before replaced": ss_train_dict[3],
+        "train nr1 before replaced": ss_train_dict[2],
+        "train nr2 before replaced": ss_train_dict[1],
+        "train nr34 before replaced": ss_train_dict[0],
     }
     wandb_config = wandb_config.update(added_config)
 
@@ -78,7 +88,7 @@ def main(
         tags=my_tags,
         config=wandb_config,
         sync_tensorboard=True,
-        dir=pre_process.my_env.projecto_dir,
+        dir=pre_process.my_env.project_dir,
     )
 
     # モデルの作成とコンパイル
@@ -109,11 +119,14 @@ def main(
     # エポックのループ
     for epoch in range(epochs):
         # ロス関数はエポックごとにアニーリングを変えるので中に書く
-        loss_fn = EDLLoss(K=n_class, annealing=(1 - epoch / epochs))
-        print(f"エポック:{epoch}")
+        loss_fn = EDLLoss(K=n_class, annealing=min(1, (epoch / epochs)))
+        print(f"エポック:{epoch + 1}")
         # エポック内のバッチサイズごとのループ
         for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
             # 勾配を計算
+            _train_step(x=x_batch_train, y=y_batch_train)
+
+        def _train_step(x, y):
             with tf.GradientTape() as tape:
                 # NOTE : x_batch_trainの次元は3である
                 # assert np.ndim(x_batch_train) == 3
@@ -121,13 +134,22 @@ def main(
                 evidence = model(x_batch_train, training=True)
                 alpha = evidence + 1
                 y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+                # y_trueをone-hotに変換して渡す
                 loss_value = loss_fn.call(
-                    y_batch_train, alpha
+                    tf.keras.utils.to_categorical(
+                        y_batch_train, num_classes=5
+                    ),
+                    alpha,
                 )  # NOTE : one-hotの形で入れるべき？
 
             grads = tape.gradient(loss_value, model.trainable_weights)
             optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
+            # one-hot表現にそろえる方法（無理）
+            # train_acc_metric.update_state(tf.keras.utils.to_categorical(y_batch_train, num_classes=5), y_pred)
+            # one-hot表現にそろえる方法（無理）
+            # sparse-categoricalの説明をしっかり見ると
+            # y_batch_trainn <= integer, y_pred <= prob と書いてある
             train_acc_metric.update_state(y_batch_train, y_pred)
 
             # if step % 200 == 0:
@@ -159,24 +181,22 @@ def main(
         wandb.log({"train_acc": train_acc, "test_acc": val_acc})
 
         # 混合マトリクスの作成（各エポック毎）
-        cm_train, _ = pre_process.make_confusion_matrix(
-            y_true=y_batch_train, y_pred=y_pred
-        )  # 訓練データ
-        cm_test, _ = pre_process.make_confusion_matrix(
-            y_true=y_batch_val, y_pred=val_y_pred
-        )
-        pre_process.save_image2wandb(
-            cm_train, to_wandb=True, fileName="cm_train"
-        )
-        pre_process.save_image2wandb(
-            cm_test, to_wandb=True, fileName="cm_test"
-        )
-
+        # cm_train = utils.make_confusion_matrix(
+        #     y_true=np.argmax(y_batch_train, axis=1), y_pred=np.argmax(y_pred, axis=1)
+        # )  # 訓練データ
+        # cm_test = utils.make_confusion_matrix(
+        #     y_true=np.argmax(y_batch_val, axis=1), y_pred=np.argmax(val_y_pred, axis=1)
+        # )
+        # utils.save_image2wandb(
+        #     cm_train, to_wandb=True, fileName="cm_train"
+        # )
+        # utils.save_image2wandb(
+        #     cm_test, to_wandb=True, fileName="cm_test"
+        # )
 
     # モデルの保存
-    if model_save:
-        path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-        model.save(path)
+    path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
+    model.save(path)
     # wandbへの記録終了
     wandb.finish()
 
@@ -203,11 +223,11 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = False
-    EPOCHS = 100
+    EPOCHS = 25
     BATCH_SIZE = 32
     N_CLASS = 5
-    KERNEL_SIZE = 1024
-    STRIDE = 4
+    KERNEL_SIZE = 512
+    STRIDE = 16
     SAMPLE_SIZE = 50000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
@@ -232,8 +252,9 @@ if __name__ == "__main__":
         load_all=True,
         pse_data=PSE_DATA,
     )
+    utils = Utils()
     # 記録用のjsonファイルを読み込む
-    JB = JsonBase("model_id.json")
+    JB = JsonBase("../nn/model_id.json")
     JB.load()
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
@@ -258,32 +279,35 @@ if __name__ == "__main__":
             ENN_TAG,
         ]
 
-        wandb_config = (
-            {
-                "test name": test_name,
-                "date id": date_id,
-                "sample_size": SAMPLE_SIZE,
-                "epochs": EPOCHS,
-                "kernel": KERNEL_SIZE,
-                "stride": STRIDE,
-                "fit_pos": FIT_POS,
-                "batch_size": BATCH_SIZE,
-                "n_class": N_CLASS,
-            },
-        )
+        wandb_config = {
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+        }
+
         main(
+            utils=utils,
+            data_type=DATA_TYPE,
             model_save=True,
-            name="edl",
-            project="edl",
+            name=test_name,
+            project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
-            epoch=100,
+            epochs=100,
             save_model=True,
             has_attention=HAS_ATTENTION,
-            my_tags=wandb_config
+            my_tags=my_tags,
             date_id=date_id,
-            pse_data=pse_data,
+            pse_data=PSE_DATA,
             test_name=test_name,
             kernel_size=KERNEL_SIZE,
+            wandb_config=wandb_config,
+            sample_size=SAMPLE_SIZE,
         )

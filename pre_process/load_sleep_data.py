@@ -82,16 +82,17 @@ if __name__ == "__main__":
     import pandas as pd
     import os
 
-    load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0)
+    load_sleep_data = LoadSleepData(
+        data_type="spectrum",
+        verbose=0,
+        fit_pos="middle",
+        kernel_size=512,
+        is_previous=False,
+        stride=16,
+        is_normal=True,
+    )
     data = load_sleep_data.load_data(
         load_all=True,
-        pse_data=False,
-        name=None,
-        fit_pos="middle",
-        kernel_size=1024,
-        is_previous=False,
-        stride=1024,
-        is_normal=True,
     )
     # 各被験者について睡眠段階の量をチェック
     _df = None

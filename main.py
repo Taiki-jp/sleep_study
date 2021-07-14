@@ -8,6 +8,7 @@ from pre_process.pre_process import PreProcess
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
+from data_analysis.py_color import PyColor
 
 tf.random.set_seed(100)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -34,6 +35,7 @@ def main(
     is_enn=True,
     wandb_config=dict(),
     kernel_size=0,
+    is_mul_layer=False,
 ):
 
     # データセットの作成
@@ -77,6 +79,7 @@ def main(
         n_class=n_class,
         has_attention=has_attention,
         has_inception=has_inception,
+        is_mul_layer=is_mul_layer,
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
@@ -102,6 +105,11 @@ def main(
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
     )
+
+    # TODO: 使いたいけど、何をもとに早期終了するかは難しい、、
+    # early_callback = tf.keras.callbacks.EarlyStopping(
+    #     monitor='val_loss',
+    # )
 
     model.fit(
         x_train,
@@ -142,12 +150,13 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = False
-    EPOCHS = 20
+    IS_ENN = True
+    IS_MUL_LAYER = False
+    EPOCHS = 25
     BATCH_SIZE = 32
     N_CLASS = 5
-    KERNEL_SIZE = 1024
-    STRIDE = 4
+    KERNEL_SIZE = 512
+    STRIDE = 16
     SAMPLE_SIZE = 50000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
@@ -157,6 +166,7 @@ if __name__ == "__main__":
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if TEST_RUN else "master"
     ENN_TAG = "enn" if IS_ENN else "dnn"
+    INCEPTION_TAG += "v2" if IS_MUL_LAYER else INCEPTION_TAG
 
     # 記録用のjsonファイルを読み込む
     JB = JsonBase("../nn/model_id.json")
@@ -230,6 +240,7 @@ if __name__ == "__main__":
             is_enn=IS_ENN,
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
+            is_mul_layer=IS_MUL_LAYER,
         )
 
         # testの時は一人の被験者で止める

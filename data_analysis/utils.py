@@ -259,7 +259,7 @@ class Utils:
         # 混合行列を作成
         cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
-        # 正解ラベルのクラス数に応じてラベル名を変更する
+        # 予測ラベルのクラス数に応じてラベル名を変更する
         if n_class == 5:
             labels = ["nr34", "nr2", "nr1", "rem", "wake"]
         elif n_class == 4:
@@ -346,7 +346,7 @@ class Utils:
         date_id: str = None,
         hist_label: list = ["True", "False"],
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
-        color_obj: object = None,
+        color_obj: MyColor = MyColor(),
     ):
 
         self._make_histgram(
@@ -364,7 +364,7 @@ class Utils:
     # NOTE: 5クラス分類用の設定になっている
     def my_argmax(self, array: np.ndarray, axis: int) -> np.ndarray:
         array_max = np.argmax(array, axis=axis)
-        array_min = np.argmax(array, axis=axis)
+        array_min = np.argmin(array, axis=axis)
         fixed_array = []
         # 最大値と最小値が一致する場合はNREM2(1)を返す
         for _max, _min in zip(array_max, array_min):

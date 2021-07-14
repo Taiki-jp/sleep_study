@@ -1,15 +1,17 @@
-from pre_process.subjects_list import SubjectsList
 from data_analysis.utils import Utils
-import os, datetime, wandb
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+import sys
 import tensorflow as tf
+import os
+import datetime
+import wandb
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
-from pre_process.load_sleep_data import LoadSleepData
+from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
-import time, sys
+from pre_process.json_base import JsonBase
+from data_analysis.py_color import PyColor
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
 
 def main(
@@ -18,12 +20,19 @@ def main(
     train,
     test,
     pre_process,
-    load_model=False,
     my_tags=None,
+    n_class=5,
     pse_data=False,
     test_name=None,
     date_id=None,
-    utils=None,
+    has_attention=False,
+    has_inception=True,
+    data_type=None,
+    sample_size=0,
+    is_enn=True,
+    wandb_config=dict(),
+    kernel_size=0,
+    is_mul_layer=False,
 ):
 
     # データセットの作成
@@ -33,27 +42,32 @@ def main(
         is_storchastic=False,
         pse_data=pse_data,
         to_one_hot_vector=False,
+        each_data_size=sample_size,
     )
-    # データセットの数
+    # データセットの数を表示
     print(f"training data : {x_train.shape}")
+
+    # config の追加
+    added_config = {"attention": has_attention, "inception": has_inception}
+    wandb_config.update(added_config)
 
     # wandbの初期化
     wandb.init(
         name=name,
         project=project,
         tags=my_tags,
-        config={"test name": test_name, "date id": date_id},
-        dir=utils.project_dir,
+        config=wandb_config,
+        sync_tensorboard=True,
+        dir=pre_process.my_env.project_dir,
     )
 
     # モデルの読み込み（コンパイル済み）
-    if load_model:
-        print(f"*** {test_name}のモデルを読み込みます ***")
-        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
-        model = tf.keras.models.load_model(
-            path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
-        )
-        print(f"*** {test_name}のモデルを読み込みました ***")
+    print(f"*** {test_name}のモデルを読み込みます ***")
+    path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+    model = tf.keras.models.load_model(
+        path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+    )
+    print(f"*** {test_name}のモデルを読み込みました ***")
 
     # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる）
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
@@ -80,7 +94,7 @@ def main(
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
-            separate_each_ss=True,
+            separate_each_ss=False,
         )
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
@@ -96,29 +110,6 @@ def main(
     wandb.finish()
 
 
-def load_date_id_list(has_attention, has_inception, data_type, lsd):
-    # attention, inception, data_typeによって読み込むモデルを決める(8通り)
-    # attention なしのものは現在存在しない
-    if has_attention is not True:
-        print("attentionはすべてTrueにしてください")
-        sys.exit(1)
-    elif has_attention:
-        if has_inception:
-            if data_type == "spectrogram":
-                return lsd.sl.date_id_list_attnt_incpt_spc_2d
-            elif data_type == "spectrum":
-                return lsd.sl.date_id_list_attnt_incpt_spc_1d
-            else:
-                sys.exit(1)
-        else:
-            if data_type == "spectrogram":
-                return lsd.sl.date_id_list_attnt_spc_2d
-            elif data_type == "spectrum":
-                return lsd.sl.date_id_list_attnt_spc_1d
-            else:
-                sys.exit(1)
-
-
 if __name__ == "__main__":
     # 環境設定
     try:
@@ -130,48 +121,105 @@ if __name__ == "__main__":
         print("*** cpuで計算します ***")
 
     # ハイパーパラメータの設定
-    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (
-        True,
-        False,
-        True,
-        "spectrogram",
-    )
+    TEST_RUN = False
+    HAS_ATTENTION = True
+    PSE_DATA = False
+    HAS_INCEPTION = True
+    IS_PREVIOUS = False
+    IS_NORMAL = True
+    IS_ENN = True
+    IS_MUL_LAYER = False
+    CATCH_NREM2 = True
+    EPOCHS = 20
+    BATCH_SIZE = 32
+    N_CLASS = 5
+    KERNEL_SIZE = 1024
+    STRIDE = 4
+    SAMPLE_SIZE = 50000
+    DATA_TYPE = "spectrum"
+    FIT_POS = "middle"
+    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if PSE_DATA else "edl-analysis"
-    my_tags = [ATTENTION_TAG, PSE_DATA_TAG, INCEPTION_TAG, DATA_TYPE]
+    WANDB_PROJECT = "test" if TEST_RUN else "edl-analysis"
+    ENN_TAG = "enn" if IS_ENN else "dnn"
+    INCEPTION_TAG += "v2" if IS_MUL_LAYER else INCEPTION_TAG
+    CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
 
     # オブジェクトの作成
-    load_sleep_data = LoadSleepData(data_type=DATA_TYPE)
-    pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
-    utils = Utils(file_reader=load_sleep_data.fr)
+    pre_process = PreProcess(
+        data_type=DATA_TYPE,
+        fit_pos=FIT_POS,
+        verbose=0,
+        kernel_size=KERNEL_SIZE,
+        is_previous=IS_PREVIOUS,
+        stride=STRIDE,
+        is_normal=IS_NORMAL,
+    )
+    datasets = pre_process.load_sleep_data.load_data(
+        load_all=True, pse_data=PSE_DATA
+    )
+    utils = Utils(catch_nrem2=CATCH_NREM2)
 
     # 読み込むモデルの日付リストを返す
-    date_id_list = load_date_id_list(
-        has_attention=HAS_ATTENTION,
-        has_inception=HAS_INCEPTION,
-        data_type=DATA_TYPE,
-        lsd=load_sleep_data,
-    )
+    JB = JsonBase("../nn/model_id.json")
+    JB.load()
+    date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
+        f"stride_{str(STRIDE)}"
+    ][f"kernel_{str(KERNEL_SIZE)}"]
 
     for test_id, (test_name, date_id) in enumerate(
-        zip(load_sleep_data.sl.name_list, date_id_list)
+        zip(pre_process.name_list, date_id_list)
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
+        # tagの設定
+        my_tags = [
+            test_name,
+            PSE_DATA_TAG,
+            ATTENTION_TAG,
+            INCEPTION_TAG,
+            DATA_TYPE,
+            FIT_POS,
+            f"kernel_{KERNEL_SIZE}",
+            f"stride_{STRIDE}",
+            f"sample_{SAMPLE_SIZE}",
+            ENN_TAG,
+        ]
+        wandb_config = {
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+        }
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
-            pre_process=pre_process,
             train=train,
             test=test,
-            load_model=True,
-            my_tags=my_tags + [f"{test_name}"],
+            pre_process=pre_process,
+            my_tags=my_tags,
+            has_attention=HAS_ATTENTION,
             date_id=date_id,
             pse_data=PSE_DATA,
             test_name=test_name,
-            utils=utils,
+            has_inception=HAS_INCEPTION,
+            n_class=N_CLASS,
+            data_type=DATA_TYPE,
+            sample_size=SAMPLE_SIZE,
+            is_enn=IS_ENN,
+            wandb_config=wandb_config,
+            kernel_size=KERNEL_SIZE,
+            is_mul_layer=IS_MUL_LAYER,
         )
+
+        # testの時は一人の被験者で止める
+        if TEST_RUN:
+            break
