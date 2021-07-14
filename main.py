@@ -144,7 +144,7 @@ if __name__ == "__main__":
     N_CLASS = 5
     KERNEL_SIZE = 1024
     STRIDE = 4
-    SAMPLE_SIZE = 50000
+    SAMPLE_SIZE = 500
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
