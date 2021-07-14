@@ -124,9 +124,6 @@ def main(
         # エポック内のバッチサイズごとのループ
         for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
             # 勾配を計算
-            _train_step(x=x_batch_train, y=y_batch_train)
-
-        def _train_step(x, y):
             with tf.GradientTape() as tape:
                 # NOTE : x_batch_trainの次元は3である
                 # assert np.ndim(x_batch_train) == 3
@@ -228,7 +225,7 @@ if __name__ == "__main__":
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 16
-    SAMPLE_SIZE = 50000
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -300,7 +297,7 @@ if __name__ == "__main__":
             pre_process=pre_process,
             train=train,
             test=test,
-            epochs=100,
+            epochs=EPOCHS,
             save_model=True,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
@@ -311,3 +308,16 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             sample_size=SAMPLE_SIZE,
         )
+
+        if TEST_RUN:
+            break
+    JB.dump(
+        keys=[
+            ENN_TAG,
+            DATA_TYPE,
+            FIT_POS,
+            f"stride_{str(STRIDE)}",
+            f"kernel_{str(KERNEL_SIZE)}",
+        ],
+        value=date_id_saving_list,
+    )
