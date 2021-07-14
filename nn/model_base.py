@@ -80,7 +80,8 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
                 x
             )  # (13, 13, 1)
             attention = tf.keras.layers.Activation("sigmoid")(attention)
-            x *= attention
+            x = tf.matmul(x, attention)
+            # x *= attention
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
     x = tf.keras.layers.Dense(n_class ** 2)(x)
