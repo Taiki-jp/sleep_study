@@ -1,3 +1,5 @@
+import sys
+from data_analysis.py_color import PyColor
 import os
 import datetime
 import wandb
@@ -5,8 +7,9 @@ import tensorflow as tf
 from collections import Counter
 from pre_process.pre_process import PreProcess
 from pre_process.load_sleep_data import LoadSleepData
-from nn.model_base import edl_classifier_2d
+from nn.model_base import edl_classifier_1d
 from nn.losses import EDLLoss
+from pre_process.json_base import JsonBase
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -17,6 +20,7 @@ def main(
     train,
     test,
     pre_process,
+    model_save=False,
     epochs=1,
     save_model=False,
     my_tags=None,
@@ -26,6 +30,11 @@ def main(
     test_name=None,
     date_id=None,
     has_attention=False,
+    has_inception=False,
+    data_type="",
+    sample_size=0,
+    wandb_config=dict(),
+    kernel_size=0,
 ):
 
     # データセットの作成
@@ -45,61 +54,57 @@ def main(
     val_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
     val_dataset = val_dataset.batch(batch_size)
 
+    # config の追加
+    added_config = {
+        "attention": has_attention,
+        "inception": has_inception,
+        "test wake before replaced": ss_test_dict[5],
+        "test rem before replaced": ss_test_dict[4],
+        "test nr1 before replaced": ss_test_dict[3],
+        "test nr2 before replaced": ss_test_dict[2],
+        "test nr34 before replaced": ss_test_dict[1],
+        "train wake before replaced": ss_train_dict[5],
+        "train rem before replaced": ss_train_dict[4],
+        "train nr1 before replaced": ss_train_dict[3],
+        "train nr2 before replaced": ss_train_dict[2],
+        "train nr34 before replaced": ss_train_dict[1],
+    }
+    wandb_config = wandb_config.update(added_config)
+
     # wandbの初期化
     wandb.init(
         name=name,
         project=project,
         tags=my_tags,
-        config={
-            "test name": test_name,
-            "date id": date_id,
-            "test wake before replaced": ss_test_dict[5],
-            "test rem before replaced": ss_test_dict[4],
-            "test nr1 before replaced": ss_test_dict[3],
-            "test nr2 before replaced": ss_test_dict[2],
-            "test nr34 before replaced": ss_test_dict[1],
-            "train wake before replaced": ss_train_dict[5],
-            "train rem before replaced": ss_train_dict[4],
-            "train nr1 before replaced": ss_train_dict[3],
-            "train nr2 before replaced": ss_train_dict[2],
-            "train nr34 before replaced": ss_train_dict[1],
-        },
+        config=wandb_config,
+        sync_tensorboard=True,
+        dir=pre_process.my_env.projecto_dir,
     )
 
-    inputs = tf.keras.Input(shape=(128, 512, 1))
-    outputs = edl_classifier_2d(
-        x=inputs, n_class=n_class, has_attention=has_attention
+    # モデルの作成とコンパイル
+    if data_type == "spectrum":
+        shape = (int(kernel_size / 2), 1)
+    elif data_type == "spectrogram":
+        shape = (128, 512, 1)
+    else:
+        print("correct here based on your model")
+        sys.exit(1)
+
+    inputs = tf.keras.Input(shape=shape)
+    outputs = edl_classifier_1d(
+        x=inputs,
+        n_class=n_class,
+        has_attention=has_attention,
+        has_inception=has_inception,
     )
+
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
-
     # 最適化関数の設定
     optimizer = tf.keras.optimizers.Adam()
     # メトリクスの作成
     # true side : カテゴリカルな状態，pred side : クラスの次元数（ソフトマックスをかける前）
     train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
-
-    # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config={
-            "train num": x_train.shape[0],
-            "test num": x_test.shape[0],
-            "date id": date_id,  # モデル読み込み時にフォルダ名を特定するために必要な情報
-            "test wake before replaced": ss_test_dict[5],
-            "test rem before replaced": ss_test_dict[4],
-            "test nr1 before replaced": ss_test_dict[3],
-            "test nr2 before replaced": ss_test_dict[2],
-            "test nr34 before replaced": ss_test_dict[1],
-            "train wake before replaced": ss_train_dict[5],
-            "train rem before replaced": ss_train_dict[4],
-            "train nr1 before replaced": ss_train_dict[3],
-            "train nr2 before replaced": ss_train_dict[2],
-            "train nr34 before replaced": ss_train_dict[1],
-        },
-    )
 
     # エポックのループ
     for epoch in range(epochs):
@@ -167,39 +172,107 @@ def main(
             cm_test, to_wandb=True, fileName="cm_test"
         )
 
-        # 不確かさのヒストグラム（各エポック毎）
-        # 学習の最後に
 
+    # モデルの保存
+    if model_save:
+        path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
+        model.save(path)
     # wandbへの記録終了
     wandb.finish()
 
 
 if __name__ == "__main__":
     # 環境設定
-    tf.keras.backend.set_floatx("float32")
-    # tf.config.run_functions_eagerly(True)
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    CALC_DEVICE = "gpu"
+    # CALC_DEVICE = "cpu"
+    DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
+    if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
+        tf.keras.backend.set_floatx("float32")
+        physical_devices = tf.config.list_physical_devices("GPU")
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        # tf.config.run_functions_eagerly(True)
+    else:
+        print("*** cpuで計算します ***")
 
     # ハイパーパラメータの設定
-    MUL_NUM = 1
-    has_attention = True
-    attention_tag = "attention" if has_attention else "no-attention"
-    pse_data = True
+    TEST_RUN = False
+    HAS_ATTENTION = True
+    PSE_DATA = False
+    HAS_INCEPTION = True
+    IS_PREVIOUS = False
+    IS_NORMAL = True
+    IS_ENN = False
+    EPOCHS = 100
+    BATCH_SIZE = 32
+    N_CLASS = 5
+    KERNEL_SIZE = 1024
+    STRIDE = 4
+    SAMPLE_SIZE = 50000
+    DATA_TYPE = "spectrum"
+    FIT_POS = "middle"
+    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
+    ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
+    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
+    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
+    WANDB_PROJECT = "test" if TEST_RUN else "master"
+    ENN_TAG = "enn" if IS_ENN else "dnn"
 
     # オブジェクトの作成
-    load_sleep_data = LoadSleepData(data_type="spectrogram")
-    pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=pse_data)
+    pre_process = PreProcess(
+        data_type=DATA_TYPE,
+        fit_pos=FIT_POS,
+        verbose=0,
+        kernel_size=KERNEL_SIZE,
+        is_previous=IS_PREVIOUS,
+        stride=STRIDE,
+        is_normal=IS_NORMAL,
+    )
+    datasets = pre_process.load_sleep_data.load_data(
+        load_all=True,
+        pse_data=PSE_DATA,
+    )
+    # 記録用のjsonファイルを読み込む
+    JB = JsonBase("model_id.json")
+    JB.load()
+    # モデルのidを記録するためのリスト
+    date_id_saving_list = list()
 
-    # ループの開始
-    for test_id, test_name in enumerate(load_sleep_data.sl.name_list):
+    for test_id, test_name in enumerate(pre_process.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
-            datasets, test_name, pse_data=pse_data
+            datasets, test_id=test_id, pse_data=PSE_DATA
         )
+        # tagの設定
+        my_tags = [
+            test_name,
+            PSE_DATA_TAG,
+            ATTENTION_TAG,
+            INCEPTION_TAG,
+            DATA_TYPE,
+            FIT_POS,
+            f"kernel_{KERNEL_SIZE}",
+            f"stride_{STRIDE}",
+            f"sample_{SAMPLE_SIZE}",
+            ENN_TAG,
+        ]
 
+        wandb_config = (
+            {
+                "test name": test_name,
+                "date id": date_id,
+                "sample_size": SAMPLE_SIZE,
+                "epochs": EPOCHS,
+                "kernel": KERNEL_SIZE,
+                "stride": STRIDE,
+                "fit_pos": FIT_POS,
+                "batch_size": BATCH_SIZE,
+                "n_class": N_CLASS,
+            },
+        )
         main(
+            model_save=True,
             name="edl",
             project="edl",
             pre_process=pre_process,
@@ -207,9 +280,10 @@ if __name__ == "__main__":
             test=test,
             epoch=100,
             save_model=True,
-            has_attention=has_attention,
-            my_tags=[f"{test_name}", f"train:1:{MUL_NUM}", attention_tag],
+            has_attention=HAS_ATTENTION,
+            my_tags=wandb_config
             date_id=date_id,
             pse_data=pse_data,
             test_name=test_name,
+            kernel_size=KERNEL_SIZE,
         )

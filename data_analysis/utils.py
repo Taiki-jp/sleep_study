@@ -24,13 +24,14 @@ from pre_process.my_env import MyEnv
 
 # 便利な関数をまとめたもの
 class Utils:
-    def __init__(self, ss_list=None) -> None:
+    def __init__(self, ss_list=None, catch_nrem2: bool = False) -> None:
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.fr = FileReader()
         self.env = self.fr.my_env
         # self.name_list = self.fr.sl.name_list
         # self.name_dict = self.fr.sl.name_dict
         self.ss_list = ss_list
+        self.catch_nrem2 = catch_nrem2
 
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
 
@@ -360,6 +361,19 @@ class Utils:
             color_obj=color_obj,
         )
 
+    # NOTE: 5クラス分類用の設定になっている
+    def my_argmax(self, array: np.ndarray, axis: int) -> np.ndarray:
+        array_max = np.argmax(array, axis=axis)
+        array_min = np.argmax(array, axis=axis)
+        fixed_array = []
+        # 最大値と最小値が一致する場合はNREM2(1)を返す
+        for _max, _min in zip(array_max, array_min):
+            if _max == _min:
+                fixed_array.append(1)
+            else:
+                fixed_array.append(_max)
+        return np.array(fixed_array)
+
     # 混合行列をwandbに送信
     def conf_mat2Wandb(self, y, evidence, train_or_test, test_label, date_id):
         alpha = evidence + 1
@@ -367,7 +381,11 @@ class Utils:
         y_pred = alpha / S
         _, n_class = y_pred.shape
         # カテゴリカルに変換
-        y_pred = np.argmax(y_pred, axis=1)
+        y_pred = (
+            np.argmax(y_pred, axis=1)
+            if not self.catch_nrem2
+            else self.my_argmax(y_pred, axis=1)
+        )
         # ラベル付き混合行列を返す
         cm = self.make_confusion_matrix(
             y_true=y, y_pred=y_pred, n_class=n_class
@@ -399,7 +417,11 @@ class Utils:
         y_pred = alpha / S
         _, n_class = y_pred.shape
         # カテゴリカルに変換
-        y_pred = np.argmax(y_pred, axis=1)
+        y_pred = (
+            np.argmax(y_pred, axis=1)
+            if not self.catch_nrem2
+            else self.my_argmax(y_pred, axis=1)
+        )
         uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
 
         if not separate_each_ss:
@@ -472,7 +494,11 @@ class Utils:
         y_pred = alpha / S
         _, n_class = y_pred.shape
         # カテゴリカルに変換
-        y_pred = np.argmax(y_pred, axis=1)
+        y_pred = (
+            np.argmax(y_pred, axis=1)
+            if not self.catch_nrem2
+            else self.my_argmax(y_pred, axis=1)
+        )
         uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
         # 1次元に落とし込む
         uncertainty = tf.reshape(uncertainty, -1)

@@ -29,12 +29,11 @@ def main(
     date_id=None,
     has_attention=False,
     has_inception=True,
-    utils=None,
     data_type=None,
     sample_size=0,
+    is_enn=True,
+    wandb_config=dict(),
     kernel_size=0,
-    stride=0,
-    fit_pos="",
 ):
 
     # データセットの作成
@@ -49,31 +48,23 @@ def main(
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
 
+    # config の追加
+    added_config = {"attention": has_attention, "inception": has_inception}
+    wandb_config = wandb_config.update(added_config)
+
     # wandbの初期化
     wandb.init(
         name=name,
         project=project,
         tags=my_tags,
-        config={
-            "test name": test_name,
-            "date id": date_id,
-            "batch_size": batch_size,
-            "attention": has_attention,
-            "inception": has_inception,
-            "n_class": n_class,
-            "sample_size": sample_size,
-            "epochs": epochs,
-            "kernel": kernel_size,
-            "stride": stride,
-            "fit_pos": fit_pos,
-        },
+        config=wandb_config,
         sync_tensorboard=True,
         dir=pre_process.my_env.project_dir,
     )
 
     # モデルの作成とコンパイル
     if data_type == "spectrum":
-        shape = (int(KERNEL_SIZE / 2), 1)
+        shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
         shape = (128, 512, 1)
     else:
@@ -87,12 +78,20 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
     )
-    model = EDLModelBase(inputs=inputs, outputs=outputs)
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss=EDLLoss(K=n_class, annealing=0.1),
-        metrics=["accuracy"],
-    )
+    if is_enn:
+        model = EDLModelBase(inputs=inputs, outputs=outputs)
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss=EDLLoss(K=n_class, annealing=0.1),
+            metrics=["accuracy"],
+        )
+    else:
+        model = tf.keras.Model(inputs=inputs, outpus=outputs)
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            metrics=["accuracy"],
+        )
 
     # tensorboard作成
     log_dir = os.path.join(
@@ -139,12 +138,13 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
+    IS_ENN = False
     EPOCHS = 100
     BATCH_SIZE = 32
     N_CLASS = 5
     KERNEL_SIZE = 1024
     STRIDE = 4
-    SAMPLE_SIZE = 50000
+    SAMPLE_SIZE = 500
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -152,6 +152,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if TEST_RUN else "master"
+    ENN_TAG = "enn" if IS_ENN else "dnn"
 
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -181,7 +182,7 @@ if __name__ == "__main__":
         )
         # tagの設定
         my_tags = [
-            f"{test_name}",
+            test_name,
             PSE_DATA_TAG,
             ATTENTION_TAG,
             INCEPTION_TAG,
@@ -190,8 +191,22 @@ if __name__ == "__main__":
             f"kernel_{KERNEL_SIZE}",
             f"stride_{STRIDE}",
             f"sample_{SAMPLE_SIZE}",
+            ENN_TAG,
         ]
 
+        wandb_config = (
+            {
+                "test name": test_name,
+                "date id": date_id,
+                "sample_size": SAMPLE_SIZE,
+                "epochs": EPOCHS,
+                "kernel": KERNEL_SIZE,
+                "stride": STRIDE,
+                "fit_pos": FIT_POS,
+                "batch_size": BATCH_SIZE,
+                "n_class": N_CLASS,
+            },
+        )
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
@@ -210,9 +225,9 @@ if __name__ == "__main__":
             n_class=N_CLASS,
             data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
-            fit_pos=FIT_POS,
+            is_enn=IS_ENN,
+            wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
-            stride=STRIDE,
         )
 
         # testの時は一人の被験者で止める
