@@ -289,7 +289,6 @@ class EDLModelBase(tf.keras.Model):
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.n_class = n_class
 
-    # TODO : train_stepの中でアニーリングをできないか？
     @tf.function
     def train_step(self, data):
         # x.shape : (32, 128, 512, 1)
@@ -334,8 +333,6 @@ class EDLModelBase(tf.keras.Model):
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
-        # 不確かさのログを取る
-        # u_dict = self.u_accuracy(y, y_pred, uncertainty, 0.5)
         # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
