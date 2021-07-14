@@ -2,7 +2,6 @@ from data_analysis.py_color import PyColor
 import pickle, datetime, os, wandb
 from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
-from pre_process.my_setting import *
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
@@ -556,37 +555,4 @@ class Utils:
 
 
 if __name__ == "__main__":
-
-    # seedによるランダム性を確認する
-
-    # エラーテスト
-    instance = PreProcess(project="sleep_study", input_file_name="fft_norm")
-    x_train, _ = instance.makeSleepStageSpectrum()
-    y_train, _ = instance.makeSleepStage()
-    print(Counter(y_train))
-    print(x_train.shape)
-
-    # Utils.showSpectrogram のテスト
-    import my_setting
-    import matplotlib.pyplot as plt
-    from utils import PreProcess, Utils
-    import tensorflow.keras.preprocessing.image as tf_image
-
-    # from my_model import *
-    import tensorflow as tf
-
-    # physical_devices = tf.config.list_physical_devices("GPU")
-    # tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    my_setting.SetsPath().set()
-    o_findsDir = my_setting.FindsDir("sleep")
-    o_preProcess = PreProcess(project="sleep_study", input_file_name="H_Li")
-    (x_train, y_train) = o_preProcess.loadData(is_split=True)
-    # model.summary()
-    # hidden = model(x_train)
-    # hidden.shape
-    tmp = x_train.copy()
-    o_preProcess.maxNorm(x_train)
-    o_utils = Utils()
-    o_utils.showSpectrogram(x_train, tmp)
-
-    # 新しいデータ拡張のテスト
+    pass

@@ -11,8 +11,8 @@ class FileReader(object):
     def __init__(self) -> None:
 
         self.sl: SubjectsList = SubjectsList()
-        self.sl.load()
         self.my_env: MyEnv = MyEnv()
+        self.ppi = self.my_env.ppi
         self.sl.load()
 
     # ファイルを読み込むためにファイルパスと被験者名を指定する

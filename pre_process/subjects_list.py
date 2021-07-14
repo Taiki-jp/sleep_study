@@ -14,6 +14,20 @@ class SubjectsList(JsonBase):
         self.foll_names = self.json_dict["following_subjects_name"]
         self.foll_sass = self.json_dict["following_sas_name"]
 
+    # 名前のリストを返す
+    def set_name_list(self, is_previous: bool, is_normal: bool) -> list:
+        if is_previous:
+            if is_normal:
+                names = self.prev_names
+            else:
+                names = self.prev_sass
+        else:
+            if is_normal:
+                names = self.foll_names
+            else:
+                names = self.foll_sass
+        return names
+
 
 if __name__ == "__main__":
     from data_analysis.py_color import PyColor

@@ -1,4 +1,6 @@
 import datetime
+from pre_process.subjects_list import SubjectsList
+from pre_process.file_reader import FileReader
 import sys
 import os
 import numpy as np
@@ -9,31 +11,48 @@ import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from pre_process.load_sleep_data import LoadSleepData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
 
 class PreProcess:
-    def __init__(self, load_sleep_data=None):
+    def __init__(
+        self,
+        data_type: str,
+        fit_pos: str,
+        verbose: int,
+        kernel_size: int,
+        is_previous: bool,
+        stride: int,
+        is_normal: bool,
+    ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.load_sleep_data = load_sleep_data
-        if self.load_sleep_data is not None:
-            self.fr = self.load_sleep_data.fr
-            self.sl = self.load_sleep_data.sl
-            self.data_type = self.load_sleep_data.data_type
-            self.name_list = self.load_sleep_data.sl.name_list
-            self.name_dict = self.load_sleep_data.sl.name_dict
-            self.ss_list = self.load_sleep_data.sl.ss_list
-            self.verbose = self.load_sleep_data.verbose
-        else:
-            self.fr = None
-            self.sl = None
-            self.data_type = None
-            self.name_list = None
-            self.name_dict = None
-            self.ss_list = None
-            self.verbose = 0
+        self.data_type = data_type
+        self.fit_pos = fit_pos
+        self.verbose = verbose
+        self.kernel_size = kernel_size
+        self.is_previous = is_previous
+        self.stride = stride
+        self.is_normal = is_normal
+        self.load_sleep_data = LoadSleepData(
+            data_type=self.data_type,
+            fit_pos=self.fit_pos,
+            verbose=self.verbose,
+            kernel_size=self.kernel_size,
+            is_previous=self.is_previous,
+            stride=self.stride,
+            is_normal=self.is_normal,
+        )
+        # LoadSleepData の参照を作成
+        self.fr = self.load_sleep_data.fr
+        self.sl = self.load_sleep_data.sl
+        self.my_env = self.load_sleep_data.my_env
+        # その他よく使うものをメンバに持っておく
+        self.name_list = self.sl.set_name_list(
+            is_previous=self.is_previous, is_normal=self.is_normal
+        )
 
     # データセットの作成（この中で出来るだけ正規化なども含めて終わらせる）
     def make_dataset(

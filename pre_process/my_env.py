@@ -2,6 +2,7 @@ import sys
 import os
 import glob
 from pre_process.pre_processed_id import PreProcessedId
+from data_analysis.py_color import PyColor
 
 
 class MyEnv:
