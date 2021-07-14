@@ -35,6 +35,7 @@ def main(
     kernel_size=0,
     stride=0,
     fit_pos="",
+    is_enn=True
 ):
 
     # データセットの作成
@@ -87,7 +88,10 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
     )
-    model = EDLModelBase(inputs=inputs, outputs=outputs)
+    if is_enn:
+        model = EDLModelBase(inputs=inputs, outputs=outputs)
+    else:
+        model = tf.keras.Model(inputs=inputs, outpus=outputs)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=EDLLoss(K=n_class, annealing=0.1),
@@ -213,6 +217,7 @@ if __name__ == "__main__":
             fit_pos=FIT_POS,
             kernel_size=KERNEL_SIZE,
             stride=STRIDE,
+            is_enn=False
         )
 
         # testの時は一人の被験者で止める
