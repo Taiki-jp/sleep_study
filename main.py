@@ -29,14 +29,11 @@ def main(
     date_id=None,
     has_attention=False,
     has_inception=True,
-    utils=None,
     data_type=None,
     sample_size=0,
-    kernel_size=0,
-    stride=0,
-    fit_pos="",
     is_enn=True,
-    wandb_config=dict()
+    wandb_config=dict(),
+    kernel_size=0,
 ):
 
     # データセットの作成
@@ -52,10 +49,7 @@ def main(
     print(f"training data : {x_train.shape}")
 
     # config の追加
-    added_config = {
-        "attention": has_attention,
-        "inception": has_inception
-    }
+    added_config = {"attention": has_attention, "inception": has_inception}
     wandb_config = wandb_config.update(added_config)
 
     # wandbの初期化
@@ -70,7 +64,7 @@ def main(
 
     # モデルの作成とコンパイル
     if data_type == "spectrum":
-        shape = (int(KERNEL_SIZE / 2), 1)
+        shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
         shape = (128, 512, 1)
     else:
@@ -96,7 +90,7 @@ def main(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-            metrics=["accuracy"]
+            metrics=["accuracy"],
         )
 
     # tensorboard作成
@@ -197,20 +191,22 @@ if __name__ == "__main__":
             f"kernel_{KERNEL_SIZE}",
             f"stride_{STRIDE}",
             f"sample_{SAMPLE_SIZE}",
-            ENN_TAG
+            ENN_TAG,
         ]
 
-        wandb_config={
-            "test name": test_name,
-            "date id": date_id,
-            "sample_size": SAMPLE_SIZE,
-            "epochs": EPOCHS,
-            "kernel": KERNEL_SIZE,
-            "stride": STRIDE,
-            "fit_pos": FIT_POS,
-            "batch_size": BATCH_SIZE,
-            "n_class": N_CLASS,
-        },
+        wandb_config = (
+            {
+                "test name": test_name,
+                "date id": date_id,
+                "sample_size": SAMPLE_SIZE,
+                "epochs": EPOCHS,
+                "kernel": KERNEL_SIZE,
+                "stride": STRIDE,
+                "fit_pos": FIT_POS,
+                "batch_size": BATCH_SIZE,
+                "n_class": N_CLASS,
+            },
+        )
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
@@ -229,11 +225,9 @@ if __name__ == "__main__":
             n_class=N_CLASS,
             data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
-            fit_pos=FIT_POS,
-            kernel_size=KERNEL_SIZE,
-            stride=STRIDE,
             is_enn=IS_ENN,
-            wandb_config=wandb_config
+            wandb_config=wandb_config,
+            kernel_size=KERNEL_SIZE,
         )
 
         # testの時は一人の被験者で止める
