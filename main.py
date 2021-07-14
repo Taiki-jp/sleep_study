@@ -35,7 +35,8 @@ def main(
     kernel_size=0,
     stride=0,
     fit_pos="",
-    is_enn=True
+    is_enn=True,
+    wandb_config=dict()
 ):
 
     # データセットの作成
@@ -50,24 +51,19 @@ def main(
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
 
+    # config の追加
+    added_config = {
+        "attention": has_attention,
+        "inception": has_inception
+    }
+    wandb_config = wandb_config.update(added_config)
+
     # wandbの初期化
     wandb.init(
         name=name,
         project=project,
         tags=my_tags,
-        config={
-            "test name": test_name,
-            "date id": date_id,
-            "batch_size": batch_size,
-            "attention": has_attention,
-            "inception": has_inception,
-            "n_class": n_class,
-            "sample_size": sample_size,
-            "epochs": epochs,
-            "kernel": kernel_size,
-            "stride": stride,
-            "fit_pos": fit_pos,
-        },
+        config=wandb_config,
         sync_tensorboard=True,
         dir=pre_process.my_env.project_dir,
     )
@@ -90,13 +86,18 @@ def main(
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss=EDLLoss(K=n_class, annealing=0.1),
+            metrics=["accuracy"],
+        )
     else:
         model = tf.keras.Model(inputs=inputs, outpus=outputs)
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss=EDLLoss(K=n_class, annealing=0.1),
-        metrics=["accuracy"],
-    )
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            metrics=["accuracy"]
+        )
 
     # tensorboard作成
     log_dir = os.path.join(
@@ -143,6 +144,7 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
+    IS_ENN = False
     EPOCHS = 100
     BATCH_SIZE = 32
     N_CLASS = 5
@@ -156,6 +158,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if TEST_RUN else "master"
+    ENN_TAG = "enn" if IS_ENN else "dnn"
 
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -185,7 +188,7 @@ if __name__ == "__main__":
         )
         # tagの設定
         my_tags = [
-            f"{test_name}",
+            test_name,
             PSE_DATA_TAG,
             ATTENTION_TAG,
             INCEPTION_TAG,
@@ -194,8 +197,20 @@ if __name__ == "__main__":
             f"kernel_{KERNEL_SIZE}",
             f"stride_{STRIDE}",
             f"sample_{SAMPLE_SIZE}",
+            ENN_TAG
         ]
 
+        wandb_config={
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+        },
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
@@ -217,7 +232,8 @@ if __name__ == "__main__":
             fit_pos=FIT_POS,
             kernel_size=KERNEL_SIZE,
             stride=STRIDE,
-            is_enn=False
+            is_enn=IS_ENN,
+            wandb_config=wandb_config
         )
 
         # testの時は一人の被験者で止める
