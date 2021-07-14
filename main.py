@@ -50,7 +50,7 @@ def main(
 
     # config の追加
     added_config = {"attention": has_attention, "inception": has_inception}
-    wandb_config = wandb_config.update(added_config)
+    wandb_config.update(added_config)
 
     # wandbの初期化
     wandb.init(
@@ -86,10 +86,12 @@ def main(
             metrics=["accuracy"],
         )
     else:
-        model = tf.keras.Model(inputs=inputs, outpus=outputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(
+                from_logits=True
+            ),
             metrics=["accuracy"],
         )
 
@@ -130,6 +132,8 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
+        # なんか下のやつ使えなくなっている、、
+        # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     TEST_RUN = False
@@ -139,12 +143,12 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = False
-    EPOCHS = 100
+    EPOCHS = 20
     BATCH_SIZE = 32
     N_CLASS = 5
     KERNEL_SIZE = 1024
     STRIDE = 4
-    SAMPLE_SIZE = 500
+    SAMPLE_SIZE = 50000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -154,6 +158,9 @@ if __name__ == "__main__":
     WANDB_PROJECT = "test" if TEST_RUN else "master"
     ENN_TAG = "enn" if IS_ENN else "dnn"
 
+    # 記録用のjsonファイルを読み込む
+    JB = JsonBase("../nn/model_id.json")
+    JB.load()
     # オブジェクトの作成
     pre_process = PreProcess(
         data_type=DATA_TYPE,
@@ -168,9 +175,6 @@ if __name__ == "__main__":
         load_all=True,
         pse_data=PSE_DATA,
     )
-    # 記録用のjsonファイルを読み込む
-    JB = JsonBase("model_id.json")
-    JB.load()
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
@@ -194,19 +198,17 @@ if __name__ == "__main__":
             ENN_TAG,
         ]
 
-        wandb_config = (
-            {
-                "test name": test_name,
-                "date id": date_id,
-                "sample_size": SAMPLE_SIZE,
-                "epochs": EPOCHS,
-                "kernel": KERNEL_SIZE,
-                "stride": STRIDE,
-                "fit_pos": FIT_POS,
-                "batch_size": BATCH_SIZE,
-                "n_class": N_CLASS,
-            },
-        )
+        wandb_config = {
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+        }
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
@@ -236,6 +238,7 @@ if __name__ == "__main__":
     # json に書き込み
     JB.dump(
         keys=[
+            ENN_TAG,
             DATA_TYPE,
             FIT_POS,
             f"stride_{str(STRIDE)}",

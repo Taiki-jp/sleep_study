@@ -1,7 +1,6 @@
 import os, datetime
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras.backend import shape
 
 # ================================================ #
 #           function APIによるモデル構築(1d-conv)
@@ -80,7 +79,7 @@ def edl_classifier_1d(x, n_class, has_attention=True, has_inception=True):
                 x
             )  # (13, 13, 1)
             attention = tf.keras.layers.Activation("sigmoid")(attention)
-            x = tf.matmul(x, attention)
+            x = tf.multiply(x, attention)
             # x *= attention
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)

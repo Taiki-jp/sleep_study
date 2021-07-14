@@ -5,6 +5,12 @@ from pre_process.file_reader import FileReader
 from pre_process.my_env import MyEnv
 from data_analysis.py_color import PyColor
 
+# 以前のrecordの復旧のために必要
+import sys, os
+
+sys.path.append(os.path.join(os.environ["git"], "sleep_study", "pre_process"))
+import record
+
 # 前処理後の睡眠データを読み込むためのメソッドを集めたクラス
 class LoadSleepData:
     def __init__(
