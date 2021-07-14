@@ -7,6 +7,7 @@ from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
+from pre_process.json_base import JsonBase
 
 tf.random.set_seed(100)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -166,9 +167,15 @@ if __name__ == "__main__":
         load_all=True,
         pse_data=PSE_DATA,
     )
+    # 記録用のjsonファイルを読み込む
+    JB = JsonBase("model_id.json")
+    JB.load()
+    # モデルのidを記録するためのリスト
+    date_id_saving_list = list()
 
     for test_id, test_name in enumerate(pre_process.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
@@ -211,3 +218,13 @@ if __name__ == "__main__":
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
+    # json に書き込み
+    JB.dump(
+        keys=[
+            DATA_TYPE,
+            FIT_POS,
+            f"stride_{str(STRIDE)}",
+            f"kernel_{str(KERNEL_SIZE)}",
+        ],
+        value=date_id_saving_list,
+    )
