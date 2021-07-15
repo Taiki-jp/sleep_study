@@ -166,7 +166,7 @@ if __name__ == "__main__":
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if TEST_RUN else "master"
     ENN_TAG = "enn" if IS_ENN else "dnn"
-    INCEPTION_TAG += "v2" if IS_MUL_LAYER else INCEPTION_TAG
+    INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
     # 記録用のjsonファイルを読み込む
     JB = JsonBase("../nn/model_id.json")
