@@ -10,6 +10,7 @@ from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from pre_process.record import Record, multipleRecords
+import numpy as np
 
 tf.random.set_seed(100)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -53,6 +54,8 @@ def main(
     print(f"training data : {x_train.shape}")
     # 不確かさを格納するオブジェクトの保存
     records = multipleRecords(len(y_train))
+    # x_trainとrecordsをまとめる
+    x_train = {"x": x_train, "obj": records}
     # config の追加
     added_config = {"attention": has_attention, "inception": has_inception}
     wandb_config.update(added_config)
@@ -116,7 +119,7 @@ def main(
     # )
 
     model.fit(
-        x=(x_train, records),
+        x=x_train,
         y=y_train,
         batch_size=batch_size,
         validation_data=(x_test, y_test),

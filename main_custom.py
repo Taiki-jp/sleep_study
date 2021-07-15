@@ -11,20 +11,17 @@ from nn.model_base import edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 import numpy as np
-from data_analysis.utils import Utils
 from pre_process.record import Record, multipleRecords
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
 
 def main(
-    utils,
     name,
     project,
     train,
     test,
-    pre_process,
-    model_save=False,
+    pre_process: PreProcess,
     epochs=1,
     save_model=False,
     my_tags=None,
@@ -50,8 +47,9 @@ def main(
         each_data_size=sample_size,
     )
     # カテゴリカルに変換
-    y_train = np.argmax(y_train, axis=1)
-    y_test = np.argmax(y_test, axis=1)
+    if not pse_data:
+        y_train = np.argmax(y_train, axis=1)
+        y_test = np.argmax(y_test, axis=1)
     # データセットの数
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
@@ -140,8 +138,8 @@ def main(
                 alpha = evidence + 1
                 y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
                 unc = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
-                for record in unc_record:
-                    record.
+                for (record, _u) in zip(unc_record, unc):
+                    record.unc = _u
                 # y_trueをone-hotに変換して渡す
                 loss_value = loss_fn.call(
                     tf.keras.utils.to_categorical(
@@ -170,10 +168,12 @@ def main(
         train_acc_metric.reset_states()
 
         # 訓練の終わりに検証用データ（今回はテストデータ）の性能を見る
-        for x_batch_val, y_batch_val in val_dataset:
+        for x_batch_val, y_batch_val, unc_record in val_dataset:
             val_evidence = model(x_batch_val, training=False)
             val_alpha = val_evidence + 1
             val_unc = n_class / tf.reduce_sum(val_alpha, axis=1, keepdims=True)
+            for (record, _u) in zip(unc_record, val_unc):
+                record.unc = _u
             val_y_pred = val_alpha / tf.reduce_sum(
                 val_alpha, axis=1, keepdims=True
             )
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     # ハイパーパラメータの設定
     TEST_RUN = False
     HAS_ATTENTION = True
-    PSE_DATA = False
+    PSE_DATA = True
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
@@ -261,7 +261,6 @@ if __name__ == "__main__":
         load_all=True,
         pse_data=PSE_DATA,
     )
-    utils = Utils()
     # 記録用のjsonファイルを読み込む
     JB = JsonBase("../nn/model_id.json")
     JB.load()
@@ -301,9 +300,7 @@ if __name__ == "__main__":
         }
 
         main(
-            utils=utils,
             data_type=DATA_TYPE,
-            model_save=True,
             name=test_name,
             project=WANDB_PROJECT,
             pre_process=pre_process,
