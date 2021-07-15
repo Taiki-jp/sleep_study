@@ -61,11 +61,13 @@ def main(
     u_test = multipleRecords(len(y_test))
 
     # カスタムトレーニングのために作成
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, u_train))
+    train_dataset = tf.data.Dataset.from_tensor_slices(
+        (x_train, y_train, u_train)
+    )
     train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(
         batch_size
     )
-    val_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test, u_test))
     val_dataset = val_dataset.batch(batch_size)
 
     # config の追加
@@ -126,7 +128,9 @@ def main(
         loss_fn = EDLLoss(K=n_class, annealing=min(1, (epoch / epochs)))
         print(f"エポック:{epoch + 1}")
         # エポック内のバッチサイズごとのループ
-        for step, (x_batch_train, y_batch_train, unc) in enumerate(train_dataset):
+        for step, (x_batch_train, y_batch_train, unc_record) in enumerate(
+            train_dataset
+        ):
             # 勾配を計算
             with tf.GradientTape() as tape:
                 # NOTE : x_batch_trainの次元は3である
@@ -135,6 +139,9 @@ def main(
                 evidence = model(x_batch_train, training=True)
                 alpha = evidence + 1
                 y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+                unc = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+                for record in unc_record:
+                    record.
                 # y_trueをone-hotに変換して渡す
                 loss_value = loss_fn.call(
                     tf.keras.utils.to_categorical(
@@ -166,6 +173,7 @@ def main(
         for x_batch_val, y_batch_val in val_dataset:
             val_evidence = model(x_batch_val, training=False)
             val_alpha = val_evidence + 1
+            val_unc = n_class / tf.reduce_sum(val_alpha, axis=1, keepdims=True)
             val_y_pred = val_alpha / tf.reduce_sum(
                 val_alpha, axis=1, keepdims=True
             )

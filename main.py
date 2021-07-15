@@ -5,16 +5,18 @@ import datetime
 import wandb
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
+from nn.model_base import EDLModelBase, UncFeedBackModel, edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
+from pre_process.record import Record, multipleRecords
 
 tf.random.set_seed(100)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 def main(
+    has_feedback,
     name,
     project,
     train,
@@ -49,7 +51,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-
+    # 不確かさを格納するオブジェクトの保存
+    records = multipleRecords(len(y_train))
     # config の追加
     added_config = {"attention": has_attention, "inception": has_inception}
     wandb_config.update(added_config)
@@ -80,9 +83,10 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
+        has_feedback=has_feedback,
     )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
+        model = UncFeedBackModel(inputs=inputs, outputs=outputs)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
@@ -112,7 +116,7 @@ def main(
     # )
 
     model.fit(
-        x_train,
+        (x_train, records),
         y_train,
         batch_size=batch_size,
         validation_data=(x_test, y_test),
@@ -129,7 +133,7 @@ def main(
 
 if __name__ == "__main__":
     # 環境設定
-    CALC_DEVICE = "gpu"
+    CALC_DEVICE = "cpu"
     # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
@@ -144,9 +148,10 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
+    HAS_FEEDBACK = True
     TEST_RUN = False
     HAS_ATTENTION = True
-    PSE_DATA = False
+    PSE_DATA = True
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
@@ -220,6 +225,7 @@ if __name__ == "__main__":
             "n_class": N_CLASS,
         }
         main(
+            has_feedback=HAS_FEEDBACK,
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
             pre_process=pre_process,

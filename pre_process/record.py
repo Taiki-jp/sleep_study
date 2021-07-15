@@ -12,6 +12,7 @@ class Record(object):
     wavelet_raw: np.ndarray = np.array([])
     wavelet: np.ndarray = np.array([])
     ss: int = None
+    unc: float = 0.0
 
 
 def multipleRecords(num):

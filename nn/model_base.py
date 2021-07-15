@@ -24,10 +24,12 @@ def edl_classifier4psedo_data(x, use_bias, hidden_dim):
 def edl_classifier_1d(
     x,
     n_class: int,
+    unc: float = 0,
     has_attention: bool = True,
     has_inception: bool = True,
     has_dropout: bool = False,
     is_mul_layer: bool = False,
+    has_feedback: bool = False,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -109,6 +111,11 @@ def edl_classifier_1d(
             x = tf.multiply(x, attention)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+    # フィードバックの機構を持っている場合は不確かさを反映する
+    # NOTE: multipleの時はチャンネル数が異なるので注意
+    if has_feedback:
+        weighted_x = tf.keras.layers.Dense(288)(x)
+        x = (1 - unc) * x + unc * weighted_x
     if has_dropout:
         x = tf.keras.layers.Dropout(0.2)
     x = tf.keras.layers.Dense(n_class ** 2)(x)
@@ -384,6 +391,80 @@ class EDLModelBase(tf.keras.Model):
             np.array(y_true), np.array(y_pred)
         )
         return {"u_acc": u_acc}
+
+
+# ================================================ #
+# *　不確かさをフィードバックするモデル
+# ================================================ #
+class UncFeedBackModel(tf.keras.Model):
+
+    # note : model.fitを呼ぶと，train_stepが呼ばれる
+    # その結果中身のself(x, training)によってmodel.callが呼ばれる
+    # そのためcallメソッド内にtrainingなどの引数を受け取れるように設定しておく必要がある
+    def __init__(self, n_class=5, **kwargs):
+        super().__init__(**kwargs)
+        self.time_id = datetime.datetime.now().strftime("%y%m%d-%h%m%s")
+        self.n_class = n_class
+
+    @tf.function
+    def train_step(self, data):
+        # x.shape : (32, 128, 512, 1)
+        # y.shape : (32,)
+        (x, records), y = data
+
+        with tf.gradienttape() as tape:
+            # caclulate predictions
+            unc = [record.unc for record in records]
+            evidence = self(x, unc, training=True)  # (32, 5)
+            alpha = evidence + 1  # (32, 5)
+            # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=true)
+            y_pred = alpha / tf.reduce_sum(
+                alpha, axis=1, keepdims=True
+            )  # (32, 5)
+            unc = self.n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+            # 新しい不確かさを記録
+            for record, _u in zip(records, unc):
+                record.unc = _u
+            # yをone-hot表現にして送る
+            y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
+            # loss
+            loss = self.compiled_loss(
+                y, alpha, regularization_losses=self.losses
+            )
+
+        # gradients
+        training_vars = self.trainable_variables
+        gradients = tape.gradient(loss, training_vars)
+
+        # step with optimizer
+        self.optimizer.apply_gradients(zip(gradients, training_vars))
+        # accuracyのメトリクスにはy_predを入れる
+        self.compiled_metrics.update_state(y, y_pred)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        return {m.name: m.result() for m in self.metrics}
+
+    @tf.function
+    def test_step(self, data):
+        # unpack the data
+        (x, records), y = data
+        # compute predictions
+        evidence = self(x, training=False)
+        alpha = evidence + 1
+        y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        unc = self.n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        # 新しい不確かさを記録
+        for record, _u in zip(records, unc):
+            record.unc = _u
+        # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=true)
+        # updates the metrics tracking the loss
+        # yをone-hot表現にして送る
+        y = tf.one_hot(y, depth=self.n_class)
+        # loss = self.compiled_loss(y, alpha)  # todo : これいる？
+        # update the metrics.
+        self.compiled_metrics.update_state(y, y_pred)
+        metrics_dict = {m.name: m.result() for m in self.metrics}
+        # metrics_dict.update(u_dict)
+        return metrics_dict
 
 
 if __name__ == "__main__":
