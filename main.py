@@ -116,8 +116,8 @@ def main(
     # )
 
     model.fit(
-        (x_train, records),
-        y_train,
+        x=(x_train, records),
+        y=y_train,
         batch_size=batch_size,
         validation_data=(x_test, y_test),
         epochs=epochs,
@@ -145,11 +145,11 @@ if __name__ == "__main__":
     else:
         print("*** cpuで計算します ***")
         # なんか下のやつ使えなくなっている、、
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     HAS_FEEDBACK = True
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = True
     HAS_INCEPTION = True

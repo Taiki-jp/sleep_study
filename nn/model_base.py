@@ -403,7 +403,7 @@ class UncFeedBackModel(tf.keras.Model):
     # そのためcallメソッド内にtrainingなどの引数を受け取れるように設定しておく必要がある
     def __init__(self, n_class=5, **kwargs):
         super().__init__(**kwargs)
-        self.time_id = datetime.datetime.now().strftime("%y%m%d-%h%m%s")
+        self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.n_class = n_class
 
     @tf.function
@@ -412,7 +412,7 @@ class UncFeedBackModel(tf.keras.Model):
         # y.shape : (32,)
         (x, records), y = data
 
-        with tf.gradienttape() as tape:
+        with tf.Gradienttape() as tape:
             # caclulate predictions
             unc = [record.unc for record in records]
             evidence = self(x, unc, training=True)  # (32, 5)
