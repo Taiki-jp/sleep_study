@@ -12,6 +12,7 @@ from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 import numpy as np
 from data_analysis.utils import Utils
+from pre_process.record import Record, multipleRecords
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -55,9 +56,12 @@ def main(
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_train)
+    # 不確かさのリストを作成（初期値0)
+    u_train = multipleRecords(len(y_train))
+    u_test = multipleRecords(len(y_test))
 
     # カスタムトレーニングのために作成
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, u_train))
     train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(
         batch_size
     )
@@ -122,7 +126,7 @@ def main(
         loss_fn = EDLLoss(K=n_class, annealing=min(1, (epoch / epochs)))
         print(f"エポック:{epoch + 1}")
         # エポック内のバッチサイズごとのループ
-        for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+        for step, (x_batch_train, y_batch_train, unc) in enumerate(train_dataset):
             # 勾配を計算
             with tf.GradientTape() as tape:
                 # NOTE : x_batch_trainの次元は3である
