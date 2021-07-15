@@ -1,32 +1,15 @@
 import os, datetime
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.layers.core import Dense
 
-# ================================================ #
-#           function APIによるモデル構築(1d-conv)
-# ================================================ #
-
-
-def edl_classifier4psedo_data(x, use_bias, hidden_dim):
-    x = tf.keras.layers.Dense(
-        hidden_dim, activation="relu", use_bias=use_bias
-    )(x)
-    x = tf.keras.layers.Dense(
-        hidden_dim, activation="relu", use_bias=use_bias
-    )(x)
-    x = tf.keras.layers.Dense(2, activation="relu", use_bias=use_bias)(x)
-    return x
-
-
-# ================================================ #
-#           function APIによるモデル構築(1d-conv)
-# ================================================ #
-def edl_classifier_1d(
+# =========================
+#  圧縮機
+# =========================
+def spectrum_conv(
     x,
-    n_class: int,
     has_attention: bool = True,
     has_inception: bool = True,
-    has_dropout: bool = False,
     is_mul_layer: bool = False,
 ):
     # convolution AND batch normalization
@@ -109,8 +92,23 @@ def edl_classifier_1d(
             x = tf.multiply(x, attention)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+    return x
+
+
+# ================================================ #
+#      ENNによるクラス分類のためのメソッド
+# ================================================ #
+def classifier4enn(
+    x,
+    n_class: int,
+    has_dropout: bool,
+    hidden_dim: int,
+    has_converted_space: bool,
+):
+    if has_converted_space:
+        x = tf.keras.layers.Dense(hidden_dim)(x)
     if has_dropout:
-        x = tf.keras.layers.Dropout(0.2)
+        _x = tf.keras.layers.Dropout(0.2)
     x = tf.keras.layers.Dense(n_class ** 2)(x)
     x = tf.keras.layers.Activation("relu")(x)
     if has_dropout:
@@ -118,6 +116,135 @@ def edl_classifier_1d(
     x = tf.keras.layers.Dense(n_class)(x)
     x = tf.keras.layers.Activation("relu")(x)
     return x
+
+
+# ================================================ #
+#           function APIによるモデル構築(1d-conv)
+# ================================================ #
+
+
+def edl_classifier4psedo_data(x, use_bias, hidden_dim):
+    x = tf.keras.layers.Dense(
+        hidden_dim, activation="relu", use_bias=use_bias
+    )(x)
+    x = tf.keras.layers.Dense(
+        hidden_dim, activation="relu", use_bias=use_bias
+    )(x)
+    x = tf.keras.layers.Dense(2, activation="relu", use_bias=use_bias)(x)
+    return x
+
+
+# ================================================ #
+#           function APIによるモデル構築(1d-conv)
+# ================================================ #
+def edl_classifier_1d(
+    x,
+    n_class: int,
+    has_attention: bool = True,
+    has_inception: bool = True,
+    has_dropout: bool = False,
+    is_mul_layer: bool = False,
+    has_mul_output: bool = False,
+):
+    # convolution AND batch normalization
+    def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
+        if name is not None:
+            bn_name = name + "_bn"
+            conv_name = name + "_conv"
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv1D(
+            filters,
+            num_col,
+            strides=strides,
+            padding=padding,
+            use_bias=False,
+            name=conv_name,
+        )(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation("relu", name=name)(x)
+        return x
+
+    # start convolution from 512/4 -> 128
+    x = tf.keras.layers.Conv1D(3, 4, strides=2, name="shrink_tensor_layer")(x)
+    x = tf.keras.layers.Activation("relu")(x)
+    # 畳み込み開始01
+    x = _conv1d_bn(x, 32, 3, strides=2, padding="valid", name="first_layer")
+    x = _conv1d_bn(x, 32, 3, padding="valid", name="second_layer")
+    x = _conv1d_bn(x, 64, 3, name="third_layer")
+    x = tf.keras.layers.MaxPooling1D(3, strides=2, name="first_max_pool")(x)
+    # 畳み込み開始02
+    x = _conv1d_bn(x, 80, 1, padding="valid", name="forth_layer")
+    x = _conv1d_bn(x, 192, 3, padding="valid", name="fifth_layer")
+    x = tf.keras.layers.MaxPooling1D(3, strides=2, name="second_max_pool")(x)
+
+    if has_inception:
+        # mixed 1: 35 x 35 x 288
+        branch1x1 = _conv1d_bn(x, 64, 1)
+        branch5x5 = _conv1d_bn(x, 48, 1)
+        branch5x5 = _conv1d_bn(branch5x5, 64, 5)
+        branch3x3dbl = _conv1d_bn(x, 64, 1)
+        branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+        branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+        branch_pool = tf.keras.layers.AveragePooling1D(
+            3, strides=1, padding="same"
+        )(x)
+        branch_pool = _conv1d_bn(branch_pool, 64, 1)
+        # (13, 13, 288)
+        x = tf.keras.layers.concatenate(
+            [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+            axis=-1,
+            name="mixed1",
+        )
+
+        # mixed 2: 35 x 35 x 288
+        if is_mul_layer:
+            branch1x1 = _conv1d_bn(x, 64, 1)
+            branch5x5 = _conv1d_bn(x, 48, 1)
+            branch5x5 = _conv1d_bn(branch5x5, 64, 5)
+            branch3x3dbl = _conv1d_bn(x, 64, 1)
+            branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+            branch3x3dbl = _conv1d_bn(branch3x3dbl, 96, 3)
+            branch_pool = tf.keras.layers.AveragePooling1D(
+                3, strides=1, padding="same"
+            )(x)
+            branch_pool = _conv1d_bn(branch_pool, 64, 1)
+            # (13, 13, 288)
+            x = tf.keras.layers.concatenate(
+                [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                axis=-1,
+                name="mixed2",
+            )
+
+        if has_attention:
+            # (13, 13, 1)
+            attention = tf.keras.layers.Conv1D(
+                1, kernel_size=3, padding="same"
+            )(x)
+            attention = tf.keras.layers.Activation("sigmoid")(attention)
+            x = tf.multiply(x, attention)
+
+    x = tf.keras.layers.GlobalAveragePooling1D()(x)
+
+    # enn output1
+    if has_dropout:
+        _x = tf.keras.layers.Dropout(0.2)
+    _x = tf.keras.layers.Dense(n_class ** 2)(x)
+    _x = tf.keras.layers.Activation("relu")(_x)
+    if has_dropout:
+        x = tf.keras.layers.Dropout(0.2)
+    _x = tf.keras.layers.Dense(n_class)(_x)
+    _x = tf.keras.layers.Activation("relu")(_x)
+
+    # enn output2
+    if has_mul_output:
+        __x = tf.keras.layers.Dense(288)(x)
+        __x = tf.keras.layers.Dense(n_class ** 2)(__x)
+        __x = tf.keras.layers.Dense(n_class)(__x)
+        return (_x, __x)
+    else:
+        return _x
 
 
 # ================================================ #
