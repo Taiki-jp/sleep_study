@@ -12,10 +12,10 @@ class EDLLoss(tf.keras.losses.Loss):
         self.annealing = annealing
         pass
 
-    def call(self, y_true, evidence):
+    def call(self, y_true, evidence, unc=None):
         # y_trueはone-hotの状態
         alpha = evidence + 1  # (32:batch_size, 5:n_class)
-        return self.loss_eq5(y_true=y_true, alpha=alpha)
+        return self.loss_eq5(y_true=y_true, alpha=alpha, unc=unc)
 
     def KL(self, alpha):
         # 1行K列の全て値1のtensorflow.python.framework.ops.EagerTensorオブジェクト作成
@@ -40,7 +40,7 @@ class EDLLoss(tf.keras.losses.Loss):
 
     # NOTE : y_trueがどのような形で入っているかに注意する
     # （実行は通るが、損失関数が訳分からなくなる）
-    def loss_eq5(self, y_true, alpha):
+    def loss_eq5(self, y_true, alpha, unc):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1)
         # 2乗誤差
         L_err = tf.reduce_sum(
@@ -52,7 +52,10 @@ class EDLLoss(tf.keras.losses.Loss):
         )  # (32, 1)
         # 損失関数:lambda * KL_div
         KL_reg = self.KL((alpha - 1) * (1 - y_true) + 1)
-        return L_err + L_var + self.annealing * KL_reg
+        if unc is not None:
+            return unc * (L_err + L_var + self.annealing * KL_reg)
+        else:
+            return L_err + L_var + self.annealing * KL_reg
 
     def loss_eq4(self, y_true, alpha):
         return

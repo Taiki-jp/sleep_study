@@ -83,7 +83,7 @@ def main(
         "train nr2 before replaced": ss_train_dict[1],
         "train nr34 before replaced": ss_train_dict[0],
     }
-    wandb_config = wandb_config.update(added_config)
+    wandb_config.update(added_config)
 
     # wandbの初期化
     wandb.init(
@@ -105,7 +105,7 @@ def main(
         sys.exit(1)
 
     inputs = tf.keras.Input(shape=shape)
-    # hidden_shape is (batch, 288)
+    # hidden_shape is (batch, 192)
     hidden = spectrum_conv(
         x=inputs,
         has_attention=has_attention,
@@ -145,88 +145,71 @@ def main(
     # エポックのループ
     for epoch in range(epochs):
         # ロス関数はエポックごとにアニーリングを変えるので中に書く
-        loss_fn = EDLLoss(K=n_class, annealing=min(1, 0.1 * (epoch / epochs)))
+        loss_fn = EDLLoss(K=n_class, annealing=min(1, 0.05 * (epoch / epochs)))
         print(f"エポック:{epoch + 1}")
         # エポック内のバッチサイズごとのループ
         for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
             # 勾配を計算
-            with tf.GradientTape() as tape_main:
-                # NOTE : x_batch_trainの次元は3である
-                # assert np.ndim(x_batch_train) == 3
-                # dataset.shuffleを入れることによってバッチサイズを設定できる
+            with tf.GradientTape(persistent=True) as tape_main:
                 hidden_main = exploit_model(x_batch_train, training=True)
-                # 2つのevidence
                 evidence_main = classifier_main_model(
                     hidden_main, training=True
                 )
                 alpha_main = evidence_main + 1
+                y_pred_train = alpha_main / tf.reduce_sum(
+                    alpha_main, axis=1, keepdims=True
+                )
+                unc_main = n_class / tf.reduce_sum(
+                    alpha_main, axis=1, keepdims=True
+                )
+                loss_value_main = loss_fn.call(
+                    tf.keras.utils.to_categorical(
+                        y_batch_train, num_classes=5
+                    ),
+                    alpha_main,
+                )
                 if epoch / epochs > 0.5:
-                    with tf.GradientTape() as tape_sub:
-                        hidden_sub = copy.deepcopy(hidden_main)
-                        evidence_sub = classifier_sub_model(
-                            hidden_sub, training=True
-                        )
-                        # evidence のマージ
-                        alpha_main = evidence_main + 1
-                        # y_pred_main = alpha_main / tf.reduce_sum(
-                        #     alpha_main, axis=1, keepdims=True
-                        # )
-                        unc_main = n_class / tf.reduce_sum(
-                            alpha_main, axis=1, keepdims=True
-                        )
-                        evidence_merged = (
-                            1 - unc_main
-                        ) * evidence_main + unc_main * evidence_sub
-                        alpha_merged = evidence_merged + 1
-                        y_pred_merged = alpha_merged / tf.reduce_sum(
-                            alpha_merged, axis=1, keepdims=True
-                        )
-                        # y_trueをone-hotに変換して渡す
-                        loss_value = loss_fn.call(
-                            tf.keras.utils.to_categorical(
-                                y_batch_train, num_classes=5
-                            ),
-                            alpha_merged,
-                        )  # NOTE : one-hotの形で入れるべき？
-                else:
-                    alpha_main = evidence_main + 1
-                    y_pred_main = alpha_main / tf.reduce_sum(
-                        alpha_main, axis=1, keepdims=True
+                    evidence_sub = classifier_sub_model(
+                        hidden_main, training=True
                     )
-
-                    loss_value = loss_fn.call(
+                    alpha_sub = evidence_sub + 1
+                    y_pred_sub = alpha_sub / tf.reduce_sum(
+                        alpha_sub, axis=1, keepdims=True
+                    )
+                    loss_value_sub = loss_fn.call(
                         tf.keras.utils.to_categorical(
                             y_batch_train, num_classes=5
                         ),
-                        alpha_main,
-                    )  # NOTE : one-hotの形で入れるべき？
-
-            grads_main = tape_main.gradient(
-                loss_value, classifier_main_model.trainable_weights
-            )
+                        alpha_sub,
+                        unc_main,
+                    )
             if epoch / epochs > 0.5:
-                grads_sub = tape_sub.gradient(
-                    loss_value, classifier_sub_model.trainable_weights
+                grads_sub = tape_main.gradient(
+                    loss_value_sub, classifier_sub_model.trainable_weights
                 )
                 optimizer.apply_gradients(
                     zip(grads_sub, classifier_sub_model.trainable_weights)
                 )
+                y_merged = (
+                    1 - unc_main
+                ) * y_pred_train + unc_main * y_pred_sub
+                train_acc_metric.update_state(y_batch_train, y_merged)
+            else:
+                train_acc_metric.update_state(y_batch_train, y_pred_train)
+
+            [grads_main, grads_exploit] = tape_main.gradient(
+                loss_value_main,
+                [
+                    classifier_main_model.trainable_weights,
+                    exploit_model.trainable_weights,
+                ],
+            )
             optimizer.apply_gradients(
                 zip(grads_main, classifier_main_model.trainable_weights)
             )
-
-            # one-hot表現にそろえる方法（無理）
-            # train_acc_metric.update_state(tf.keras.utils.to_categorical(y_batch_train, num_classes=5), y_pred)
-            # one-hot表現にそろえる方法（無理）
-            # sparse-categoricalの説明をしっかり見ると
-            # y_batch_trainn <= integer, y_pred <= prob と書いてある
-            if epoch / epochs > 0.5:
-                train_acc_metric.update_state(y_batch_train, y_pred_merged)
-            else:
-                train_acc_metric.update_state(y_batch_train, y_pred_main)
-
-            # if step % 200 == 0:
-            #    print(f"step:{step}, loss:{float(loss_value)}")
+            optimizer.apply_gradients(
+                zip(grads_exploit, exploit_model.trainable_weights)
+            )
 
         # エポックの終わりにメトリクスを表示する
         train_acc = train_acc_metric.result()
@@ -238,23 +221,25 @@ def main(
         for x_batch_val, y_batch_val in val_dataset:
             hidden_main = exploit_model(x_batch_val, training=False)
             evidence_main = classifier_main_model(hidden_main, training=False)
-            hidden_sub = copy.deepcopy(hidden_main)
-            evidence_sub = classifier_sub_model(hidden_sub, training=False)
             alpha_main = evidence_main + 1
+            y_pred_main = alpha_main / tf.reduce_sum(
+                alpha_main, axis=1, keepdims=True
+            )
             unc_main = n_class / tf.reduce_sum(
                 alpha_main, axis=1, keepdims=True
             )
-            evidence_merged = (
-                1 - unc_main
-            ) * evidence_main + unc_main * evidence_sub
-            alpha_merged = evidence_merged + 1
-            y_pred_merged = alpha_merged / tf.reduce_sum(
-                alpha_merged, axis=1, keepdims=True
-            )
-
-            val_acc_metric.update_state(
-                y_batch_val, y_pred_merged
-            )  # NOTE : one-hotの形で入れるべき？
+            if epoch / epochs > 0.5:
+                evidence_sub = classifier_sub_model(
+                    hidden_main, training=False
+                )
+                alpha_sub = evidence_sub + 1
+                y_pred_sub = alpha_sub / tf.reduce_sum(
+                    alpha_main, axis=1, keepdims=True
+                )
+                y_merged = (1 - unc_main) * y_pred_main + unc_main * y_pred_sub
+                val_acc_metric.update_state(y_batch_val, y_merged)
+            else:
+                val_acc_metric.update_state(y_batch_val, y_pred_main)
         # メトリクスを表示
         val_acc = val_acc_metric.result()
         print(f"テスト一致率：{val_acc:.2%}")
@@ -263,20 +248,6 @@ def main(
 
         # wandbにログを送る（TODO：pre, rec, f-mも送る)
         wandb.log({"train_acc": train_acc, "test_acc": val_acc})
-
-        # 混合マトリクスの作成（各エポック毎）
-        # cm_train = utils.make_confusion_matrix(
-        #     y_true=np.argmax(y_batch_train, axis=1), y_pred=np.argmax(y_pred, axis=1)
-        # )  # 訓練データ
-        # cm_test = utils.make_confusion_matrix(
-        #     y_true=np.argmax(y_batch_val, axis=1), y_pred=np.argmax(val_y_pred, axis=1)
-        # )
-        # utils.save_image2wandb(
-        #     cm_train, to_wandb=True, fileName="cm_train"
-        # )
-        # utils.save_image2wandb(
-        #     cm_test, to_wandb=True, fileName="cm_test"
-        # )
 
     # モデルの保存
     path = os.path.join(pre_process.my_env.models_dir, test_name)
@@ -293,7 +264,7 @@ def main(
     exploit_model.save(exploit_model_path + f"/{date_id}")
     classifier_main_model.save(main_model_path + f"/{date_id}")
     classifier_sub_model.save(sub_model_path + f"/{date_id}")
-    # wandbへの記録終了
+    # # wandbへの記録終了
     wandb.finish()
 
 
@@ -319,12 +290,12 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = False
-    EPOCHS = 10
+    EPOCHS = 100
     BATCH_SIZE = 32
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 1024
-    SAMPLE_SIZE = 5000
+    STRIDE = 16
+    SAMPLE_SIZE = 50000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
