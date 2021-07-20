@@ -152,7 +152,7 @@ if __name__ == "__main__":
     IS_NORMAL = True
     IS_ENN = True
     IS_MUL_LAYER = False
-    EPOCHS = 50
+    EPOCHS = 100
     BATCH_SIZE = 32
     N_CLASS = 5
     KERNEL_SIZE = 512

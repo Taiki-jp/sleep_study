@@ -1,6 +1,4 @@
 import datetime
-from pre_process.subjects_list import SubjectsList
-from pre_process.file_reader import FileReader
 import sys
 import os
 import numpy as np

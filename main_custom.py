@@ -58,7 +58,7 @@ def main(
     # データセットの数
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_train)
+    ss_test_dict = Counter(y_test)
 
     # カスタムトレーニングのために作成
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))

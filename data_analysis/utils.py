@@ -410,6 +410,7 @@ class Utils:
         date_id,
         dir2="histgram",
         separate_each_ss=False,
+        unc=None,
     ):
         # 各睡眠段階に分けて表示するかどうか
         alpha = evidence + 1
@@ -422,7 +423,10 @@ class Utils:
             if not self.catch_nrem2
             else self.my_argmax(y_pred, axis=1)
         )
-        uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        if unc is not None:
+            uncertainty = unc
+        else:
+            uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
 
         if not separate_each_ss:
             # true_label, false_labelに分類する
