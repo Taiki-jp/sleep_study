@@ -57,16 +57,11 @@ python demo.py
 <strong>nnによる睡眠段階推定手法</strong>
 
 ## 各ブランチの説明
-- master : 無駄なファイルを除いた一番軽量なブランチ
-- feature/edl : evidential deep learning による分類（要削除）
-- feature/edl_1d : evidential deep learning のメイン開発ブランチ（のちにedlに吸収）
+- master : 無駄なファイルを除いた一番軽量なブランチ（基本ここから切る）
 - feature/psedo_data : 仮のデータを使った実験ブランチ
-- fix/feauture/edl : feature/edl の修正用ブランチ
-- feature/each_ss_unc : 各睡眠段階の不確かさを表示するように改良（masterにマージ済み）
-- feature/shift_window_in_any_length : 窓のずらし方を任意の幅にできるように改良（masterにマージ済み）
-- feature/sep_learning
 - feature/deep_learning : EUが原因で間違っているように見えるので、多層化により一致率向上を目指す
 - feature/rnn : 時系列を考慮したNNの構築
+- feature/sep_learning : 何のブランチか忘れた
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
