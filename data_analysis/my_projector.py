@@ -6,23 +6,28 @@ import tensorflow as tf
 from tensorboard.plugins import projector
 from nn.losses import EDLLoss
 
-def main(train, 
-         test,
-         pre_process, 
-         hidden_layer_id,
-         test_name,
-         data_type,
-         pse_data=False,
-         date_id=None):
+
+def main(
+    train,
+    test,
+    pre_process,
+    hidden_layer_id,
+    test_name,
+    data_type,
+    pse_data=False,
+    date_id=None,
+):
 
     # データセットの作成
-    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(train=train, 
-                                                                    test=test, 
-                                                                    is_storchastic=False,
-                                                                    pse_data=pse_data,
-                                                                    to_one_hot_vector=False,
-                                                                    is_shuffle=False,
-                                                                    each_data_size=100)
+    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
+        train=train,
+        test=test,
+        is_storchastic=False,
+        pse_data=pse_data,
+        to_one_hot_vector=False,
+        is_shuffle=False,
+        each_data_size=5000,
+    )
     # hidden_layer_idがNoneのときは入力空間を渡す
     # FIXME : cannot drow when spectrogram come
     if hidden_layer_id == "input":
@@ -30,12 +35,14 @@ def main(train,
         train_test_holder = [(x_train, y_train), (x_test, y_test)]
         for data, train_or_test in zip(train_test_holder, train_test_label):
             x, y = data
-            log_dir = os.path.join(os.environ["sleep"],
-                                   "logs",
-                                   test_name,
-                                   data_type,
-                                   f"layer_{hidden_layer_id}",
-                                   train_or_test)
+            log_dir = os.path.join(
+                os.environ["sleep"],
+                "logs",
+                test_name,
+                data_type,
+                f"layer_{hidden_layer_id}",
+                train_or_test,
+            )
             # ディレクトリの作成
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
@@ -46,9 +53,11 @@ def main(train,
                 for index, label in enumerate(y):
                     f.write(f"{index}\t{str(label)}\n")
             # チェックポイントの作成
-            embedding_var = tf.Variable(x.reshape(-1, 512), name="hidden")  # spectrumのみの実装
+            embedding_var = tf.Variable(
+                x.reshape(-1, 512), name="hidden"
+            )  # spectrumのみの実装
             check_point_file = os.path.join(log_dir, "embedding.ckpt")
-            ckpt = tf.train.Checkpoint(embedding=embedding_var) 
+            ckpt = tf.train.Checkpoint(embedding=embedding_var)
             ckpt.save(check_point_file)
             # projectorの設定
             config = projector.ProjectorConfig()
@@ -58,20 +67,28 @@ def main(train,
             projector.visualize_embeddings(log_dir, config)
     else:
         # モデルの読み込み（コンパイル済み）
-        print(py_color.CYAN, py_color.RETURN,
-              f"*** {test_name}のモデルを読み込みます ***",
-              py_color.END)
+        print(
+            py_color.CYAN,
+            py_color.RETURN,
+            f"*** {test_name}のモデルを読み込みます ***",
+            py_color.END,
+        )
         path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
-        model = tf.keras.models.load_model(path, custom_objects={"EDLLoss":EDLLoss(K=5,annealing=0.1)})
-        print(py_color.CYAN, py_color.RETURN,
-              f"*** {test_name}のモデルを読み込みました ***",
-              py_color.END)
+        model = tf.keras.models.load_model(
+            path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+        )
+        print(
+            py_color.CYAN,
+            py_color.RETURN,
+            f"*** {test_name}のモデルを読み込みました ***",
+            py_color.END,
+        )
         # 新しいモデルの作成
-        new_model = tf.keras.Model(inputs=model.input,
-                                   outputs=model.layers[hidden_layer_id].output)
+        new_model = tf.keras.Model(
+            inputs=model.input, outputs=model.layers[hidden_layer_id].output
+        )
 
-
-        # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる） 
+        # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる）
         # NOTE : そのためone-hotの状態でデータを読み込む必要がある
 
         # trainとtestのループ処理
@@ -84,15 +101,19 @@ def main(train,
             # uncertaintyの計算
             evidence = model.predict(x, batch_size=32)
             alpha = evidence + 1
-            uncertainty = 5/tf.reduce_sum(alpha, axis=1, keepdims=True)
-            uncertainty = [_uncertainty.numpy()[0] for _uncertainty in uncertainty]
+            uncertainty = 5 / tf.reduce_sum(alpha, axis=1, keepdims=True)
+            uncertainty = [
+                _uncertainty.numpy()[0] for _uncertainty in uncertainty
+            ]
             # log先の設定
-            log_dir = os.path.join(os.environ["sleep"],
-                                   "logs",
-                                   test_name,
-                                   data_type,
-                                   f"layer_{hidden_layer_id}",
-                                   train_or_test)
+            log_dir = os.path.join(
+                os.environ["sleep"],
+                "logs",
+                test_name,
+                data_type,
+                f"layer_{hidden_layer_id}",
+                train_or_test,
+            )
             # ディレクトリの作成
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
@@ -105,7 +126,7 @@ def main(train,
             # チェックポイントの作成
             embedding_var = tf.Variable(hidden, name="hidden")
             check_point_file = os.path.join(log_dir, "embedding.ckpt")
-            ckpt = tf.train.Checkpoint(embedding=embedding_var) 
+            ckpt = tf.train.Checkpoint(embedding=embedding_var)
             ckpt.save(check_point_file)
             # projectorの設定
             config = projector.ProjectorConfig()
@@ -113,6 +134,7 @@ def main(train,
             embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
             embedding.metadata_path = "metadata.tsv"
             projector.visualize_embeddings(log_dir, config)
+
 
 def load_date_id_list(has_attention, has_inception, data_type, lsd):
     # attention, inception, data_typeによって読み込むモデルを決める(8通り)
@@ -135,43 +157,56 @@ def load_date_id_list(has_attention, has_inception, data_type, lsd):
                 return lsd.sl.date_id_list_attnt_spc_1d
             else:
                 sys.exit(1)
-                
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     # 環境設定
     try:
-        tf.keras.backend.set_floatx('float32')
+        tf.keras.backend.set_floatx("float32")
         # tf.config.run_functions_eagerly(True)
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
     except:
         print("*** cpuで計算します ***")
-    
+
     # ハイパーパラメータの設定
-    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (True, False, True, "spectrum")
-    HIDDEN_LAYER_ID = -5
-    
+    (HAS_ATTENTION, PSE_DATA, HAS_INCEPTION, DATA_TYPE) = (
+        True,
+        False,
+        True,
+        "spectrum",
+    )
+    HIDDEN_LAYER_ID = "input"
+
     # オブジェクトの作成
     load_sleep_data = LoadSleepData(data_type=DATA_TYPE, verbose=1)
     pre_process = PreProcess(load_sleep_data)
-    datasets = load_sleep_data.load_data(load_all=True, pse_data=PSE_DATA)
+    datasets = load_sleep_data.load_data(
+        load_all=True, pse_data=PSE_DATA, fit_pos="middle"
+    )
     py_color = PyColor()
 
     # 読み込むモデルの日付リストを返す
-    date_id_list = load_date_id_list(has_attention=HAS_ATTENTION,
-                                     has_inception=HAS_INCEPTION,
-                                     data_type=DATA_TYPE,
-                                     lsd=load_sleep_data)
-    
-    for test_id, (test_name, date_id) in enumerate(zip(load_sleep_data.sl.name_list, date_id_list)):
-        (train, test) = pre_process.split_train_test_from_records(datasets,
-                                                                  test_id=test_id, 
-                                                                  pse_data=PSE_DATA)
-        main(pre_process=pre_process,
-             train=train,
-             hidden_layer_id=HIDDEN_LAYER_ID,
-             test_name=test_name,
-             test=test,
-             date_id=date_id, 
-             pse_data=PSE_DATA,
-             data_type=DATA_TYPE)
-             
+    date_id_list = load_date_id_list(
+        has_attention=HAS_ATTENTION,
+        has_inception=HAS_INCEPTION,
+        data_type=DATA_TYPE,
+        lsd=load_sleep_data,
+    )
+
+    for test_id, (test_name, date_id) in enumerate(
+        zip(load_sleep_data.sl.added_name_list, range(100))
+    ):
+        (train, test) = pre_process.split_train_test_from_records(
+            datasets, test_id=test_id, pse_data=PSE_DATA
+        )
+        main(
+            pre_process=pre_process,
+            train=train,
+            hidden_layer_id=HIDDEN_LAYER_ID,
+            test_name=test_name,
+            test=test,
+            date_id=date_id,
+            pse_data=PSE_DATA,
+            data_type=DATA_TYPE,
+        )

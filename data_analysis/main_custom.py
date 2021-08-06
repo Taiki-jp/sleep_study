@@ -1,15 +1,20 @@
-from data_analysis.utils import Utils
+from wandb.keras import WandbCallback
+from pre_process.pre_process import PreProcess
+import copy
+from random import sample
 import sys
-import tensorflow as tf
+from data_analysis.py_color import PyColor
 import os
 import datetime
 import wandb
-from wandb.keras import WandbCallback
+import tensorflow as tf
+from collections import Counter
 from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
+from nn.model_base import classifier4enn, edl_classifier_1d, spectrum_conv
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
-from data_analysis.py_color import PyColor
+import numpy as np
+from data_analysis.utils import Utils
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -63,9 +68,24 @@ def main(
 
     # モデルの読み込み（コンパイル済み）
     print(f"*** {test_name}のモデルを読み込みます ***")
-    path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
-    model = tf.keras.models.load_model(
-        path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+    exploit_path = os.path.join(
+        os.environ["sleep"], "models", test_name, "exploit", "20210716-092851"
+    )
+    main_path = os.path.join(
+        os.environ["sleep"], "models", test_name, "main", "20210716-092851"
+    )
+    sub_path = os.path.join(
+        os.environ["sleep"], "models", test_name, "sub", "20210716-092851"
+    )
+
+    exploit_model = tf.keras.models.load_model(
+        exploit_path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+    )
+    main_model = tf.keras.models.load_model(
+        main_path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+    )
+    sub_model = tf.keras.models.load_model(
+        sub_path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
     )
     print(f"*** {test_name}のモデルを読み込みました ***")
 
@@ -78,11 +98,18 @@ def main(
     for train_or_test, data in zip(train_test_label, train_test_holder):
         x, y = data
         # EDLBase.__call__が走る
-        evidence = model.predict(x, batch_size=32)
+        hidden = exploit_model.predict(x, batch_size=32)
+        evidence_main = main_model.predict(hidden, batch_size=32)
+        evidence_sub = sub_model.predict(hidden, batch_size=32)
+        alpha_main = evidence_main + 1
+        unc_main = n_class / tf.reduce_sum(alpha_main, axis=1, keepdims=True)
+        evidence_merged = (
+            1 - unc_main
+        ) * evidence_main + unc_main * evidence_sub
         # 混合行列をwandbに送信
         utils.conf_mat2Wandb(
             y=y,
-            evidence=evidence,
+            evidence=evidence_main,
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
@@ -90,16 +117,17 @@ def main(
         # 不確かさのヒストグラムをwandbに送信
         utils.u_hist2Wandb(
             y=y,
-            evidence=evidence,
+            evidence=evidence_main,
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
             separate_each_ss=False,
+            unc=unc_main,
         )
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
             y=y,
-            evidence=evidence,
+            evidence=evidence_main,
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
@@ -133,9 +161,9 @@ if __name__ == "__main__":
     EPOCHS = 20
     BATCH_SIZE = 32
     N_CLASS = 5
-    KERNEL_SIZE = 1024
-    STRIDE = 4
-    SAMPLE_SIZE = 50000
+    KERNEL_SIZE = 512
+    STRIDE = 16
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -170,7 +198,7 @@ if __name__ == "__main__":
     ][f"kernel_{str(KERNEL_SIZE)}"]
 
     for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list, date_id_list)
+        zip(["140711_Yamamoto"], ["20210716-092851"])
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA

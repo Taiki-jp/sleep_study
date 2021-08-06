@@ -1,45 +1,99 @@
+import random
+import sys
 from pre_process.file_reader import FileReader
 from data_analysis.utils import Utils
 from pre_process.tanita_reader import TanitaReader
 from pre_process.psg_reader import PsgReader
 from pre_process.create_data import CreateData
-from tqdm import tqdm
 from data_analysis.py_color import PyColor
 import datetime
-import sys
+import os
+from pre_process.json_base import JsonBase
 
-# ハイパーパラメータの設定
-DATA_TYPE = "spectrum"
-date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-FIT_POS = "bottom"
-STRIDE = 1
 
-# オブジェクトの作成
-CD = CreateData()
-FR = FileReader(n_class=5)  # TODO : ここにクラス数を指定する必要がないけど、FileReaderの実装上必要になっている
-FR.sl.sets_filename(data_type=DATA_TYPE, n_class=5)  # TODO : 同上
-utils = Utils(file_reader=FR)
+def main():
+    # ハイパーパラメータの読み込み
+    DATA_TYPE = "spectrum"
+    FIT_POS_LIST = ["top", "middle", "bottom"]
+    STRIDE_LIST = [1024, 16, 4]
+    KERNEL_SIZE_LIST = [1024, 512]
+    IS_NORMAL = True
+    IS_PREVIOUS = False
 
-for name in FR.sl.name_list:
-    print(PyColor.GREEN,
-          PyColor.FLASH,
-          f" *** {name} を開始します ***",
-          PyColor.END)
-    records = list()
-    tanita = TanitaReader(name)
-    psg = PsgReader(name)
-    tanita.readCsv()
-    psg.readCsv()
-    # 始まりの時刻がそろっていることをassert
-    try:
-          assert tanita.df["time"][0] == psg.df["time"][0]
-    except:
-          print("starting time is not corrected")
-          sys.exit(1)
-    records.append(CD.makeSpectrum(tanita.df, 
-                                   psg.df, 
-                                   kernel_size=1024, 
-                                   stride=STRIDE,
-                                   fit_pos=FIT_POS))
-    utils.dump_with_pickle(records, name, data_type=DATA_TYPE,
-                           fit_pos = FIT_POS)
+    for FIT_POS in FIT_POS_LIST:
+        for STRIDE in STRIDE_LIST:
+            for KERNEL_SIZE in KERNEL_SIZE_LIST:
+
+                print(
+                    PyColor.RED_FLASH,
+                    f"fit_pos: {FIT_POS}",
+                    f"stride: {STRIDE}",
+                    f"kernel: {KERNEL_SIZE}",
+                    PyColor.END,
+                )
+
+                date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                # オブジェクトの作成
+                CD = CreateData()
+                FR = FileReader()
+                JB = JsonBase("pre_processed_id.json")
+                JB.load()
+                utils = Utils()
+
+                target_folders = FR.my_env.set_raw_folder_path(
+                    is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
+                )
+                # 実験を効率よくするためにランダムに並べ替える
+                target_folders = random.sample(
+                    target_folders, len(target_folders)
+                )
+
+                for target in target_folders:
+                    _, name = os.path.split(target)
+                    tanita = TanitaReader(target, is_previous=IS_PREVIOUS)
+                    psg = PsgReader(target, is_previous=IS_PREVIOUS)
+                    tanita.read_csv()
+                    psg.read_csv()
+                    # 最初の時間がそろっていることを確認する
+                    try:
+                        assert datetime.datetime.strptime(
+                            tanita.df["time"][0], "%H:%M:%S"
+                        ) == datetime.datetime.strptime(
+                            psg.df["time"][0], "%H:%M:%S"
+                        )
+                    except AssertionError:
+                        print(
+                            PyColor.RED_FLASH,
+                            "tanita, psgの最初の時刻がそろっていることを確認してください",
+                            PyColor.END,
+                        )
+                        print(
+                            f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
+                        )
+                        sys.exit(1)
+
+                    records = CD.make_spectrum(
+                        tanita.df,
+                        psg.df,
+                        kernel_size=KERNEL_SIZE,
+                        stride=STRIDE,
+                        fit_pos=FIT_POS,
+                    )
+                    utils.dump_with_pickle(
+                        records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
+                    )
+
+                    # jsonへの書き込み
+                JB.dump(
+                    keys=[
+                        DATA_TYPE,
+                        FIT_POS,
+                        f"stride_{str(STRIDE)}",
+                        f"kernel_{str(KERNEL_SIZE)}",
+                    ],
+                    value=date_id,
+                )
+
+
+if __name__ == "__main__":
+    main()
