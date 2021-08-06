@@ -75,7 +75,11 @@ class PreProcess:
         # which specified in load_sleep_data object
         if pse_data:
             print("仮の睡眠データを作成します")
-            return self.make_pse_sleep_data(n_class=class_size)
+            return self.make_pse_sleep_data(
+                n_class=class_size,
+                data_size=each_data_size,
+                to_one_hot_vector=to_one_hot_vector,
+            )
 
         if is_set_data_size:
 
@@ -499,20 +503,35 @@ class PreProcess:
         return (x_train, y_train), (x_test, y_test)
 
     # 仮データの作成
-    def make_pse_sleep_data(self, n_class):
-        batch_size = 1000
+    def make_pse_sleep_data(
+        self,
+        n_class: int,
+        to_one_hot_vector: bool,
+        data_size=1000,
+        min_val=-1,
+        max_val=1,
+    ):
         if self.data_type == "spectrum":
             print("spectrum型の仮データを作成します")
-            input_shape = (batch_size, 512, 1)
+            input_shape = (data_size, int(self.kernel_size / 2), 1)
         elif self.data_type == "spectrogram":
             print("spectrogram型の仮データを作成します")
-            input_shape = (batch_size, 128, 512, 1)
+            input_shape = (data_size, 128, 512, 1)
+        else:
+            raise Exception("unknown data type")
         # x_train = tf.random.normal(shape=input_shape)
-        x_train = tf.random.uniform(shape=input_shape, minval=-1, maxval=1)
-        y_train = np.random.randint(0, n_class - 1, size=batch_size)
+        x_train = tf.random.uniform(
+            shape=input_shape, minval=min_val, maxval=max_val
+        )
         # x_test = tf.random.normal(shape=input_shape)
-        x_test = tf.random.uniform(shape=input_shape, minval=-1, maxval=1)
-        y_test = np.random.randint(0, n_class - 1, size=batch_size)
+        x_test = tf.random.uniform(
+            shape=input_shape, minval=min_val, maxval=max_val
+        )
+        y_train = np.random.randint(0, n_class - 1, size=data_size)
+        y_test = np.random.randint(0, n_class - 1, size=data_size)
+        if to_one_hot_vector:
+            y_train = np.array(tf.one_hot(y_train, depth=n_class))
+            y_test = np.array(tf.one_hot(y_train, depth=n_class))
         return (x_train, y_train), (x_test, y_test)
 
     # 平行移動を行う前処理

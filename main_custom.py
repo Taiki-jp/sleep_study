@@ -8,7 +8,7 @@ import wandb
 import tensorflow as tf
 from collections import Counter
 from pre_process.pre_process import PreProcess
-from nn.model_base import classifier4enn, edl_classifier_1d, spectrum_conv
+from nn.model_base import classifier4enn, spectrum_conv
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 import numpy as np
@@ -18,15 +18,12 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタ�
 
 
 def main(
-    utils,
-    name,
-    project,
-    train,
-    test,
-    pre_process,
-    model_save=False,
+    name: str,
+    project: str,
+    train: list,
+    test: list,
+    pre_process: PreProcess,
     epochs=1,
-    save_model=False,
     my_tags=None,
     batch_size=32,
     n_class=5,
@@ -40,7 +37,6 @@ def main(
     wandb_config=dict(),
     kernel_size=0,
     is_mul_layer=False,
-    is_mul_output=False,
     has_dropout=False,
 ):
 
@@ -361,14 +357,12 @@ if __name__ == "__main__":
         main(
             utils=utils,
             data_type=DATA_TYPE,
-            model_save=True,
             name=test_name,
             project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,
@@ -378,7 +372,6 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             sample_size=SAMPLE_SIZE,
             is_mul_layer=False,
-            is_mul_output=True,
             has_dropout=False,
         )
 
