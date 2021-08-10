@@ -13,14 +13,16 @@ from pre_process.load_sleep_data import LoadSleepData
 from sklearn.datasets import make_classification
 from imblearn.over_sampling import SMOTE
 from collections import Counter
-from keras.utils import plot_model
 from IPython.display import SVG
-from keras.utils.vis_utils import model_to_dot
+
+# from keras.utils.vis_utils import model_to_dot
 import sys
 import numpy
 import tensorflow as tf
 from data_analysis.my_color import MyColor
 from pre_process.my_env import MyEnv
+from PIL import Image
+import glob
 
 # 便利な関数をまとめたもの
 class Utils:
@@ -583,6 +585,27 @@ class Utils:
         )
         return
 
+    # gif の作成
+    def make_gif(self, saved_path: str):
+        files = glob.glob(os.path.join(saved_path, "*.png"))
+        images = list(map(lambda file: Image.open(file), files))
+        images[0].save(
+            os.path.join(saved_path, "out.gif"),
+            save_all=True,
+            append_images=images[1:],
+            loop=0,
+        )
+
 
 if __name__ == "__main__":
-    pass
+    utils = Utils()
+    root_dir = os.path.join(os.environ["sleep"], "figures")
+    each_dir_name_list = ["main_network", "sub_network", "merged_network"]
+    saved_path_list = [
+        os.path.join(
+            root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
+        )
+        for i in range(3)
+    ]
+    for saved_path in saved_path_list:
+        utils.make_gif(saved_path=saved_path)

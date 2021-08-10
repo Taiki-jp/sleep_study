@@ -3,6 +3,7 @@ import numpy as np
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.keras import backend as K
+from tensorflow.python.framework.ops import Tensor
 
 # EDLのロス関数
 class EDLLoss(tf.keras.losses.Loss):
@@ -53,7 +54,11 @@ class EDLLoss(tf.keras.losses.Loss):
         # 損失関数:lambda * KL_div
         KL_reg = self.KL((alpha - 1) * (1 - y_true) + 1)
         if unc is not None:
-            return unc * (L_err + L_var + self.annealing * KL_reg)
+
+            def step(unc: Tensor, unc_th: Tensor):
+                return unc * tf.cast(unc >= unc_th, dtype=tf.float32)
+
+            return step(unc, 0.8) * (L_err + L_var + self.annealing * KL_reg)
         else:
             return L_err + L_var + self.annealing * KL_reg
 

@@ -1,11 +1,16 @@
+import random
 import tensorflow as tf
 import numpy as np
 import os
+import sys
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 from nn.losses import EDLLoss
 import datetime
 from data_analysis.py_color import PyColor
+from data_analysis.utils import Utils
+import matplotlib.pyplot as plt
+
 
 # import matplotlib.pyplot as plt
 # from nn.model_base import edl_classifier4psedo_data, EDLModelBase
@@ -18,7 +23,6 @@ tf.random.set_seed(0)
 # 仮データの作成
 def psedo_data(row: int, col: int, x_bias: int, y_bias: int) -> tuple:
     # 極座標で考える
-    row, _ = (100, 2)
     r_class0 = tf.random.uniform(shape=(row,), minval=0, maxval=0.6)
     theta_class0 = tf.random.uniform(shape=(row,), minval=0, maxval=np.pi * 2)
     r_class1 = tf.random.uniform(shape=(row,), minval=0.5, maxval=1)
@@ -66,7 +70,21 @@ def nested_classifier(
     return x
 
 
+def my_argmax(array: np.ndarray, axis: int, n_classes: int) -> np.ndarray:
+    array_max = np.argmax(array, axis=axis)
+    array_min = np.argmin(array, axis=axis)
+    fixed_array = []
+    # 最大値と最小値が一致する場合は1. random に値を返す
+    for _max, _min in zip(array_max, array_min):
+        if _max == _min:
+            fixed_array.append(random.randint(0, n_classes - 1))
+        else:
+            fixed_array.append(_max)
+    return np.array(fixed_array)
+
+
 def main(
+    x_train: Tensor,
     train_dataset: tuple,
     val_dataset: tuple,
     date_id: datetime.datetime,
@@ -78,6 +96,7 @@ def main(
     subnet_starting_point: float = 0.5,
     project_name: str = "h-enn",
     experiment_type: str = "",
+    sample_num: int = 100,
 ):
     # output dim
     output_unit = n_class
@@ -130,6 +149,134 @@ def main(
     # )
     # test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
+    def _make_image(
+        x_train: Tensor,
+        # y_train: Tensor,
+        iter: int,
+    ):
+        # 結果の出力(訓練データそのまま)
+        # TODO: mainネットワークの予測
+        hidden = decord_nn(x_train, training=False)
+        evidence_main = classifier_main_model(hidden, training=False)
+        alpha_main = evidence_main + 1
+        y_pred_main = alpha_main / tf.reduce_sum(
+            alpha_main, axis=1, keepdims=True
+        )
+        unc_main = n_class / tf.reduce_sum(alpha_main, axis=1, keepdims=True)
+        # TODO: subネットワークの予測
+        evidence_sub = classifier_sub_model(hidden, training=False)
+        alpha_sub = evidence_sub + 1
+        y_pred_sub = alpha_sub / tf.reduce_sum(
+            alpha_sub, axis=1, keepdims=True
+        )
+        unc_sub = n_class / tf.reduce_sum(alpha_sub, axis=1, keepdims=True)
+        # TODO: mergedネットワークの予測
+        y_pred_merged = y_pred_main * (1 - unc_main) + y_pred_sub * unc_main
+
+        def __draw(
+            id: str,
+            evidence: Tensor,
+            alpha: Tensor,
+            y_pred: Tensor,
+            unc: Tensor,
+            n_class: int,
+        ):
+            figure = plt.figure(figsize=(12, 4))
+            # 1. 正解の散布図
+            ax = figure.add_subplot(1, 4, 1)
+            ax.scatter(x_train[:sample_num, 0], x_train[:sample_num, 1], c="r")
+            ax.scatter(x_train[sample_num:, 0], x_train[sample_num:, 1], c="b")
+            ax.set_title("true")
+            # 2. 予測の散布図
+            ax = figure.add_subplot(142)
+            ax.set_title("pred")
+            # 予測の確率ベクトルが等しいときはランダムに値を返す
+            y_pred_ctg = my_argmax(array=y_pred, axis=1, n_classes=n_class)
+
+            for x, label in zip(x_train, y_pred_ctg):
+                if label == 0:
+                    ax.scatter(x[0], x[1], c="r")
+                elif label == 1:
+                    ax.scatter(x[0], x[1], c="b")
+                else:
+                    print("exception has occured")
+                    sys.exit(1)
+            # 3. 不確かさの分布
+            ax = figure.add_subplot(143)
+            ax.set_title("unc")
+            im = ax.scatter(
+                x_train[:, 0],
+                x_train[:, 1],
+                c=unc,
+                cmap="Blues",
+                vmin=0,
+                vmax=1,
+            )
+            figure.colorbar(im)
+
+            # 4. ロスの分布
+            loss_fn = EDLLoss(K=n_class, annealing=1)
+            _y_train = tf.one_hot(y_train, depth=n_class)
+            loss = loss_fn.call(_y_train, alpha)
+            ax = figure.add_subplot(144)
+            ax.set_title("loss")
+            im = ax.scatter(
+                x_train[:, 0],
+                x_train[:, 1],
+                c=loss,
+                cmap="Blues",
+                vmin=0,
+                vmax=1,
+            )
+            figure.colorbar(im)
+
+            plt.legend()
+            save_path = os.path.join(
+                os.environ["sleep"],
+                "figures",
+                id,
+                "check_uncertainty",
+                f"{annealing_param}",
+                f"{hidden_unit}",
+            )
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            if iter < 10:
+                plt.savefig(os.path.join(save_path, f"00{iter}.png"))
+            elif iter < 100:
+                plt.savefig(os.path.join(save_path, f"0{iter}.png"))
+            elif iter < 1000:
+                plt.savefig(os.path.join(save_path, f"{iter}.png"))
+            plt.clf()
+
+        # メインネットワークの図
+        __draw(
+            id="main_network",
+            evidence=evidence_main,
+            alpha=alpha_main,
+            y_pred=y_pred_main,
+            unc=unc_main,
+            n_class=n_class,
+        )
+        # サブネットワークの図
+        __draw(
+            id="sub_network",
+            evidence=evidence_sub,
+            alpha=alpha_sub,
+            y_pred=y_pred_sub,
+            unc=unc_sub,
+            n_class=n_class,
+        )
+        # マージの図（予測以外いらない）
+        __draw(
+            id="merged_network",
+            evidence=evidence_sub,
+            alpha=alpha_sub,
+            y_pred=y_pred_merged,
+            unc=unc_sub,
+            n_class=n_class,
+        )
+
     # エポックのループ
     for epoch in range(epochs):
         # TODO: epoch に合わせてアニーリングを調整する
@@ -156,7 +303,7 @@ def main(
                     ),
                     alpha_main,
                 )
-                # epoch が半分以上経過したのちにサブネットワークを学習開始
+                # epoch が指定回数以上経過したのちにサブネットワークの順伝搬
                 if (
                     epoch / epochs > subnet_starting_point
                     and experiment_type == "has_subnet"
@@ -177,7 +324,7 @@ def main(
                     )
                     # 進捗の記録
                     epoch_loss_sub_avg(loss_value_sub)
-            # ある回数以上になるとサブネットワークの学習を開始する
+            # epoch が指定回数以上経過したのちにサブネットワークの逆伝搬
             if (
                 epoch / epochs > subnet_starting_point
                 and experiment_type == "has_subnet"
@@ -211,6 +358,11 @@ def main(
             # 進捗の記録
             epoch_loss_main_avg(loss_value_main)
 
+        # 画像の作成
+        _make_image(
+            x_train=x_train,
+            iter=epoch,
+        )
         # サマリーライターへの書き込み
         with train_summary_writer.as_default():
             tf.summary.scalar("loss", epoch_loss_main_avg.result(), step=epoch)
@@ -289,14 +441,15 @@ if __name__ == "__main__":
     RUN_NAME = DATA_TYPE
     EXPERIMENT_TYPE = "has_subnet"
     # EXPERIMENT_TYPE = "no_subnet"
-    HIDDEN_DIM = 8
-    EPOCHS = 50
+    HIDDEN_DIM = 4
+    EPOCHS = 100
     N_CLASS = 2
     ANNEALING_RATIO = 16
-    SUBNET_STARTING_POINNT = 0.5
+    SUBNET_STARTING_POINNT = 0.0
     PROJECT_NAME = "h-enn"
+    SAMPLE_NUM = 100
     (x_train, x_test), (y_train, y_test) = psedo_data(
-        row=100, col=2, x_bias=0, y_bias=0
+        row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
     )
     # カスタムトレーニングのために作成
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -337,6 +490,7 @@ if __name__ == "__main__":
         dir=wandb_saved_dir,
     )
     main(
+        x_train=x_train,
         date_id=date_id,
         train_dataset=train_dataset,
         val_dataset=None,
@@ -349,3 +503,19 @@ if __name__ == "__main__":
         project_name=PROJECT_NAME,
         experiment_type=EXPERIMENT_TYPE,
     )
+    # git の作成
+    utils = Utils()
+    root_dir = os.path.join(os.environ["sleep"], "figures")
+    each_dir_name_list = ["main_network", "sub_network", "merged_network"]
+    saved_path_list = [
+        os.path.join(
+            root_dir,
+            each_dir_name_list[i],
+            "check_uncertainty",
+            str(ANNEALING_RATIO),
+            str(HIDDEN_DIM),
+        )
+        for i in range(3)
+    ]
+    for saved_path in saved_path_list:
+        utils.make_gif(saved_path=saved_path)
