@@ -230,7 +230,7 @@ def main(
             )
             figure.colorbar(im)
 
-            plt.legend()
+            # plt.legend()
             save_path = os.path.join(
                 os.environ["sleep"],
                 "figures",
