@@ -441,13 +441,18 @@ if __name__ == "__main__":
     RUN_NAME = DATA_TYPE
     EXPERIMENT_TYPE = "has_subnet"
     # EXPERIMENT_TYPE = "no_subnet"
-    HIDDEN_DIM = 32
+    HIDDEN_DIM = 8
     EPOCHS = 100
     N_CLASS = 2
     ANNEALING_RATIO = 16
-    SUBNET_STARTING_POINNT = 0.0
+    SUBNET_STARTING_POINNT = 0.5
     PROJECT_NAME = "h-enn"
     SAMPLE_NUM = 100
+    # TODO: 誤差関数の重みづけの活性化関数と対応付ける
+    WEITED_ACTIVATION = "none"
+
+    # seed でループを回す
+
     (x_train, x_test), (y_train, y_test) = psedo_data(
         row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
     )
@@ -467,6 +472,7 @@ if __name__ == "__main__":
         str(N_CLASS),
         str(ANNEALING_RATIO),
         str(SUBNET_STARTING_POINNT),
+        WEITED_ACTIVATION,
     ]
 
     wandb_config = {

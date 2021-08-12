@@ -59,7 +59,8 @@ class EDLLoss(tf.keras.losses.Loss):
             def step(unc: Tensor, unc_th: Tensor):
                 return unc * tf.cast(unc >= unc_th, dtype=tf.float32)
 
-            return step(unc, 0.8) * (L_err + L_var + self.annealing * KL_reg)
+            # return step(unc, 0.8) * (L_err + L_var + self.annealing * KL_reg)
+            return unc * (L_err + L_var + self.annealing * KL_reg)
         else:
             return L_err + L_var + self.annealing * KL_reg
 
