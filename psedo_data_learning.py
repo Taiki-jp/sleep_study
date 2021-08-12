@@ -217,7 +217,7 @@ def main(
             # 4. ロスの分布
             loss_fn = EDLLoss(K=n_class, annealing=1)
             _y_train = tf.one_hot(y_train, depth=n_class)
-            loss = loss_fn.call(_y_train, alpha)
+            loss = loss_fn.call(_y_train, evidence)
             ax = figure.add_subplot(144)
             ax.set_title("loss")
             im = ax.scatter(
@@ -247,7 +247,7 @@ def main(
                 plt.savefig(os.path.join(save_path, f"0{iter}.png"))
             elif iter < 1000:
                 plt.savefig(os.path.join(save_path, f"{iter}.png"))
-            plt.clf()
+            plt.close()
 
         # メインネットワークの図
         __draw(
@@ -301,7 +301,7 @@ def main(
                     tf.keras.utils.to_categorical(
                         y_batch_train, num_classes=n_class
                     ),
-                    alpha_main,
+                    evidence_main,
                 )
                 # epoch が指定回数以上経過したのちにサブネットワークの順伝搬
                 if (
@@ -319,7 +319,7 @@ def main(
                         tf.keras.utils.to_categorical(
                             y_batch_train, num_classes=n_class
                         ),
-                        alpha_sub,
+                        evidence_sub,
                         unc_main,
                     )
                     # 進捗の記録
@@ -441,7 +441,7 @@ if __name__ == "__main__":
     RUN_NAME = DATA_TYPE
     EXPERIMENT_TYPE = "has_subnet"
     # EXPERIMENT_TYPE = "no_subnet"
-    HIDDEN_DIM = 4
+    HIDDEN_DIM = 32
     EPOCHS = 100
     N_CLASS = 2
     ANNEALING_RATIO = 16
