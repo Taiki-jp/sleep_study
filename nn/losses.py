@@ -3,6 +3,8 @@ import numpy as np
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.keras import backend as K
+from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
 # EDLのロス関数
 class EDLLoss(tf.keras.losses.Loss):
@@ -40,7 +42,7 @@ class EDLLoss(tf.keras.losses.Loss):
 
     # NOTE : y_trueがどのような形で入っているかに注意する
     # （実行は通るが、損失関数が訳分からなくなる）
-    def loss_eq5(self, y_true, alpha, unc):
+    def loss_eq5(self, y_true: ndarray, alpha: Tensor, unc: Tensor):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1)
         # 2乗誤差
         L_err = tf.reduce_sum(
@@ -53,6 +55,11 @@ class EDLLoss(tf.keras.losses.Loss):
         # 損失関数:lambda * KL_div
         KL_reg = self.KL((alpha - 1) * (1 - y_true) + 1)
         if unc is not None:
+
+            def step(unc: Tensor, unc_th: Tensor):
+                return unc * tf.cast(unc >= unc_th, dtype=tf.float32)
+
+            # return step(unc, 0.8) * (L_err + L_var + self.annealing * KL_reg)
             return unc * (L_err + L_var + self.annealing * KL_reg)
         else:
             return L_err + L_var + self.annealing * KL_reg
