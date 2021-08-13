@@ -1,7 +1,6 @@
 # sleep study
 
 2020.4 - 2022.3 までの睡眠の研究まとめ
- u
 # DEMO
  ![net_alt](gallery/my_network.png "my_network")
 ENNの構造は上記の通り（InceptionV3の一部を利用）
@@ -61,8 +60,8 @@ python demo.py
 - feature/psedo_data : 仮のデータを使った実験ブランチ（マージ・削除済み）
 - feature/deep_learning : EUが原因で間違っているように見えるので、多層化により一致率向上を目指す
 - feature/rnn : 時系列を考慮したNNの構築
-- feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 - feature/sep_learning : 何のブランチか忘れた
+- feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
 - feat: 新機能実装
