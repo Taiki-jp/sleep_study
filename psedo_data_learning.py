@@ -9,7 +9,10 @@ from nn.losses import EDLLoss
 import datetime
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
-import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use("Agg")
+from matplotlib import pyplot as plt
 
 
 # import matplotlib.pyplot as plt
@@ -246,7 +249,9 @@ def main(
                 plt.savefig(os.path.join(save_path, f"0{iter}.png"))
             elif iter < 1000:
                 plt.savefig(os.path.join(save_path, f"{iter}.png"))
-            plt.close(fig=figure)
+            plt.cla()
+            plt.clf()
+            plt.close()
 
         # メインネットワークの図
         __draw(
