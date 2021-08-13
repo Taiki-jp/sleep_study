@@ -587,6 +587,8 @@ class Utils:
 
     # gif の作成
     def make_gif(self, saved_path: str):
+        if not os.path.exists(saved_path):
+            os.makedirs(saved_path)
         files = glob.glob(os.path.join(saved_path, "*.png"))
         images = list(map(lambda file: Image.open(file), files))
         images[0].save(

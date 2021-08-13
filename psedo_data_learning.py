@@ -247,7 +247,9 @@ def main(
                 plt.savefig(os.path.join(save_path, f"0{iter}.png"))
             elif iter < 1000:
                 plt.savefig(os.path.join(save_path, f"{iter}.png"))
-            plt.close()
+            # plt.clf()
+            # plt.cla()
+            plt.close(fig=figure)
 
         # メインネットワークの図
         __draw(
