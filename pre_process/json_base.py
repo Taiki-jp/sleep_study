@@ -6,8 +6,7 @@ import sys
 class JsonBase(object):
     def __init__(self, json_filename: str) -> None:
         self.json_file: str = os.path.join(
-            os.environ["userprofile"],
-            "git",
+            os.environ["git"],
             "sleep_study",
             "pre_process",
             json_filename,
