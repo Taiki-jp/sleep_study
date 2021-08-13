@@ -58,9 +58,10 @@ python demo.py
 
 ## 各ブランチの説明
 - master : 無駄なファイルを除いた一番軽量なブランチ（基本ここから切る）
-- feature/psedo_data : 仮のデータを使った実験ブランチ
+- feature/psedo_data : 仮のデータを使った実験ブランチ（マージ・削除済み）
 - feature/deep_learning : EUが原因で間違っているように見えるので、多層化により一致率向上を目指す
 - feature/rnn : 時系列を考慮したNNの構築
+- feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 - feature/sep_learning : 何のブランチか忘れた
 
 ## 各ブランチ名の頭にはブランチの役割を表すプレフィクスをつける
