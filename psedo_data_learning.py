@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-tf.random.set_seed(0)
+# tf.random.set_seed(0)
 
 
 # 仮データの作成
@@ -236,8 +236,7 @@ def main(
                 "figures",
                 id,
                 "check_uncertainty",
-                f"{annealing_param}",
-                f"{hidden_unit}",
+                date_id,
             )
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
@@ -247,8 +246,6 @@ def main(
                 plt.savefig(os.path.join(save_path, f"0{iter}.png"))
             elif iter < 1000:
                 plt.savefig(os.path.join(save_path, f"{iter}.png"))
-            # plt.clf()
-            # plt.cla()
             plt.close(fig=figure)
 
         # メインネットワークの図
@@ -366,55 +363,55 @@ def main(
             iter=epoch,
         )
         # サマリーライターへの書き込み
-        with train_summary_writer.as_default():
-            tf.summary.scalar("loss", epoch_loss_main_avg.result(), step=epoch)
-            tf.summary.scalar(
-                "accuracy", train_acc_metric.result(), step=epoch
-            )
-            # ヒストグラムのログ
-            # デコーダー
-            tf.summary.histogram(
-                "decorder/weights",
-                decord_nn.get_layer("dense").weights[0],
-                step=epoch,
-            )
-            tf.summary.histogram(
-                "decorder/bias",
-                decord_nn.get_layer("dense").weights[1],
-                step=epoch,
-            )
-            # メインの分類器
-            tf.summary.histogram(
-                "classifier_main/weights",
-                classifier_main_model.get_layer("dense_1").weights[0],
-                step=epoch,
-            )
-            tf.summary.histogram(
-                "classifier_main/bias",
-                classifier_main_model.get_layer("dense_1").weights[1],
-                step=epoch,
-            )
-            # サブの分類器
-            tf.summary.histogram(
-                "classifier_sub/weights01",
-                classifier_sub_model.get_layer("dense_2").weights[0],
-                step=epoch,
-            )
-            tf.summary.histogram(
-                "classifier_sub/bias01",
-                classifier_sub_model.get_layer("dense_2").weights[1],
-                step=epoch,
-            )
-            tf.summary.histogram(
-                "classifier_sub/weights02",
-                classifier_sub_model.get_layer("dense_3").weights[0],
-                step=epoch,
-            )
-            tf.summary.histogram(
-                "classifier_sub/bias02",
-                classifier_sub_model.get_layer("dense_3").weights[1],
-                step=epoch,
-            )
+        # with train_summary_writer.as_default():
+        #     tf.summary.scalar("loss", epoch_loss_main_avg.result(), step=epoch)
+        #     tf.summary.scalar(
+        #         "accuracy", train_acc_metric.result(), step=epoch
+        #     )
+        # ヒストグラムのログ
+        # デコーダー
+        # tf.summary.histogram(
+        #     "decorder/weights",
+        #     decord_nn.get_layer("dense").weights[0],
+        #     step=epoch,
+        # )
+        # tf.summary.histogram(
+        #     "decorder/bias",
+        #     decord_nn.get_layer("dense").weights[1],
+        #     step=epoch,
+        # )
+        # # メインの分類器
+        # tf.summary.histogram(
+        #     "classifier_main/weights",
+        #     classifier_main_model.get_layer("dense_1").weights[0],
+        #     step=epoch,
+        # )
+        # tf.summary.histogram(
+        #     "classifier_main/bias",
+        #     classifier_main_model.get_layer("dense_1").weights[1],
+        #     step=epoch,
+        # )
+        # # サブの分類器
+        # tf.summary.histogram(
+        #     "classifier_sub/weights01",
+        #     classifier_sub_model.get_layer("dense_2").weights[0],
+        #     step=epoch,
+        # )
+        # tf.summary.histogram(
+        #     "classifier_sub/bias01",
+        #     classifier_sub_model.get_layer("dense_2").weights[1],
+        #     step=epoch,
+        # )
+        # tf.summary.histogram(
+        #     "classifier_sub/weights02",
+        #     classifier_sub_model.get_layer("dense_3").weights[0],
+        #     step=epoch,
+        # )
+        # tf.summary.histogram(
+        #     "classifier_sub/bias02",
+        #     classifier_sub_model.get_layer("dense_3").weights[1],
+        #     step=epoch,
+        # )
         # エポックの終わりにメトリクスを表示する
         print(
             f"訓練一致率：{train_acc_metric.result():.2%}",
@@ -440,11 +437,12 @@ if __name__ == "__main__":
     # ANCHOR: ハイパラの設定
     TEST_NAME = "test"
     DATA_TYPE = "type01"
-    RUN_NAME = DATA_TYPE
-    EXPERIMENT_TYPE = "has_subnet"
-    # EXPERIMENT_TYPE = "no_subnet"
+    # code 名によって実験を分類
+    # code_C(ompare)S(eed)
+    RUN_NAME = "code_CS"
+    EXPERIMENT_TYPE = ["has_subnet", "no_subnet"]
     HIDDEN_DIM = 8
-    EPOCHS = 100
+    EPOCHS = 50
     N_CLASS = 2
     ANNEALING_RATIO = 16
     SUBNET_STARTING_POINNT = 0.5
@@ -454,76 +452,91 @@ if __name__ == "__main__":
     WEITED_ACTIVATION = "none"
 
     # seed でループを回す
+    for fixed_seed in range(100):
+        for experiment_type in EXPERIMENT_TYPE:
 
-    (x_train, x_test), (y_train, y_test) = psedo_data(
-        row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
-    )
-    # カスタムトレーニングのために作成
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(
-        8
-    )
-    date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    # tagの設定
-    wandb_tags = [
-        TEST_NAME,
-        DATA_TYPE,
-        EXPERIMENT_TYPE,
-        str(HIDDEN_DIM),
-        str(EPOCHS),
-        str(N_CLASS),
-        str(ANNEALING_RATIO),
-        str(SUBNET_STARTING_POINNT),
-        WEITED_ACTIVATION,
-    ]
+            tf.random.set_seed(fixed_seed)
 
-    wandb_config = {
-        "test name": TEST_NAME,
-        "data type": DATA_TYPE,
-        "experiment type": EXPERIMENT_TYPE,
-        "hidden_dim": HIDDEN_DIM,
-        "epochs": EPOCHS,
-        "n class": N_CLASS,
-        "annealing ratio": ANNEALING_RATIO,
-        "subnet_starting_point": SUBNET_STARTING_POINNT,
-    }
+            (x_train, x_test), (y_train, y_test) = psedo_data(
+                row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
+            )
+            # カスタムトレーニングのために作成
+            train_dataset = tf.data.Dataset.from_tensor_slices(
+                (x_train, y_train)
+            )
+            train_dataset = train_dataset.shuffle(
+                buffer_size=x_train.shape[0]
+            ).batch(8)
+            date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            # tagの設定
+            wandb_tags = [
+                TEST_NAME,
+                DATA_TYPE,
+                experiment_type,
+                f"H:{str(HIDDEN_DIM)}",
+                f"E:{str(EPOCHS)}",
+                f"N:{str(N_CLASS)}",
+                f"AR:{str(ANNEALING_RATIO)}",
+                f"SSP:{str(SUBNET_STARTING_POINNT)}",
+                f"seed:{str(fixed_seed)}",
+                f"av:{WEITED_ACTIVATION}",
+            ]
 
-    wandb_saved_dir = os.path.join(os.environ["sleep"])
-    # wandbの初期化
-    wandb.init(
-        name=RUN_NAME,
-        project=PROJECT_NAME,
-        tags=wandb_tags,
-        config=wandb_config,
-        dir=wandb_saved_dir,
-    )
-    main(
-        x_train=x_train,
-        date_id=date_id,
-        train_dataset=train_dataset,
-        val_dataset=None,
-        epochs=EPOCHS,
-        input_unit=2,
-        hidden_unit=HIDDEN_DIM,
-        n_class=N_CLASS,
-        annealing_param=ANNEALING_RATIO,
-        subnet_starting_point=SUBNET_STARTING_POINNT,
-        project_name=PROJECT_NAME,
-        experiment_type=EXPERIMENT_TYPE,
-    )
-    # git の作成
-    utils = Utils()
-    root_dir = os.path.join(os.environ["sleep"], "figures")
-    each_dir_name_list = ["main_network", "sub_network", "merged_network"]
-    saved_path_list = [
-        os.path.join(
-            root_dir,
-            each_dir_name_list[i],
-            "check_uncertainty",
-            str(ANNEALING_RATIO),
-            str(HIDDEN_DIM),
-        )
-        for i in range(3)
-    ]
-    for saved_path in saved_path_list:
-        utils.make_gif(saved_path=saved_path)
+            wandb_config = {
+                "test name": TEST_NAME,
+                "data type": DATA_TYPE,
+                "experiment type": experiment_type,
+                "hidden_dim": HIDDEN_DIM,
+                "epochs": EPOCHS,
+                "n class": N_CLASS,
+                "annealing ratio": ANNEALING_RATIO,
+                "subnet_starting_point": SUBNET_STARTING_POINNT,
+                "seed": fixed_seed,
+            }
+
+            wandb_saved_dir = os.path.join(os.environ["sleep"])
+            # wandbの初期化
+            wandb.init(
+                name=RUN_NAME,
+                project=PROJECT_NAME,
+                tags=wandb_tags,
+                config=wandb_config,
+                dir=wandb_saved_dir,
+            )
+            # 何週目かの表示
+            print(PyColor.RED_FLASH, f"{fixed_seed}周目", PyColor.END)
+            main(
+                x_train=x_train,
+                date_id=date_id,
+                train_dataset=train_dataset,
+                val_dataset=None,
+                epochs=EPOCHS,
+                input_unit=2,
+                hidden_unit=HIDDEN_DIM,
+                n_class=N_CLASS,
+                annealing_param=ANNEALING_RATIO,
+                subnet_starting_point=SUBNET_STARTING_POINNT,
+                project_name=PROJECT_NAME,
+                experiment_type=experiment_type,
+            )
+            # git の作成
+            utils = Utils()
+            root_dir = os.path.join(os.environ["sleep"], "figures")
+            each_dir_name_list = [
+                "main_network",
+                "sub_network",
+                "merged_network",
+            ]
+            saved_path_list = [
+                os.path.join(
+                    root_dir,
+                    each_dir_name_list[i],
+                    "check_uncertainty",
+                    date_id,
+                )
+                for i in range(3)
+            ]
+            for saved_path in saved_path_list:
+                utils.make_gif(saved_path=saved_path)
+
+            wandb.finish()
