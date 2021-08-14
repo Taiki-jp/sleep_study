@@ -497,20 +497,20 @@ class EDLModelBase(tf.keras.Model):
         # metrics_dict.update(u_dict)
         return metrics_dict
 
-    @tf.function
-    def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
-        assert np.ndim(uncertainty) == 2  # (batch, 1)
-        assert y_true.shape == y_pred.shape  # (batch, n_class)
-        _y_true_list = list()
-        _y_pred_list = list()
-        for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
-            if _u > u_threshold:
-                _y_true_list.append(_y_true)
-                _y_pred_list.append(_y_pred)
-        u_acc = tf.keras.metrics.categorical_accuracy(
-            np.array(y_true), np.array(y_pred)
-        )
-        return {"u_acc": u_acc}
+    # @tf.function
+    # def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
+    #     assert np.ndim(uncertainty) == 2  # (batch, 1)
+    #     assert y_true.shape == y_pred.shape  # (batch, n_class)
+    #     _y_true_list = list()
+    #     _y_pred_list = list()
+    #     for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
+    #         if _u > u_threshold:
+    #             _y_true_list.append(_y_true)
+    #             _y_pred_list.append(_y_pred)
+    #     u_acc = tf.keras.metrics.categorical_accuracy(
+    #         np.array(y_true), np.array(y_pred)
+    #     )
+    #     return {"u_acc": u_acc}
 
 
 if __name__ == "__main__":
