@@ -19,7 +19,7 @@ def main(
     project,
     train,
     test,
-    pre_process,
+    pre_process: PreProcess,
     epochs=1,
     save_model=False,
     my_tags=None,
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     IS_ENN = True
     IS_MUL_LAYER = False
     EPOCHS = 100
-    BATCH_SIZE = 32
+    BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 16
