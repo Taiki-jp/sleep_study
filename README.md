@@ -1,7 +1,6 @@
 # sleep study
 
 2020.4 - 2022.3 : code for master thethis
-
 # Introduction
 
 ![net_alt](gallery/my_network.png "my_network")
@@ -17,10 +16,11 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 # Branch
 
 - master : 無駄なファイルを除いた一番軽量なブランチ（基本ここから切る）
-- feature/psedo_data : 仮のデータを使った実験ブランチ
-- feature/deep_learning : EU が原因で間違っているように見えるので、多層化により一致率向上を目指す
-- feature/rnn : 時系列を考慮した NN の構築
+- feature/psedo_data : 仮のデータを使った実験ブランチ（マージ・削除済み）
+- feature/deep_learning : EUが原因で間違っているように見えるので、多層化により一致率向上を目指す
+- feature/rnn : 時系列を考慮したNNの構築
 - feature/sep_learning : 何のブランチか忘れた
+- feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 
 # Prefix
 
