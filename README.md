@@ -21,6 +21,7 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - feature/rnn : 時系列を考慮したNNの構築
 - feature/sep_learning : 何のブランチか忘れた
 - feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
+- feature/dnn : determinstic nn の学習用ブランチ
 
 # Prefix
 
