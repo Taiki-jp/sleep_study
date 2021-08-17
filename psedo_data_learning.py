@@ -429,13 +429,13 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパラの設定
     TEST_NAME = "test"
-    DATA_TYPE = "type01"
+    DATA_TYPE = "type02"
     # code 名によって実験を分類
     # code_C(ompare)S(eed)
     RUN_NAME = "code_CS"
     EXPERIMENT_TYPE = ["has_subnet", "no_subnet"]
     HIDDEN_DIM = 8
-    EPOCHS = 1
+    EPOCHS = 50
     N_CLASS = 2
     ANNEALING_RATIO = 16
     SUBNET_STARTING_POINNT = 0.5
