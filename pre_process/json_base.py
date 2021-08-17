@@ -25,7 +25,7 @@ class JsonBase(object):
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
         if key_len > 5:
-            print(PyColor.RED_FLASH, f"キーは4までの長さまでしか実装されていません", PyColor.END)
+            print(PyColor.RED_FLASH, "キーは4までの長さまでしか実装されていません", PyColor.END)
             sys.exit(1)
         # TODO : もっと賢い書き方無いかな？
         if key_len == 1:

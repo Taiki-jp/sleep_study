@@ -52,7 +52,6 @@ class Utils:
     def showSpectrogram(self, *datas, num=4, path=False):
         """正規化後と正規化前の複数を同時にプロットするためのメソッド
         例
-        >>> o_utils.showSpectrogram(x_train, tmp)
         このとき x_trian.shape=(batch, row(128), col(512)) となっている（tmp　も同様）
         NOTE : 周波数を行方向に取るために転置をプログラム内で行っている(data[k].T のところ)
 
@@ -649,28 +648,22 @@ class Utils:
     def archimedes_spiral(
         self, row: int, col: int, x_bias: int, y_bias: int, seed: int = 0
     ) -> tuple:
-        r_class0 = tf.random.uniform(
-            shape=(row,), minval=0, maxval=1 / 4 / np.pi
-        )
         theta_class0 = tf.random.uniform(
             shape=(row,), minval=0, maxval=np.pi * 4
-        )
-        r_class1 = tf.random.uniform(
-            shape=(row,), minval=0, maxval=1 / 4 / np.pi
         )
         theta_class1 = tf.random.uniform(
             shape=(row,), minval=0, maxval=np.pi * 4
         )
         input_class0 = (
-            x_bias + theta_class0 * np.cos(theta_class0),
-            y_bias + theta_class0 * np.sin(theta_class0),
+            x_bias + (theta_class0/4/np.pi) * np.cos(theta_class0),
+            y_bias + (theta_class0/4/np.pi) * np.sin(theta_class0),
         )
-        # pi/6 ずらす
+        # pi ずらす
         input_class1 = (
             x_bias
-            + (theta_class1 + np.pi / 6) * np.cos(theta_class1 + np.pi / 6),
+            + np.cos(theta_class1 + np.pi) * (theta_class1/4/np.pi),
             y_bias
-            + (theta_class1 + np.pi / 6) * np.sin(theta_class1 + np.pi / 6),
+            + np.sin(theta_class1 + np.pi) * (theta_class1/4/np.pi),
         )
         x_train = tf.concat([input_class0, input_class1], axis=1)
         x_train = tf.transpose(x_train)
@@ -684,6 +677,13 @@ class Utils:
 
 if __name__ == "__main__":
     utils = Utils()
+    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
+        100, 2, 0, 0
+    )
+    x_train = x_train.numpy()
+    plt.scatter(x_train[:100,0], x_train[:100,1], c="r")
+    plt.scatter(x_train[100:,0], x_train[100:,1], c="b")
+    plt.savefig("hoge.png")
 
     # ===============
     # make graph test
@@ -707,6 +707,3 @@ if __name__ == "__main__":
     # =========================
     # archimedes_spiral test
     # =========================
-    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
-        100, 2, 0, 0
-    )

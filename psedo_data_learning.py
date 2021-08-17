@@ -20,7 +20,6 @@ from matplotlib import pyplot as plt
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-# tf.random.set_seed(0)
 
 
 # @tf.function
@@ -429,7 +428,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパラの設定
     TEST_NAME = "test"
-    DATA_TYPE = "type02"
+    DATA_TYPE = "type03"
     # code 名によって実験を分類
     # code_C(ompare)S(eed)
     RUN_NAME = "code_CS"
@@ -451,7 +450,7 @@ if __name__ == "__main__":
 
             tf.random.set_seed(fixed_seed)
 
-            (x_train, x_test), (y_train, y_test) = utils.point_symmetry_data(
+            (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
                 row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
             )
             # カスタムトレーニングのために作成
