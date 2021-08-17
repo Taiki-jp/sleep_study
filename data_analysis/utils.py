@@ -645,6 +645,42 @@ class Utils:
         # test データは用意しない
         return (datas, None), (labels, None)
 
+    # アルキメデスの渦巻線
+    def archimedes_spiral(
+        self, row: int, col: int, x_bias: int, y_bias: int, seed: int = 0
+    ) -> tuple:
+        r_class0 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=1 / 4 / np.pi
+        )
+        theta_class0 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 4
+        )
+        r_class1 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=1 / 4 / np.pi
+        )
+        theta_class1 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 4
+        )
+        input_class0 = (
+            x_bias + theta_class0 * np.cos(theta_class0),
+            y_bias + theta_class0 * np.sin(theta_class0),
+        )
+        # pi/6 ずらす
+        input_class1 = (
+            x_bias
+            + (theta_class1 + np.pi / 6) * np.cos(theta_class1 + np.pi / 6),
+            y_bias
+            + (theta_class1 + np.pi / 6) * np.sin(theta_class1 + np.pi / 6),
+        )
+        x_train = tf.concat([input_class0, input_class1], axis=1)
+        x_train = tf.transpose(x_train)
+        y_train_0 = [0 for _ in range(row)]
+        y_train_1 = [1 for _ in range(row)]
+        y_train = y_train_0 + y_train_1
+        x_test = None
+        y_test = None
+        return (x_train, x_test), (y_train, y_test)
+
 
 if __name__ == "__main__":
     utils = Utils()
@@ -666,8 +702,11 @@ if __name__ == "__main__":
     # =========================
     # point_symmetry_data test
     # =========================
-    (x_train, x_test), (y_train, y_test) = utils.polar_data(100, 2, 0, 0)
-    print(x_train)
-
-    (x_train, x_test), (y_train, y_test) = utils.point_symmetry_data(100, 2, 0, 0)
-
+    # (x_train, x_test), (y_train, y_test) = utils.polar_data(100, 2, 0, 0)
+    # print(x_train)
+    # =========================
+    # archimedes_spiral test
+    # =========================
+    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
+        100, 2, 0, 0
+    )
