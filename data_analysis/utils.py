@@ -2,6 +2,9 @@ from data_analysis.py_color import PyColor
 import pickle, datetime, os, wandb
 from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
