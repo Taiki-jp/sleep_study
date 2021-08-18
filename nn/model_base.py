@@ -464,7 +464,7 @@ class EDLModelBase(tf.keras.Model):
             y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
             # Loss
             loss = self.compiled_loss(
-                y, alpha, regularization_losses=self.losses
+                y, evidence, regularization_losses=self.losses
             )
 
         # Gradients
