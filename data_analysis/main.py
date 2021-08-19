@@ -210,7 +210,7 @@ if __name__ == "__main__":
     ][f"kernel_{str(KERNEL_SIZE)}"]
 
     for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list, date_id_list)
+        zip(pre_process.name_list[29:], date_id_list[29:])
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA

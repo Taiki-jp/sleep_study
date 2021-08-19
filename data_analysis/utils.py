@@ -271,8 +271,8 @@ class Utils:
 
         if n_class == 5:
             labels = ["nr34", "nr2", "nr1", "rem", "wake"]
-            # 分類数5で正解が4クラスしかないときはNR34を取り除く
-            if len(Counter(y_true)) == 4:
+            # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
+            if len(Counter(y_true)) == 4 and len(Counter(y_pred)) == 4:
                 labels.pop(0)
         elif n_class == 4:
             labels = ["nr34", "nr12", "rem", "wake"]
