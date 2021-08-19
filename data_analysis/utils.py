@@ -144,6 +144,9 @@ class Utils:
         )
         # パスを通す
         self.check_path_auto(path=path)
+        if not os.path.exists(path):
+            print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
+            os.makedirs(path)
         # ファイル名を指定して保存
         plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
 
@@ -586,7 +589,8 @@ class Utils:
         path = os.path.join(
             self.env.figure_dir, "uncertainty", test_label, train_or_test
         )
-        self.check_path_auto(path=path)
+        if not os.path.exists(path):
+            os.makedirs(path)
         file_path = os.path.join(path, "uncertainty" + "_" + date_id + ".png")
         plt.savefig(file_path)
         self.save_graph2Wandb(
