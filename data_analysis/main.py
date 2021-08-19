@@ -128,7 +128,7 @@ def main(
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
-            separate_each_ss=False,
+            separate_each_ss=True,
         )
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
@@ -146,7 +146,7 @@ def main(
 
 if __name__ == "__main__":
     # 環境設定
-    CALC_DEVICE = "gpu"
+    CALC_DEVICE = "cpu"
     # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
