@@ -6,26 +6,33 @@ from tensorflow.keras import backend as K
 
 
 class CategoricalTruePositives(tf.keras.metrics.Metric):
-    def __init__(self, name="categorical_true_positives", target_class=0, **kwargs):
+    def __init__(self, name="categorical_true_positives", target_class=0, batch_size=1, data_size=0, n_class=0, **kwargs):
         super().__init__(name=name+"_"+str(target_class), **kwargs)
         self.true_positives = self.add_weight(name="ctp", initializer="zeros")
         self.target_class = target_class
+        self.batch_size = batch_size
+        self.data_size = data_size
+        self.n_class = n_class
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        # =================================
+        # 動作しているけど、よくわからない動作
+        # =================================
+
         # y_pred は one-hot表現, y_true は categorical 表現で来る？
         y_pred = tf.reshape(tf.argmax(y_pred, axis=1), shape=(-1, 1))
         # y_pred の行数作成
-        _target_class = tf.Variable([self.target_class for _ in range(y_pred.shape[0])], dtype=tf.int32)
+        _target_class = tf.reshape(tf.constant([self.target_class for _ in range(y_pred.shape[0])], dtype=tf.int32), shape=(-1,1))
         y_pred_values = tf.cast(y_pred, "int32") == _target_class
         y_true_values = tf.cast(y_true, "int32") == _target_class
         values = tf.cast(y_pred_values, "float32") * tf.cast(y_true_values, "float32")
-        if sample_weight is not None:
-            sample_weight = tf.cast(sample_weight, "float32")
-            values = tf.multiply(values, sample_weight)
+        # if sample_weight is not None:
+        #     sample_weight = tf.cast(sample_weight, "float32")
+        #     values = tf.multiply(values, sample_weight)
         self.true_positives.assign_add(tf.reduce_sum(values))
 
     def result(self):
-        return self.true_positives
+        return self.true_positives / self.batch_size / self.data_size
 
     def reset_states(self):
         # The state of the metric will be reset at the start of each epoch.
@@ -118,7 +125,7 @@ def custom_metric(y_true, y_pred):
 
 if __name__ == "__main__":
     # データの作成
-    tf.config.run_functions_eagerly(True)
+    # tf.config.run_functions_eagerly(True)
     from data_analysis.utils import Utils
     import numpy as np
     utils = Utils()
@@ -147,8 +154,8 @@ if __name__ == "__main__":
         metrics=[
             "accuracy",
             custom_metric,
-            CategoricalTruePositives(target_class=0),
-            CategoricalTruePositives(target_class=1)]
+            CategoricalTruePositives(target_class=0, data_size=200, n_class=2),
+            CategoricalTruePositives(target_class=1, data_size=200, n_class=2)]
         )
     model.fit(
         x_train,
