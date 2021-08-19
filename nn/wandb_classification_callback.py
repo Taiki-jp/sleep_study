@@ -5,6 +5,7 @@ from wandb.keras import WandbCallback
 from sklearn.metrics import confusion_matrix
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+from collections import Counter
 
 
 class WandbClassificationCallback(WandbCallback):
@@ -71,6 +72,7 @@ class WandbClassificationCallback(WandbCallback):
         self.my_confusion_file_name = my_confusion_file_name
         self.log_f_measure = log_f_measure
         self.calc_metrics = calc_metrics
+        self.labels = labels
 
     def on_epoch_end(self, epoch, logs={}):
         if self.generator:
@@ -147,17 +149,33 @@ class WandbClassificationCallback(WandbCallback):
             self.best = self.current
 
     def _log_confusion_matrix(self):
+        # テストデータからラベルを作成
+
         x_val = self.validation_data[0]
         y_val = self.validation_data[1]
-        # print(y_val.shape)
-        # changed axis for my sleep env
-        # y_val = np.argmax(y_val, axis=0)
-        y_pred = np.argmax(self.model.predict(x_val), axis=1)
-        confmatrix = confusion_matrix(
-            y_pred, y_val, labels=range(len(self.labels))
-        )
-        confdiag = np.eye(len(confmatrix)) * confmatrix
-        np.fill_diagonal(confmatrix, 0)
+        ss_dict = Counter(y_val)
+        nrem34_num = ss_dict[0]
+        nrem2_num = ss_dict[1]
+        nrem1_num = ss_dict[2]
+        rem_num = ss_dict[3]
+        wake_num = ss_dict[4]
+        if len(ss_dict) == 5:
+            # print(y_val.shape)
+            # changed axis for my sleep env
+            # y_val = np.argmax(y_val, axis=0)
+            y_pred = np.argmax(self.model.predict(x_val), axis=1)
+            confmatrix = confusion_matrix(
+                y_pred, y_val, labels=range(len(self.labels))
+            )
+            # print(confmatrix)
+            confdiag = np.eye(len(confmatrix)) * confmatrix
+            # print(confdiag)
+            np.fill_diagonal(confmatrix, 0)
+            log_dict = {
+                ss_label: confdiag[i][i] / ss_dict[i]
+                for (ss_label, i) in zip(self.labels, range(len(self.labels)))
+            }
+            wandb.log(log_dict, commit=False)
 
         confmatrix = confmatrix.astype("float")
         n_confused = np.sum(confmatrix)
@@ -243,15 +261,15 @@ class WandbClassificationCallback(WandbCallback):
                 yaxis=yaxis,
             )
         # fig.show()
-        if self.log_f_measure:
-            try:
-                assert self.calc_metrics is True
-            except AssertionError:
-                print("F値のログを送りたいけど計算が出来てないみたいです")
-                sys.exit(1)
-        else:
-            print("F値のログは取りません")
-            pass
+        # if self.log_f_measure:
+        #     try:
+        #         assert self.calc_metrics is True
+        #     except AssertionError:
+        #         print("F値のログを送りたいけど計算が出来てないみたいです")
+        #         sys.exit(1)
+        # else:
+        #     print("F値のログは取りません")
+        #     pass
 
         return {"confusion_matrix": wandb.data_types.Plotly(fig)}
 

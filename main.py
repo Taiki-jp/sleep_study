@@ -1,6 +1,11 @@
+from nn.wandb_classification_callback import WandbClassificationCallback
 import sys
-import tensorflow as tf
 import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
+
+tf.random.set_seed(100)
 import datetime
 from tensorflow.python.framework.ops import Tensor
 import wandb
@@ -8,13 +13,12 @@ from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
+
+# from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from pre_process.record import Record
 from collections import Counter
-
-tf.random.set_seed(100)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 def main(
@@ -104,8 +108,27 @@ def main(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy"],
+            metrics=[
+                "accuracy",
+                # CategoricalTruePositives(
+                #     target_class=0, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=1, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=2, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=3, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=4, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(),
+            ],
         )
+
     else:
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
         model.compile(
@@ -113,7 +136,25 @@ def main(
             loss=tf.keras.losses.SparseCategoricalCrossentropy(
                 from_logits=True
             ),
-            metrics=["accuracy"],
+            metrics=[
+                "accuracy",
+                # CategoricalTruePositives(
+                #     target_class=0, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=1, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=2, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=3, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=4, data_size=sample_size * n_class, n_class=5
+                # ),
+                CategoricalTruePositives(),
+            ],
         )
 
     # tensorboard作成
@@ -135,7 +176,15 @@ def main(
         batch_size=batch_size,
         validation_data=(x_test, y_test),
         epochs=epochs,
-        callbacks=[tf_callback, WandbCallback()],
+        callbacks=[
+            tf_callback,
+            # WandbCallback(),
+            WandbClassificationCallback(
+                validation_data=(x_test, y_test),
+                log_confusion_matrix=True,
+                labels=["nr34", "nr2", "nr1", "rem", "wake"],
+            ),
+        ],
         verbose=2,
     )
 
@@ -162,7 +211,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -171,12 +220,13 @@ if __name__ == "__main__":
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
-    EPOCHS = 10
-    BATCH_SIZE = 128
+    HAS_NREM2_BIAS = True
+    EPOCHS = 100
+    BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 200000
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -199,6 +249,7 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
+        has_nrem2_bias=HAS_NREM2_BIAS,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
@@ -207,7 +258,7 @@ if __name__ == "__main__":
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list):
+    for test_id, test_name in enumerate(pre_process.name_list[:40]):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
@@ -238,9 +289,10 @@ if __name__ == "__main__":
             "fit_pos": FIT_POS,
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
+            "has_nrem2_bias": HAS_NREM2_BIAS,
         }
         main(
-            name="code_dnn",
+            name=f"code_{ENN_TAG}",
             project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
