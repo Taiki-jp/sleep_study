@@ -1,5 +1,8 @@
 from data_analysis.py_color import PyColor
-import pickle, datetime, os, wandb
+import pickle
+import datetime
+import os
+import wandb
 from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
 import matplotlib.pyplot as plt
@@ -14,8 +17,7 @@ from sklearn.datasets import make_classification
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 from IPython.display import SVG
-
-# from keras.utils.vis_utils import model_to_dot
+import numpy as np
 import sys
 import numpy
 import tensorflow as tf
@@ -23,6 +25,7 @@ from data_analysis.my_color import MyColor
 from pre_process.my_env import MyEnv
 from PIL import Image
 import glob
+
 
 # 便利な関数をまとめたもの
 class Utils:
@@ -49,7 +52,6 @@ class Utils:
     def showSpectrogram(self, *datas, num=4, path=False):
         """正規化後と正規化前の複数を同時にプロットするためのメソッド
         例
-        >>> o_utils.showSpectrogram(x_train, tmp)
         このとき x_trian.shape=(batch, row(128), col(512)) となっている（tmp　も同様）
         NOTE : 周波数を行方向に取るために転置をプログラム内で行っている(data[k].T のところ)
 
@@ -598,16 +600,110 @@ class Utils:
             loop=0,
         )
 
+    # 極座標で考える
+    def polar_data(
+        self, row: int, col: int, x_bias: int, y_bias: int
+    ) -> tuple:
+        r_class0 = tf.random.uniform(shape=(row,), minval=0, maxval=0.6)
+        theta_class0 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 2
+        )
+        r_class1 = tf.random.uniform(shape=(row,), minval=0.5, maxval=1)
+        theta_class1 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 2
+        )
+        input_class0 = (
+            x_bias + r_class0 * np.cos(theta_class0),
+            y_bias + r_class0 * np.sin(theta_class0),
+        )
+        input_class1 = (
+            x_bias + r_class1 * np.cos(theta_class1),
+            y_bias + r_class1 * np.sin(theta_class1),
+        )
+        x_train = tf.concat([input_class0, input_class1], axis=1)
+        x_train = tf.transpose(x_train)
+        y_train_0 = [0 for _ in range(row)]
+        y_train_1 = [1 for _ in range(row)]
+        y_train = y_train_0 + y_train_1
+        x_test = None
+        y_test = None
+        return (x_train, x_test), (y_train, y_test)
+
+    # 点対称なデータセット
+    def point_symmetry_data(
+        self, row: int, col: int, x_bias: int, y_bias: int, seed: int = 0
+    ) -> tuple:
+        datas = tf.random.uniform(
+            shape=(row * 2, col),
+            minval=-1,
+            maxval=1,
+            seed=seed,
+        )
+        # label 分け
+        labels = [0 if data[0] * data[1] >= 0 else 1 for data in datas]
+        # test データは用意しない
+        return (datas, None), (labels, None)
+
+    # アルキメデスの渦巻線
+    def archimedes_spiral(
+        self, row: int, col: int, x_bias: int, y_bias: int, seed: int = 0
+    ) -> tuple:
+        theta_class0 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 4
+        )
+        theta_class1 = tf.random.uniform(
+            shape=(row,), minval=0, maxval=np.pi * 4
+        )
+        input_class0 = (
+            x_bias + (theta_class0/4/np.pi) * np.cos(theta_class0),
+            y_bias + (theta_class0/4/np.pi) * np.sin(theta_class0),
+        )
+        # pi ずらす
+        input_class1 = (
+            x_bias
+            + np.cos(theta_class1 + np.pi) * (theta_class1/4/np.pi),
+            y_bias
+            + np.sin(theta_class1 + np.pi) * (theta_class1/4/np.pi),
+        )
+        x_train = tf.concat([input_class0, input_class1], axis=1)
+        x_train = tf.transpose(x_train)
+        y_train_0 = [0 for _ in range(row)]
+        y_train_1 = [1 for _ in range(row)]
+        y_train = y_train_0 + y_train_1
+        x_test = None
+        y_test = None
+        return (x_train, x_test), (y_train, y_test)
+
 
 if __name__ == "__main__":
     utils = Utils()
-    root_dir = os.path.join(os.environ["sleep"], "figures")
-    each_dir_name_list = ["main_network", "sub_network", "merged_network"]
-    saved_path_list = [
-        os.path.join(
-            root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
-        )
-        for i in range(3)
-    ]
-    for saved_path in saved_path_list:
-        utils.make_gif(saved_path=saved_path)
+    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
+        100, 2, 0, 0
+    )
+    x_train = x_train.numpy()
+    plt.scatter(x_train[:100,0], x_train[:100,1], c="r")
+    plt.scatter(x_train[100:,0], x_train[100:,1], c="b")
+    plt.savefig("hoge.png")
+
+    # ===============
+    # make graph test
+    # ===============
+    # root_dir = os.path.join(os.environ["sleep"], "figures")
+    # each_dir_name_list = ["main_network", "sub_network", "merged_network"]
+    # saved_path_list = [
+    #     os.path.join(
+    #         root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
+    #     )
+    #     for i in range(3)
+    # ]
+    # for saved_path in saved_path_list:
+    #     utils.make_gif(saved_path=saved_path)
+
+    # =========================
+    # point_symmetry_data test
+    # =========================
+    # (x_train, x_test), (y_train, y_test) = utils.polar_data(100, 2, 0, 0)
+    # print(x_train)
+    # =========================
+    # archimedes_spiral test
+    # =========================

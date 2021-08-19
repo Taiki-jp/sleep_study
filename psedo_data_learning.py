@@ -20,32 +20,6 @@ from matplotlib import pyplot as plt
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-# tf.random.set_seed(0)
-
-
-# 仮データの作成
-def psedo_data(row: int, col: int, x_bias: int, y_bias: int) -> tuple:
-    # 極座標で考える
-    r_class0 = tf.random.uniform(shape=(row,), minval=0, maxval=0.6)
-    theta_class0 = tf.random.uniform(shape=(row,), minval=0, maxval=np.pi * 2)
-    r_class1 = tf.random.uniform(shape=(row,), minval=0.5, maxval=1)
-    theta_class1 = tf.random.uniform(shape=(row,), minval=0, maxval=np.pi * 2)
-    input_class0 = (
-        x_bias + r_class0 * np.cos(theta_class0),
-        y_bias + r_class0 * np.sin(theta_class0),
-    )
-    input_class1 = (
-        x_bias + r_class1 * np.cos(theta_class1),
-        y_bias + r_class1 * np.sin(theta_class1),
-    )
-    x_train = tf.concat([input_class0, input_class1], axis=1)
-    x_train = tf.transpose(x_train)
-    y_train_0 = [0 for _ in range(row)]
-    y_train_1 = [1 for _ in range(row)]
-    y_train = y_train_0 + y_train_1
-    x_test = None
-    y_test = None
-    return (x_train, x_test), (y_train, y_test)
 
 
 # @tf.function
@@ -88,6 +62,8 @@ def my_argmax(array: np.ndarray, axis: int, n_classes: int) -> np.ndarray:
 
 def main(
     x_train: Tensor,
+    y_train: Tensor,
+    utils: Utils,
     train_dataset: tuple,
     val_dataset: tuple,
     date_id: datetime.datetime,
@@ -146,7 +122,10 @@ def main(
     train_log_dir = os.path.join(
         os.environ["sleep"], "logs", "gradient_tape", current_time, "train"
     )
-    train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+    if not os.path.exists:
+        print(PyColor.RED_FLASH, f"make {train_log_dir}", PyColor.END)
+        os.makedirs(train_log_dir)
+    # train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     # test_log_dir = os.path.join(
     #     os.environ["sleep"], "logs", "gradient_tape", current_time, "test"
     # )
@@ -154,7 +133,7 @@ def main(
 
     def _make_image(
         x_train: Tensor,
-        # y_train: Tensor,
+        y_train: Tensor,
         iter: int,
     ):
         # 結果の出力(訓練データそのまま)
@@ -186,9 +165,16 @@ def main(
         ):
             figure = plt.figure(figsize=(12, 4))
             # 1. 正解の散布図
+            # TODO: クラスが順番に並んでない時にも対応できるように変更
             ax = figure.add_subplot(1, 4, 1)
-            ax.scatter(x_train[:sample_num, 0], x_train[:sample_num, 1], c="r")
-            ax.scatter(x_train[sample_num:, 0], x_train[sample_num:, 1], c="b")
+            for x, label in zip(x_train, y_train):
+                if label == 0:
+                    ax.scatter(x[0], x[1], c="r")
+                elif label == 1:
+                    ax.scatter(x[0], x[1], c="b")
+                else:
+                    print("exception has occured")
+                    sys.exit(1)
             ax.set_title("true")
             # 2. 予測の散布図
             ax = figure.add_subplot(142)
@@ -365,6 +351,7 @@ def main(
         # 画像の作成
         _make_image(
             x_train=x_train,
+            y_train=y_train,
             iter=epoch,
         )
         # サマリーライターへの書き込み
@@ -441,7 +428,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパラの設定
     TEST_NAME = "test"
-    DATA_TYPE = "type01"
+    DATA_TYPE = "type03"
     # code 名によって実験を分類
     # code_C(ompare)S(eed)
     RUN_NAME = "code_CS"
@@ -455,6 +442,7 @@ if __name__ == "__main__":
     SAMPLE_NUM = 100
     # TODO: 誤差関数の重みづけの活性化関数と対応付ける
     WEITED_ACTIVATION = "none"
+    utils = Utils()
 
     # seed でループを回す
     for fixed_seed in range(100):
@@ -462,7 +450,7 @@ if __name__ == "__main__":
 
             tf.random.set_seed(fixed_seed)
 
-            (x_train, x_test), (y_train, y_test) = psedo_data(
+            (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
                 row=SAMPLE_NUM, col=2, x_bias=0, y_bias=0
             )
             # カスタムトレーニングのために作成
@@ -509,9 +497,10 @@ if __name__ == "__main__":
                 dir=wandb_saved_dir,
             )
             # 何週目かの表示
-            print(PyColor.RED_FLASH, f"{fixed_seed}周目", PyColor.END)
+            print(PyColor.GREEN_FLASH, f"{fixed_seed} SEED", PyColor.END)
             main(
                 x_train=x_train,
+                y_train=y_train,
                 date_id=date_id,
                 train_dataset=train_dataset,
                 val_dataset=None,
@@ -523,9 +512,9 @@ if __name__ == "__main__":
                 subnet_starting_point=SUBNET_STARTING_POINNT,
                 project_name=PROJECT_NAME,
                 experiment_type=experiment_type,
+                utils=utils,
             )
             # git の作成
-            utils = Utils()
             root_dir = os.path.join(os.environ["sleep"], "figures")
             each_dir_name_list = [
                 "main_network",
