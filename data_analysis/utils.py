@@ -655,15 +655,13 @@ class Utils:
             shape=(row,), minval=0, maxval=np.pi * 4
         )
         input_class0 = (
-            x_bias + (theta_class0/4/np.pi) * np.cos(theta_class0),
-            y_bias + (theta_class0/4/np.pi) * np.sin(theta_class0),
+            x_bias + (theta_class0 / 4 / np.pi) * np.cos(theta_class0),
+            y_bias + (theta_class0 / 4 / np.pi) * np.sin(theta_class0),
         )
         # pi ずらす
         input_class1 = (
-            x_bias
-            + np.cos(theta_class1 + np.pi) * (theta_class1/4/np.pi),
-            y_bias
-            + np.sin(theta_class1 + np.pi) * (theta_class1/4/np.pi),
+            x_bias + np.cos(theta_class1 + np.pi) * (theta_class1 / 4 / np.pi),
+            y_bias + np.sin(theta_class1 + np.pi) * (theta_class1 / 4 / np.pi),
         )
         x_train = tf.concat([input_class0, input_class1], axis=1)
         x_train = tf.transpose(x_train)
@@ -681,8 +679,8 @@ if __name__ == "__main__":
         100, 2, 0, 0
     )
     x_train = x_train.numpy()
-    plt.scatter(x_train[:100,0], x_train[:100,1], c="r")
-    plt.scatter(x_train[100:,0], x_train[100:,1], c="b")
+    plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
+    plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
     plt.savefig("hoge.png")
 
     # ===============
