@@ -265,8 +265,12 @@ class Utils:
         cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
         # 予測ラベルのクラス数に応じてラベル名を変更する
+
         if n_class == 5:
             labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+            # 分類数5で正解が4クラスしかないときはNR34を取り除く
+            if len(Counter(y_true)) == 4:
+                labels.pop(0)
         elif n_class == 4:
             labels = ["nr34", "nr12", "rem", "wake"]
         elif n_class == 3:
