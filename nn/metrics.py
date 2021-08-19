@@ -6,14 +6,19 @@ from tensorflow.keras import backend as K
 
 
 class CategoricalTruePositives(tf.keras.metrics.Metric):
-    def __init__(self, name="categorical_true_positives", **kwargs):
-        super().__init__(name=name, **kwargs)
+    def __init__(self, name="categorical_true_positives", target_class=0, **kwargs):
+        super().__init__(name=name+"_"+str(target_class), **kwargs)
         self.true_positives = self.add_weight(name="ctp", initializer="zeros")
+        self.target_class = target_class
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        # y_pred は one-hot表現, y_true は categorical 表現で来る？
         y_pred = tf.reshape(tf.argmax(y_pred, axis=1), shape=(-1, 1))
-        values = tf.cast(y_true, "int32") == tf.cast(y_pred, "int32")
-        values = tf.cast(values, "float32")
+        # y_pred の行数作成
+        _target_class = tf.Variable([self.target_class for _ in range(y_pred.shape[0])], dtype=tf.int32)
+        y_pred_values = tf.cast(y_pred, "int32") == _target_class
+        y_true_values = tf.cast(y_true, "int32") == _target_class
+        values = tf.cast(y_pred_values, "float32") * tf.cast(y_true_values, "float32")
         if sample_weight is not None:
             sample_weight = tf.cast(sample_weight, "float32")
             values = tf.multiply(values, sample_weight)
@@ -106,5 +111,53 @@ class MyMetrics(tf.keras.metrics.Metric):
         pass
 
 
+# 呼び方の確認のための簡単なステートレスメトリクス
 def custom_metric(y_true, y_pred):
     return 1
+
+
+if __name__ == "__main__":
+    # データの作成
+    tf.config.run_functions_eagerly(True)
+    from data_analysis.utils import Utils
+    import numpy as np
+    utils = Utils()
+    (x_train, x_test), (y_train, y_test) = utils.point_symmetry_data(100, 2, 0, 0, 0)
+    # y_trainのtypeがリストのままではだめ
+    if type(y_train) == list:
+        print("y_train の方をndarrayに変換します")
+        y_train = np.array(y_train)
+    # wandb に送る
+    import wandb
+    from wandb.keras import WandbCallback
+    import os
+    wandb.init(name="metric_test", project="test", dir=os.environ["sleep"])
+
+    # モデルの作成
+    import tensorflow as tf
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(10, activation="relu", input_shape=(2,)))
+    model.add(tf.keras.layers.Dense(10, activation="relu"))
+    model.add(tf.keras.layers.Dense(2, activation="relu"))
+    print(model.summary())
+    # モデルのコンパイル
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[
+            "accuracy",
+            custom_metric,
+            CategoricalTruePositives(target_class=0),
+            CategoricalTruePositives(target_class=1)]
+        )
+    model.fit(
+        x_train,
+        y_train,
+        batch_size=10,
+        epochs=10,
+        verbose=2,
+        callbacks=[WandbCallback()])
+
+
+
+    
