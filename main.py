@@ -153,7 +153,6 @@ def main(
                 # CategoricalTruePositives(
                 #     target_class=4, data_size=sample_size * n_class, n_class=5
                 # ),
-                CategoricalTruePositives(),
             ],
         )
 
@@ -211,16 +210,16 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = True
+    IS_ENN = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
-    HAS_NREM2_BIAS = True
+    HAS_NREM2_BIAS = False
     EPOCHS = 100
     BATCH_SIZE = 512
     N_CLASS = 5
@@ -228,7 +227,7 @@ if __name__ == "__main__":
     STRIDE = 1024
     SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
-    FIT_POS = "middle"
+    FIT_POS = "bottom"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
@@ -258,7 +257,7 @@ if __name__ == "__main__":
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list[:40]):
+    for test_id, test_name in enumerate(pre_process.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
@@ -290,6 +289,7 @@ if __name__ == "__main__":
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
             "has_nrem2_bias": HAS_NREM2_BIAS,
+            "model_type": ENN_TAG,
         }
         main(
             name=f"code_{ENN_TAG}",
