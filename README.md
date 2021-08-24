@@ -23,6 +23,12 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 - feature/dnn : determinstic nn の学習用ブランチ
 
+## TODO
+| DATA / MODEL| dnn | enn | proposed1(negative) | proposed2(aggressive) | proposed3(hierarichical) |
+----|----|----|----|----|----|
+| psedo | code | code | code | code | code |
+| sleep | code | code | code | code | code |
+
 # Prefix
 
 - feat: 新機能実装
