@@ -19,6 +19,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタ�
 
 def main(
     name: str,
+    utils: Utils,
     project: str,
     train: list,
     test: list,
@@ -49,6 +50,7 @@ def main(
         is_storchastic=False,
         pse_data=pse_data,
         each_data_size=sample_size,
+        to_one_hot_vector=False,
     )
     # カテゴリカルに変換 TODO: make_dataset 内で onehot 表現に変えてもよいかチェック
     # データセットの数
@@ -136,7 +138,7 @@ def main(
     # 最適化関数の設定
     optimizer = tf.keras.optimizers.Adam()
     # メトリクスの作成
-    # true side : カテゴリカルな状態，pred side : クラスの次元数（ソフトマックスをかける前）
+    # true side : カテゴリカルな状態，pred side : one-hot表現（ソフトマックスをかける前）
     train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
     epoch_loss_main_avg = tf.keras.metrics.Mean()
@@ -190,6 +192,8 @@ def main(
                         evidence_sub,
                         unc_main,
                     )
+                    # 進捗の記録
+                    epoch_loss_sub_avg(loss_value_sub)
             if epoch / epochs > subnet_starting_point:
                 grads_sub = tape_main.gradient(
                     loss_value_sub, classifier_sub_model.trainable_weights
@@ -220,9 +224,13 @@ def main(
             # 進捗の記録
             epoch_loss_main_avg(loss_value_main)
 
-        # エポックの終わりにメトリクスを表示する
-        train_acc = train_acc_metric.result()
-        print(f"訓練一致率：{train_acc:.2%}")
+        print(
+            f"訓練一致率：{train_acc_metric.result():.2%}",
+            f"訓練損失(main):{epoch_loss_main_avg.result():.5f}",
+            f"訓練損失(merged):{epoch_loss_sub_avg.result():.5f}",
+        )
+        # wandbにログを送る（TODO：pre, rec, f-mも送る)
+        # TODO: 一か所にまとめる or commit false にする
         # エポックの終わりに訓練メトリクスを初期化
         train_acc_metric.reset_states()
 
@@ -255,8 +263,17 @@ def main(
         # 初期化
         val_acc_metric.reset_states()
 
+        # TODO: 各睡眠段階の一致率・再現率・適合率・F値を計算する
+        # (each_ss_acc, rec, pre, f_m) = utils.calc_ss_prop()
+
         # wandbにログを送る（TODO：pre, rec, f-mも送る)
-        wandb.log({"train_acc": train_acc, "test_acc": val_acc})
+        log_info = {
+            "train_acc": train_acc_metric.result(),
+            "train_loss_main": epoch_loss_main_avg.result(),
+            "train_loss_sub": epoch_loss_sub_avg.result(),
+            "val_acc": val_acc_metric.result(),
+        }
+        wandb.log(log_info)
 
     # モデルの保存
     path = os.path.join(pre_process.my_env.models_dir, test_name)
@@ -293,7 +310,7 @@ if __name__ == "__main__":
 
     # ANCHOR
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -301,11 +318,11 @@ if __name__ == "__main__":
     IS_NORMAL = True
     IS_ENN = False
     EPOCHS = 100
-    BATCH_SIZE = 32
+    BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 200000
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
     ANNEALING_RATIO = 16
     SUBNET_STARTING_POINNT = 0.5
     DATA_TYPE = "spectrum"
@@ -389,7 +406,7 @@ if __name__ == "__main__":
             sample_size=SAMPLE_SIZE,
             is_mul_layer=False,
             has_dropout=False,
-            subnet_starting_point=SUBNET_STARTING_POINT,
+            subnet_starting_point=SUBNET_STARTING_POINNT,
             annealing_param=ANNEALING_RATIO,
         )
 
