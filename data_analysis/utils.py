@@ -1,3 +1,4 @@
+from tensorflow.python.framework.ops import Tensor
 from data_analysis.py_color import PyColor
 import pickle
 import datetime
@@ -407,26 +408,38 @@ class Utils:
     # 不確かさのヒストグラムをwandbに送信
     def u_hist2Wandb(
         self,
-        y,
-        evidence,
-        train_or_test,
-        test_label,
-        date_id,
-        dir2="histgram",
-        separate_each_ss=False,
-        unc=None,
+        y: Tensor,
+        evidence: Tensor,
+        train_or_test: str,
+        test_label: str,
+        date_id: str,
+        dir2: str = "histgram",
+        separate_each_ss: bool = False,
+        unc: Tensor = None,
+        has_caliculated: bool = False,
+        alpha: Tensor = None,
+        y_pred: Tensor = None,
     ):
-        # 各睡眠段階に分けて表示するかどうか
-        alpha = evidence + 1
-        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
-        y_pred = alpha / S
-        _, n_class = y_pred.shape
-        # カテゴリカルに変換
-        y_pred = (
-            np.argmax(y_pred, axis=1)
-            if not self.catch_nrem2
-            else self.my_argmax(y_pred, axis=1)
-        )
+        # 計算済みの場合はそれを使うほうが良い
+        if not has_caliculated:
+            try:
+                assert evidence is not None and unc is not None and alpha is not None and y_pred is not None
+            except AssertionError:
+                print(PyColor.RED_FLASH, "計算済みの場合，evidence, unc, alpha, y_pred を渡してください", PyColor.END)
+                sys.exit(1)
+
+            # 各睡眠段階に分けて表示するかどうか
+            alpha = evidence + 1
+            S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+            y_pred = alpha / S
+            _, n_class = y_pred.shape
+            # カテゴリカルに変換
+            y_pred = (
+                np.argmax(y_pred, axis=1)
+                if not self.catch_nrem2
+                else self.my_argmax(y_pred, axis=1)
+            )
+        # unc だけを渡す場合
         if unc is not None:
             uncertainty = unc
         else:
@@ -673,6 +686,24 @@ class Utils:
         x_test = None
         y_test = None
         return (x_train, x_test), (y_train, y_test)
+    
+
+    # 仮データ作成メソッドの親メソッド
+    def make_2d_psedo_data(self, row: int, col: int, x_bias: int=0, y_bias: int=0, seed: int = 0, data_type: str = "") -> tuple:
+        # 極座標のデータ
+        if len(data_type) == 0 and type(data_type) == str:
+            print(PyColor.RED_FLASH, "データタイプを指定してください", PyColor.END)
+        elif data_type == "type01":
+            return self.polar_data(row=row, col=col, x_bias=x_bias, y_bias=y_bias)
+        elif data_type == "type02":
+            return self.point_symmetry_data(row, col, x_bias, y_bias, seed)
+        elif data_type == "type03":
+            return self.archimedes_spiral(row, col, x_bias, y_bias, seed)
+        else:
+            print(PyColor.RED_FLASH, "データタイプの指定方法を確認してください", PyColor.END)
+            sys.exit(1)
+
+
 
 
 if __name__ == "__main__":
