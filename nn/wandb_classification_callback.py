@@ -153,27 +153,37 @@ class WandbClassificationCallback(WandbCallback):
 
         x_val = self.validation_data[0]
         y_val = self.validation_data[1]
+        y_pred = np.argmax(self.model.predict(x_val), axis=1)
+        confmatrix = confusion_matrix(
+            y_pred, y_val, labels=range(len(self.labels))
+        )
+        # print(confmatrix)
+        confdiag = np.eye(len(confmatrix)) * confmatrix
+        # print(confdiag)
+        np.fill_diagonal(confmatrix, 0)
+
+        # 5クラス存在するか確認
         ss_dict = Counter(y_val)
         nrem34_num = ss_dict[0]
         nrem2_num = ss_dict[1]
         nrem1_num = ss_dict[2]
         rem_num = ss_dict[3]
         wake_num = ss_dict[4]
+        # テストデータ（検証データ）に5クラスないときは注意
         if len(ss_dict) == 5:
             # print(y_val.shape)
             # changed axis for my sleep env
             # y_val = np.argmax(y_val, axis=0)
-            y_pred = np.argmax(self.model.predict(x_val), axis=1)
-            confmatrix = confusion_matrix(
-                y_pred, y_val, labels=range(len(self.labels))
-            )
-            # print(confmatrix)
-            confdiag = np.eye(len(confmatrix)) * confmatrix
-            # print(confdiag)
-            np.fill_diagonal(confmatrix, 0)
             log_dict = {
                 ss_label: confdiag[i][i] / ss_dict[i]
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
+            }
+            wandb.log(log_dict, commit=False)
+        elif len(ss_dict) == 4:
+            # nrem34がないときの処理
+            log_dict = {
+                self.labels[i + 1]: confdiag[i + 1][i + 1] / ss_dict[i + 1]
+                for i in range(4)
             }
             wandb.log(log_dict, commit=False)
 
@@ -230,7 +240,8 @@ class WandbClassificationCallback(WandbCallback):
                         [0, transparent],
                         [
                             0,
-                            f"rgba(0, 180, 0, {min(0.8, (n_right/n_total) ** 2)})",  # noqa
+                            # 小さすぎる値だとだめかもしれない
+                            f"rgba(0, 180, 0, {min(0.8, max((n_right/n_total) ** 2, 0.001))})",  # noqa
                         ],
                         [1, "rgba(0, 180, 0, 1)"],
                     ],
