@@ -146,7 +146,7 @@ def main(
 
 if __name__ == "__main__":
     # 環境設定
-    CALC_DEVICE = "cpu"
+    CALC_DEVICE = "gpu"
     # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -170,12 +170,12 @@ if __name__ == "__main__":
     IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    EPOCHS = 10
-    BATCH_SIZE = 128
+    EPOCHS = 100
+    BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 200000
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     ][f"kernel_{str(KERNEL_SIZE)}"]
 
     for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list[29:], date_id_list[29:])
+        zip(pre_process.name_list, date_id_list)
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
