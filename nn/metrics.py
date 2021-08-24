@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import backend as K
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
 # keras(tensorflow)のメトリクスはstateful, statelessな書き方がある
 # stateful : metricsを継承して実装，stateless : 関数として実装
@@ -71,7 +72,17 @@ class RecallMetric(tf.keras.metrics.Metric):
         self.true_positives = tf.Variable(0.0)
         self.total_positives = tf.Variable(0.0)
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
+    # NOTE: y_true, y_pred は one-hot
+    def update_state(
+        self, y_true: ndarray, y_pred: ndarray, sample_weight=None
+    ):
+        # 大丈夫そうであれば、コメントアウト
+        try:
+            assert y_true.ndim == y_pred.ndim
+        except AssertionError:
+            print(
+                "exception has occured in update_state method. Check y must be one-hot"
+            )
         """新しく正解と予測が追加で与えられたときの処理"""
         true_positives = K.sum(y_true * y_pred)
         total_positives = K.sum(y_true)
