@@ -19,38 +19,40 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタ�
 
 def main(
     name: str,
+    utils: Utils,
     project: str,
     train: list,
     test: list,
     pre_process: PreProcess,
-    epochs=1,
-    my_tags=None,
-    batch_size=32,
-    n_class=5,
-    pse_data=False,
-    test_name=None,
-    date_id=None,
-    has_attention=False,
-    has_inception=False,
-    data_type="",
-    sample_size=0,
-    wandb_config=dict(),
-    kernel_size=0,
-    is_mul_layer=False,
-    has_dropout=False,
+    annealing_param: float,
+    epochs: int = 1,
+    my_tags: list = None,
+    batch_size: int = 32,
+    n_class: int = 5,
+    pse_data: bool = False,
+    test_name: str = None,
+    date_id: str = None,
+    has_attention: bool = False,
+    has_inception: bool = False,
+    data_type: str = "",
+    sample_size: int = 0,
+    wandb_config: dict = dict(),
+    kernel_size: int = 0,
+    is_mul_layer: bool = False,
+    has_dropout: bool = False,
+    subnet_starting_point: float = 0,
 ):
 
-    # データセットの作成
+    # データセットの作成(one-hot で処理を行う)
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
         pse_data=pse_data,
         each_data_size=sample_size,
+        to_one_hot_vector=False,
     )
-    # カテゴリカルに変換
-    y_train = np.argmax(y_train, axis=1)
-    y_test = np.argmax(y_test, axis=1)
+    # カテゴリカルに変換 TODO: make_dataset 内で onehot 表現に変えてもよいかチェック
     # データセットの数
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
@@ -92,6 +94,7 @@ def main(
     )
 
     # モデルの作成とコンパイル
+    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum":
         shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
@@ -109,6 +112,7 @@ def main(
         is_mul_layer=is_mul_layer,
     )
     hidden_inputs = tf.keras.Input(shape=(192,))
+    # NOTE: main の方は 特徴量空間の変換を持たない
     output_main = classifier4enn(
         x=hidden_inputs,
         has_dropout=has_dropout,
@@ -134,17 +138,26 @@ def main(
     # 最適化関数の設定
     optimizer = tf.keras.optimizers.Adam()
     # メトリクスの作成
-    # true side : カテゴリカルな状態，pred side : クラスの次元数（ソフトマックスをかける前）
+    # true side : カテゴリカルな状態，pred side : one-hot表現（ソフトマックスをかける前）
     train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
+    epoch_loss_main_avg = tf.keras.metrics.Mean()
+    epoch_loss_sub_avg = tf.keras.metrics.Mean()
+    loss_class = EDLLoss(K=n_class, annealing=0)
+    # サマリーライターのセットアップ
+    # current_time = date_id
+    # train_log_dir = os.path.join(
+    #     os.environ["sleep"], "logs", "gradient_tape", current_time, "train"
+    # )
+    # train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 
     # エポックのループ
     for epoch in range(epochs):
         # ロス関数はエポックごとにアニーリングを変えるので中に書く
-        loss_fn = EDLLoss(K=n_class, annealing=min(1, 0.05 * (epoch / epochs)))
+        loss_class.annealing = min(1, annealing_param * (epoch / epochs))
         print(f"エポック:{epoch + 1}")
         # エポック内のバッチサイズごとのループ
-        for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+        for _, (x_batch_train, y_batch_train) in enumerate(train_dataset):
             # 勾配を計算
             with tf.GradientTape(persistent=True) as tape_main:
                 hidden_main = exploit_model(x_batch_train, training=True)
@@ -158,13 +171,13 @@ def main(
                 unc_main = n_class / tf.reduce_sum(
                     alpha_main, axis=1, keepdims=True
                 )
-                loss_value_main = loss_fn.call(
+                loss_value_main = loss_class.call(
                     tf.keras.utils.to_categorical(
-                        y_batch_train, num_classes=5
+                        y_batch_train, num_classes=n_class
                     ),
-                    alpha_main,
+                    evidence_main,
                 )
-                if epoch / epochs > 0.5:
+                if epoch / epochs > subnet_starting_point:
                     evidence_sub = classifier_sub_model(
                         hidden_main, training=True
                     )
@@ -172,14 +185,16 @@ def main(
                     y_pred_sub = alpha_sub / tf.reduce_sum(
                         alpha_sub, axis=1, keepdims=True
                     )
-                    loss_value_sub = loss_fn.call(
+                    loss_value_sub = loss_class.call(
                         tf.keras.utils.to_categorical(
-                            y_batch_train, num_classes=5
+                            y_batch_train, num_classes=n_class
                         ),
-                        alpha_sub,
+                        evidence_sub,
                         unc_main,
                     )
-            if epoch / epochs > 0.5:
+                    # 進捗の記録
+                    epoch_loss_sub_avg(loss_value_sub)
+            if epoch / epochs > subnet_starting_point:
                 grads_sub = tape_main.gradient(
                     loss_value_sub, classifier_sub_model.trainable_weights
                 )
@@ -206,10 +221,16 @@ def main(
             optimizer.apply_gradients(
                 zip(grads_exploit, exploit_model.trainable_weights)
             )
+            # 進捗の記録
+            epoch_loss_main_avg(loss_value_main)
 
-        # エポックの終わりにメトリクスを表示する
-        train_acc = train_acc_metric.result()
-        print(f"訓練一致率：{train_acc:.2%}")
+        print(
+            f"訓練一致率：{train_acc_metric.result():.2%}",
+            f"訓練損失(main):{epoch_loss_main_avg.result():.5f}",
+            f"訓練損失(merged):{epoch_loss_sub_avg.result():.5f}",
+        )
+        # wandbにログを送る（TODO：pre, rec, f-mも送る)
+        # TODO: 一か所にまとめる or commit false にする
         # エポックの終わりに訓練メトリクスを初期化
         train_acc_metric.reset_states()
 
@@ -224,7 +245,7 @@ def main(
             unc_main = n_class / tf.reduce_sum(
                 alpha_main, axis=1, keepdims=True
             )
-            if epoch / epochs > 0.5:
+            if epoch / epochs > subnet_starting_point:
                 evidence_sub = classifier_sub_model(
                     hidden_main, training=False
                 )
@@ -242,8 +263,17 @@ def main(
         # 初期化
         val_acc_metric.reset_states()
 
+        # TODO: 各睡眠段階の一致率・再現率・適合率・F値を計算する
+        # (each_ss_acc, rec, pre, f_m) = utils.calc_ss_prop()
+
         # wandbにログを送る（TODO：pre, rec, f-mも送る)
-        wandb.log({"train_acc": train_acc, "test_acc": val_acc})
+        log_info = {
+            "train_acc": train_acc_metric.result(),
+            "train_loss_main": epoch_loss_main_avg.result(),
+            "train_loss_sub": epoch_loss_sub_avg.result(),
+            "val_acc": val_acc_metric.result(),
+        }
+        wandb.log(log_info)
 
     # モデルの保存
     path = os.path.join(pre_process.my_env.models_dir, test_name)
@@ -278,8 +308,9 @@ if __name__ == "__main__":
     else:
         print("*** cpuで計算します ***")
 
+    # ANCHOR
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -287,11 +318,13 @@ if __name__ == "__main__":
     IS_NORMAL = True
     IS_ENN = False
     EPOCHS = 100
-    BATCH_SIZE = 32
+    BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 50000
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
+    ANNEALING_RATIO = 16
+    SUBNET_STARTING_POINNT = 0.5
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -373,6 +406,8 @@ if __name__ == "__main__":
             sample_size=SAMPLE_SIZE,
             is_mul_layer=False,
             has_dropout=False,
+            subnet_starting_point=SUBNET_STARTING_POINNT,
+            annealing_param=ANNEALING_RATIO,
         )
 
         if TEST_RUN:

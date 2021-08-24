@@ -1,41 +1,48 @@
+from nn.wandb_classification_callback import WandbClassificationCallback
 import sys
-import tensorflow as tf
 import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
+
+tf.random.set_seed(100)
 import datetime
+from tensorflow.python.framework.ops import Tensor
 import wandb
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
+
+# from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
-
-tf.random.set_seed(100)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+from pre_process.record import Record
+from collections import Counter
 
 
 def main(
-    name,
-    project,
-    train,
-    test,
+    name: str,
+    project: str,
+    train: list,
+    test: list,
     pre_process: PreProcess,
-    epochs=1,
-    save_model=False,
-    my_tags=None,
-    batch_size=32,
-    n_class=5,
-    pse_data=False,
-    test_name=None,
-    date_id=None,
-    has_attention=False,
-    has_inception=True,
-    data_type=None,
-    sample_size=0,
-    is_enn=True,
-    wandb_config=dict(),
-    kernel_size=0,
-    is_mul_layer=False,
+    epochs: int = 1,
+    save_model: bool = False,
+    my_tags: list = None,
+    batch_size: int = 32,
+    n_class: int = 5,
+    pse_data: bool = False,
+    test_name: str = None,
+    date_id: str = None,
+    has_attention: bool = False,
+    has_inception: bool = True,
+    data_type: str = None,
+    sample_size: int = 0,
+    is_enn: bool = True,
+    wandb_config: dict = dict(),
+    kernel_size: int = 0,
+    is_mul_layer: bool = False,
 ):
 
     # データセットの作成
@@ -49,11 +56,25 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
+    ss_train_dict = Counter(y_train)
+    ss_test_dict = Counter(y_test)
 
     # config の追加
-    added_config = {"attention": has_attention, "inception": has_inception}
+    added_config = {
+        "attention": has_attention,
+        "inception": has_inception,
+        "test wake before replaced": ss_test_dict[4],
+        "test rem before replaced": ss_test_dict[3],
+        "test nr1 before replaced": ss_test_dict[2],
+        "test nr2 before replaced": ss_test_dict[1],
+        "test nr34 before replaced": ss_test_dict[0],
+        "train wake before replaced": ss_train_dict[4],
+        "train rem before replaced": ss_train_dict[3],
+        "train nr1 before replaced": ss_train_dict[2],
+        "train nr2 before replaced": ss_train_dict[1],
+        "train nr34 before replaced": ss_train_dict[0],
+    }
     wandb_config.update(added_config)
-
     # wandbの初期化
     wandb.init(
         name=name,
@@ -65,6 +86,7 @@ def main(
     )
 
     # モデルの作成とコンパイル
+    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum":
         shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
@@ -86,8 +108,27 @@ def main(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy"],
+            metrics=[
+                "accuracy",
+                # CategoricalTruePositives(
+                #     target_class=0, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=1, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=2, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=3, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=4, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(),
+            ],
         )
+
     else:
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
         model.compile(
@@ -95,7 +136,24 @@ def main(
             loss=tf.keras.losses.SparseCategoricalCrossentropy(
                 from_logits=True
             ),
-            metrics=["accuracy"],
+            metrics=[
+                "accuracy",
+                # CategoricalTruePositives(
+                #     target_class=0, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=1, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=2, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=3, data_size=sample_size * n_class, n_class=5
+                # ),
+                # CategoricalTruePositives(
+                #     target_class=4, data_size=sample_size * n_class, n_class=5
+                # ),
+            ],
         )
 
     # tensorboard作成
@@ -117,7 +175,15 @@ def main(
         batch_size=batch_size,
         validation_data=(x_test, y_test),
         epochs=epochs,
-        callbacks=[tf_callback, WandbCallback()],
+        callbacks=[
+            tf_callback,
+            # WandbCallback(),
+            WandbClassificationCallback(
+                validation_data=(x_test, y_test),
+                log_confusion_matrix=True,
+                labels=["nr34", "nr2", "nr1", "rem", "wake"],
+            ),
+        ],
         verbose=2,
     )
 
@@ -150,16 +216,18 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = True
+    IS_ENN = False
+    # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
+    HAS_NREM2_BIAS = False
     EPOCHS = 100
-    BATCH_SIZE = 256
+    BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 50000
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
-    FIT_POS = "middle"
+    FIT_POS = "bottom"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
@@ -180,6 +248,7 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
+        has_nrem2_bias=HAS_NREM2_BIAS,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
@@ -207,6 +276,7 @@ if __name__ == "__main__":
             f"sample_{SAMPLE_SIZE}",
             ENN_TAG,
         ]
+        # _splited_test_name = test_name.split("_")
 
         wandb_config = {
             "test name": test_name,
@@ -218,9 +288,11 @@ if __name__ == "__main__":
             "fit_pos": FIT_POS,
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
+            "has_nrem2_bias": HAS_NREM2_BIAS,
+            "model_type": ENN_TAG,
         }
         main(
-            name=f"edl-{test_name}",
+            name=f"code_{ENN_TAG}",
             project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,

@@ -1,3 +1,4 @@
+from tensorflow.python.keras.engine.training import Model
 from data_analysis.utils import Utils
 import sys
 import tensorflow as tf
@@ -10,29 +11,31 @@ from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
+from collections import Counter
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
 
 def main(
-    name,
-    project,
-    train,
-    test,
-    pre_process,
-    my_tags=None,
-    n_class=5,
-    pse_data=False,
-    test_name=None,
-    date_id=None,
-    has_attention=False,
-    has_inception=True,
-    data_type=None,
-    sample_size=0,
-    is_enn=True,
-    wandb_config=dict(),
-    kernel_size=0,
-    is_mul_layer=False,
+    name: str,
+    project: str,
+    train: list,
+    test: list,
+    pre_process: PreProcess,
+    my_tags: list = None,
+    n_class: int = 5,
+    pse_data: bool = False,
+    test_name: str = None,
+    date_id: str = None,
+    has_attention: bool = False,
+    has_inception: bool = True,
+    data_type: str = None,
+    sample_size: int = 0,
+    is_enn: bool = True,
+    wandb_config: dict = dict(),
+    kernel_size: int = 0,
+    is_mul_layer: bool = False,
+    batch_size: int = 0,
 ):
 
     # データセットの作成
@@ -46,9 +49,24 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
+    ss_train_dict = Counter(y_train)
+    ss_test_dict = Counter(y_test)
 
     # config の追加
-    added_config = {"attention": has_attention, "inception": has_inception}
+    added_config = {
+        "attention": has_attention,
+        "inception": has_inception,
+        "test wake before replaced": ss_test_dict[4],
+        "test rem before replaced": ss_test_dict[3],
+        "test nr1 before replaced": ss_test_dict[2],
+        "test nr2 before replaced": ss_test_dict[1],
+        "test nr34 before replaced": ss_test_dict[0],
+        "train wake before replaced": ss_train_dict[4],
+        "train rem before replaced": ss_train_dict[3],
+        "train nr1 before replaced": ss_train_dict[2],
+        "train nr2 before replaced": ss_train_dict[1],
+        "train nr34 before replaced": ss_train_dict[0],
+    }
     wandb_config.update(added_config)
 
     # wandbの初期化
@@ -61,13 +79,29 @@ def main(
         dir=pre_process.my_env.project_dir,
     )
 
-    # モデルの読み込み（コンパイル済み）
-    print(f"*** {test_name}のモデルを読み込みます ***")
-    path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
-    model = tf.keras.models.load_model(
-        path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
-    )
-    print(f"*** {test_name}のモデルを読み込みました ***")
+    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
+    if data_type == "spectrum":
+        shape = (int(kernel_size / 2), 1)
+    elif data_type == "spectrogram":
+        shape = (128, 512, 1)
+    else:
+        print("correct here based on your model")
+        sys.exit(1)
+
+    def _load_model() -> Model:
+        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
+        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+        # path があっているか確認
+        if not os.path.exists(path):
+            print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
+            sys.exit(1)
+        model = tf.keras.models.load_model(
+            path, custom_objects={"EDLLoss": EDLLoss(K=n_class, annealing=0.1)}
+        )
+        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みました ***", PyColor.END)
+        return model
+
+    model = _load_model()
 
     # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる）
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
@@ -78,7 +112,7 @@ def main(
     for train_or_test, data in zip(train_test_label, train_test_holder):
         x, y = data
         # EDLBase.__call__が走る
-        evidence = model.predict(x, batch_size=32)
+        evidence = model.predict(x, batch_size=batch_size)
         # 混合行列をwandbに送信
         utils.conf_mat2Wandb(
             y=y,
@@ -87,14 +121,14 @@ def main(
             test_label=test_name,
             date_id=date_id,
         )
-        # 不確かさのヒストグラムをwandbに送信
+        # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
         utils.u_hist2Wandb(
             y=y,
             evidence=evidence,
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
-            separate_each_ss=False,
+            separate_each_ss=True,
         )
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
@@ -112,13 +146,19 @@ def main(
 
 if __name__ == "__main__":
     # 環境設定
-    try:
+    CALC_DEVICE = "gpu"
+    # CALC_DEVICE = "cpu"
+    DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
+    if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
-        tf.config.run_functions_eagerly(True)
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    except:
+        # tf.config.run_functions_eagerly(True)
+    else:
         print("*** cpuで計算します ***")
+        # なんか下のやつ使えなくなっている、、
+        # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     TEST_RUN = False
@@ -127,15 +167,15 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = True
+    IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    EPOCHS = 20
-    BATCH_SIZE = 32
+    EPOCHS = 100
+    BATCH_SIZE = 512
     N_CLASS = 5
-    KERNEL_SIZE = 1024
-    STRIDE = 4
-    SAMPLE_SIZE = 50000
+    KERNEL_SIZE = 512
+    STRIDE = 1024
+    SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -144,7 +184,7 @@ if __name__ == "__main__":
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     WANDB_PROJECT = "test" if TEST_RUN else "edl-analysis"
     ENN_TAG = "enn" if IS_ENN else "dnn"
-    INCEPTION_TAG += "v2" if IS_MUL_LAYER else INCEPTION_TAG
+    INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
 
     # オブジェクトの作成
@@ -199,6 +239,7 @@ if __name__ == "__main__":
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
         }
+        # FIXME: name をコード名にする
         main(
             name=f"edl-{test_name}",
             project=WANDB_PROJECT,
@@ -218,6 +259,7 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
+            batch_size=BATCH_SIZE,
         )
 
         # testの時は一人の被験者で止める

@@ -15,6 +15,11 @@ class MyColor:
     YELLOW: str = "#f4c643"
     BLUE: str = "#4371f4"
     BLIGHT_CYAN: str = "#43f4c6"
+    nrem34: str = "#4372f4"
+    nrem2: str = "#f46d43"
+    nrem1: str = "#9799a0"
+    rem: str = "#f4c643"
+    wake: str = "#43caf4"
 
 
 if __name__ == "__main__":
