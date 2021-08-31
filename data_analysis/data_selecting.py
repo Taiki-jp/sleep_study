@@ -1,23 +1,21 @@
 from nn.wandb_classification_callback import WandbClassificationCallback
-import sys
 import os
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
 
-tf.random.set_seed(100)
+tf.random.set_seed(0)
+from tensorflow.python.keras.engine.training import Model
+from data_analysis.utils import Utils
+import sys
 import datetime
-from tensorflow.python.framework.ops import Tensor
 import wandb
 from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
-
-# from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
-from pre_process.record import Record
 from collections import Counter
 
 
@@ -27,10 +25,7 @@ def main(
     train: list,
     test: list,
     pre_process: PreProcess,
-    epochs: int = 1,
-    save_model: bool = False,
     my_tags: list = None,
-    batch_size: int = 32,
     n_class: int = 5,
     pse_data: bool = False,
     test_name: str = None,
@@ -43,6 +38,10 @@ def main(
     wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
+    batch_size: int = 0,
+    unc_threthold: float = 0,
+    epochs: int = 1,
+    experiment_type: str = "",
 ):
 
     # データセットの作成
@@ -75,6 +74,7 @@ def main(
         "train nr34 before replaced": ss_train_dict[0],
     }
     wandb_config.update(added_config)
+
     # wandbの初期化
     wandb.init(
         name=name,
@@ -85,7 +85,6 @@ def main(
         dir=pre_process.my_env.project_dir,
     )
 
-    # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum":
         shape = (int(kernel_size / 2), 1)
@@ -103,59 +102,56 @@ def main(
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
     )
-    if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=[
-                "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(),
-            ],
+
+    def _load_model() -> Model:
+        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
+        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+        # path があっているか確認
+        if not os.path.exists(path):
+            print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
+            sys.exit(1)
+        model = tf.keras.models.load_model(
+            path, custom_objects={"EDLLoss": EDLLoss(K=n_class, annealing=0.1)}
+        )
+        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みました ***", PyColor.END)
+        return model
+
+    model = _load_model()
+    # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる）
+    # NOTE : そのためone-hotの状態でデータを読み込む必要がある
+    x, y = (x_train, y_train)
+    # EDLBase.__call__が走る
+    def _sep_unc_data(x, y) -> tuple:
+        evidence = model.predict(x, batch_size=batch_size)
+        alpha = evidence + 1
+        unc = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        if experiment_type == "positive_cleansing":
+            mask = unc > unc_threthold
+        elif experiment_type == "negative_cleansing":
+            mask = unc < unc_threthold
+        else:
+            raise Exception("正しい実験タイプを指定してください")
+
+        return (
+            tf.boolean_mask(x, mask.numpy().reshape(x.shape[0])),
+            tf.boolean_mask(y, mask.numpy().reshape(x.shape[0])),
         )
 
-    else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            ),
-            metrics=[
-                "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
-            ],
-        )
+    (_x, _y) = _sep_unc_data(x=x, y=y)
+    (_x_test, _y_test) = _sep_unc_data(x=x_test, y=y_test)
 
+    # データが拾えなかった場合は終了
+    if _x.shape[0] == 0 or _x_test.shape[0] == 0:
+        return
+
+    _model = EDLModelBase(inputs=inputs, outputs=outputs)
+    _model.compile(
+        optimizer=tf.keras.optimizers.Adam(),
+        loss=EDLLoss(K=n_class, annealing=0.1),
+        metrics=[
+            "accuracy",
+        ],
+    )
     # tensorboard作成
     log_dir = os.path.join(
         pre_process.my_env.project_dir, "my_edl", test_name, date_id
@@ -164,22 +160,16 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
 
-    # TODO: 使いたいけど、何をもとに早期終了するかは難しい、、
-    # early_callback = tf.keras.callbacks.EarlyStopping(
-    #     monitor='val_loss',
-    # )
-
-    model.fit(
-        x_train,
-        y_train,
+    _model.fit(
+        x=_x,
+        y=_y,
         batch_size=batch_size,
-        validation_data=(x_test, y_test),
+        validation_data=(_x_test, _y_test),
         epochs=epochs,
         callbacks=[
             tf_callback,
-            # WandbCallback(),
             WandbClassificationCallback(
-                validation_data=(x_test, y_test),
+                validation_data=(_x_test, _y_test),
                 log_confusion_matrix=True,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
@@ -187,9 +177,63 @@ def main(
         verbose=2,
     )
 
-    if save_model:
-        path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-        model.save(path)
+    # if save_model:
+    #     path = os.path.join(
+    #         pre_process.my_env.models_dir, test_name, date_id
+    #     )
+    #     model.save(path)
+
+    evidence_train = _model(_x, training=False)
+    evidence_test = _model(_x_test, training=False)
+
+    # 混合行列をwandbに送信
+    utils.conf_mat2Wandb(
+        y=_y.numpy(),
+        evidence=evidence_train,
+        train_or_test="train",
+        test_label=test_name,
+        date_id=date_id,
+    )
+    utils.conf_mat2Wandb(
+        y=_y_test.numpy(),
+        evidence=evidence_test,
+        train_or_test="test",
+        test_label=test_name,
+        date_id=date_id,
+    )
+    # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
+    utils.u_hist2Wandb(
+        y=_y.numpy(),
+        evidence=evidence_train,
+        train_or_test="train",
+        test_label=test_name,
+        date_id=date_id,
+        separate_each_ss=False,
+    )
+    utils.u_hist2Wandb(
+        y=_y_test.numpy(),
+        evidence=evidence_test,
+        train_or_test="test",
+        test_label=test_name,
+        date_id=date_id,
+        separate_each_ss=False,
+    )
+    # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
+    utils.u_threshold_and_acc2Wandb(
+        y=_y.numpy(),
+        evidence=evidence_train,
+        train_or_test="train",
+        test_label=test_name,
+        date_id=date_id,
+    )
+    utils.u_threshold_and_acc2Wandb(
+        y=_y_test.numpy(),
+        evidence=evidence_test,
+        train_or_test="test",
+        test_label=test_name,
+        date_id=date_id,
+    )
+    # wandb終了
     wandb.finish()
 
 
@@ -210,35 +254,40 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = False
-    # FIXME: 多層化はとりあえずいらない
+    IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
-    HAS_NREM2_BIAS = False
-    EPOCHS = 100
+    CATCH_NREM2 = True
+    EPOCHS = 200
     BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 1024
     SAMPLE_SIZE = 5000
+    UNC_THRETHOLD = 0.5
     DATA_TYPE = "spectrum"
-    FIT_POS = "bottom"
+    FIT_POS = "middle"
+    EXPERIMENT_TYPES = (
+        "no_cleansing",
+        "positive_cleansing",
+        "negative_cleansing",
+    )
+    EXPERIENT_TYPE = "negative_cleansing"  # ここで model
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "master"
+    # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
+    WANDB_PROJECT = "data_selecting_test"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
+    CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
 
-    # 記録用のjsonファイルを読み込む
-    JB = JsonBase("../nn/model_id.json")
-    JB.load()
     # オブジェクトの作成
     pre_process = PreProcess(
         data_type=DATA_TYPE,
@@ -248,21 +297,33 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
-        has_nrem2_bias=HAS_NREM2_BIAS,
     )
     datasets = pre_process.load_sleep_data.load_data(
-        load_all=True,
-        pse_data=PSE_DATA,
+        load_all=True, pse_data=PSE_DATA
     )
+    utils = Utils(catch_nrem2=CATCH_NREM2)
+
+    # 読み込むモデルの日付リストを返す
+    JB = JsonBase("../nn/model_id.json")
+    JB.load()
+    date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
+        f"stride_{str(STRIDE)}"
+    ][f"kernel_{str(KERNEL_SIZE)}"]["no_cleansing"]
+
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list):
-        date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        date_id_saving_list.append(date_id)
+    for test_id, (test_name, date_id) in enumerate(
+        zip(pre_process.name_list, date_id_list)
+    ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
+
+        # 保存用の時間id
+        saving_date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        date_id_saving_list.append(saving_date_id)
+
         # tagの設定
         my_tags = [
             test_name,
@@ -275,10 +336,8 @@ if __name__ == "__main__":
             f"stride_{STRIDE}",
             f"sample_{SAMPLE_SIZE}",
             ENN_TAG,
-            f"date_id_{date_id}",
+            EXPERIENT_TYPE,
         ]
-        # _splited_test_name = test_name.split("_")
-
         wandb_config = {
             "test name": test_name,
             "date id": date_id,
@@ -289,24 +348,21 @@ if __name__ == "__main__":
             "fit_pos": FIT_POS,
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
-            "has_nrem2_bias": HAS_NREM2_BIAS,
-            "model_type": ENN_TAG,
+            "experiment": EXPERIENT_TYPE,
         }
+        # FIXME: name をコード名にする
         main(
-            name=f"code_{ENN_TAG}",
+            name=f"edl-{test_name}",
             project=WANDB_PROJECT,
-            pre_process=pre_process,
             train=train,
             test=test,
-            epochs=EPOCHS,
-            save_model=True,
-            has_attention=HAS_ATTENTION,
+            pre_process=pre_process,
             my_tags=my_tags,
+            has_attention=HAS_ATTENTION,
             date_id=date_id,
             pse_data=PSE_DATA,
             test_name=test_name,
             has_inception=HAS_INCEPTION,
-            batch_size=BATCH_SIZE,
             n_class=N_CLASS,
             data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
@@ -314,12 +370,16 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
+            batch_size=BATCH_SIZE,
+            unc_threthold=UNC_THRETHOLD,
+            experiment_type=EXPERIENT_TYPE,
+            epochs=EPOCHS,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
-    # json に書き込み
+
     JB.dump(
         keys=[
             ENN_TAG,
@@ -327,6 +387,7 @@ if __name__ == "__main__":
             FIT_POS,
             f"stride_{str(STRIDE)}",
             f"kernel_{str(KERNEL_SIZE)}",
+            f"{EXPERIENT_TYPE}",
         ],
         value=date_id_saving_list,
     )

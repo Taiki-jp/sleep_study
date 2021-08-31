@@ -6,6 +6,7 @@ from sklearn.metrics import confusion_matrix
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from collections import Counter
+import tensorflow.python.keras.backend as K
 
 
 class WandbClassificationCallback(WandbCallback):
@@ -75,8 +76,8 @@ class WandbClassificationCallback(WandbCallback):
         self.labels = labels
 
     def on_epoch_end(self, epoch, logs={}):
-        if self.generator:
-            self.validation_data = next(self.generator)
+        # if self.generator:
+        #     self.validation_data = next(self.generator)
 
         if self.log_weights:
             wandb.log(self._log_weights(), commit=False)
@@ -163,29 +164,68 @@ class WandbClassificationCallback(WandbCallback):
         np.fill_diagonal(confmatrix, 0)
 
         # 5クラス存在するか確認
-        ss_dict = Counter(y_val)
-        nrem34_num = ss_dict[0]
-        nrem2_num = ss_dict[1]
-        nrem1_num = ss_dict[2]
-        rem_num = ss_dict[3]
-        wake_num = ss_dict[4]
+        # NOTE: 正確にはTensor型できたときのみこの処理にする
+        if type(y_val) is not np.ndarray:
+            ss_dict = Counter(y_val.numpy())
+        else:
+            ss_dict = Counter(y_val)
+
+        # nrem34_num = ss_dict[0]
+        # nrem2_num = ss_dict[1]
+        # nrem1_num = ss_dict[2]
+        # rem_num = ss_dict[3]
+        # wake_num = ss_dict[4]
         # テストデータ（検証データ）に5クラスないときは注意
-        if len(ss_dict) == 5:
+        # confdiag: (pred)体格成分の値のみ confmatrix から残したもの
+        # ss_dict: (actual)PSGのデータ
+        if confmatrix.shape[0] == 5:
             # print(y_val.shape)
             # changed axis for my sleep env
             # y_val = np.argmax(y_val, axis=0)
-            log_dict = {
-                ss_label: confdiag[i][i] / ss_dict[i]
+            rec_log_dict = {
+                "rec_" + ss_label: confdiag[i][i] / (ss_dict[i] + 0.0001)
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
-            wandb.log(log_dict, commit=False)
-        elif len(ss_dict) == 4:
+            pre_log_dict = {
+                "pre_"
+                + ss_label: confdiag[i][i]
+                / (sum(confmatrix[i]) + confdiag[i][i] + 0.0001)
+                for (ss_label, i) in zip(self.labels, range(len(self.labels)))
+            }
+            f_m_log_dict = {
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre + 0.0001)
+                for (rec, pre, ss_label) in zip(
+                    rec_log_dict.values(), pre_log_dict.values(), self.labels
+                )
+            }
+            rec_log_dict.update(pre_log_dict)
+            rec_log_dict.update(f_m_log_dict)
+            wandb.log(rec_log_dict, commit=False)
+        elif confmatrix.shape[0] == 4:
             # nrem34がないときの処理
-            log_dict = {
-                self.labels[i + 1]: confdiag[i + 1][i + 1] / ss_dict[i + 1]
+            rec_log_dict = {
+                "rec_"
+                + self.labels[i + 1]: confdiag[i + 1][i + 1]
+                / (ss_dict[i + 1] + 0.0001)
                 for i in range(4)
             }
-            wandb.log(log_dict, commit=False)
+            pre_log_dict = {
+                "pre_"
+                + self.labels[i + 1]: confdiag[i + 1][i + 1]
+                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1] + 0.0001)
+                for i in range(4)
+            }
+            f_m_log_dict = {
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre + 0.0001)
+                for (rec, pre, ss_label) in zip(
+                    rec_log_dict.values()[1:],
+                    pre_log_dict.values()[1:],
+                    self.labels[1:],
+                )
+            }
+            rec_log_dict.update(pre_log_dict)
+            rec_log_dict.update(f_m_log_dict)
+            wandb.log(rec_log_dict, commit=False)
 
         confmatrix = confmatrix.astype("float")
         n_confused = np.sum(confmatrix)

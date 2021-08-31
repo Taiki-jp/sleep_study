@@ -11,6 +11,8 @@ def spectrum_conv(
     has_attention: bool = True,
     has_inception: bool = True,
     is_mul_layer: bool = False,
+    is_out_logits: bool = False,
+    n_class: int = 5,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -92,6 +94,12 @@ def spectrum_conv(
             x = tf.multiply(x, attention)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+
+    # 出力を持つかどうか
+    if is_out_logits:
+        x = tf.keras.layers.Dense(n_class ** 2)(x)
+        x = tf.keras.layers.Dense(n_class)(x)
+
     return x
 
 
@@ -501,20 +509,20 @@ class EDLModelBase(tf.keras.Model):
         # metrics_dict.update(u_dict)
         return metrics_dict
 
-    @tf.function
-    def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
-        assert np.ndim(uncertainty) == 2  # (batch, 1)
-        assert y_true.shape == y_pred.shape  # (batch, n_class)
-        _y_true_list = list()
-        _y_pred_list = list()
-        for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
-            if _u > u_threshold:
-                _y_true_list.append(_y_true)
-                _y_pred_list.append(_y_pred)
-        u_acc = tf.keras.metrics.categorical_accuracy(
-            np.array(y_true), np.array(y_pred)
-        )
-        return {"u_acc": u_acc}
+    # @tf.function
+    # def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
+    #     assert np.ndim(uncertainty) == 2  # (batch, 1)
+    #     assert y_true.shape == y_pred.shape  # (batch, n_class)
+    #     _y_true_list = list()
+    #     _y_pred_list = list()
+    #     for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
+    #         if _u > u_threshold:
+    #             _y_true_list.append(_y_true)
+    #             _y_pred_list.append(_y_pred)
+    #     u_acc = tf.keras.metrics.categorical_accuracy(
+    #         np.array(y_true), np.array(y_pred)
+    #     )
+    #     return {"u_acc": u_acc}
 
 
 # =========
@@ -574,6 +582,8 @@ class H_EDLModelBase(tf.keras.Model):
         # metrics_dict.update(u_dict)
         return metrics_dict
 
+
+# 睡眠データのモデルを返す
 
 if __name__ == "__main__":
     import os

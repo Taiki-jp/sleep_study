@@ -280,14 +280,16 @@ class Utils:
                 and min(y_true) == 1
                 and min(y_pred) == 1
             ):
+                # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
                 labels.pop(0)
+
         elif n_class == 4:
             labels = ["nr34", "nr12", "rem", "wake"]
         elif n_class == 3:
             labels = ["nrem", "rem", "wake"]
         elif n_class == 2:
             labels = ["non-target", "target"]
-        df = pd.DataFrame(cm, columns=labels, index=labels)
+        df = pd.DataFrame(cm)
         return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas=False):
