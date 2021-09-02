@@ -17,6 +17,7 @@ from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from collections import Counter
+from nn.utils import load_model
 
 # TODO: 使っていない引数の削除
 def main(
@@ -104,23 +105,11 @@ def main(
         is_mul_layer=is_mul_layer,
     )
 
-    # TODO: nn の中に移植
-    def _load_model() -> Model:
-        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
-        path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
-        # path があっているか確認
-        if not os.path.exists(path):
-            print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
-            sys.exit(1)
-        model = tf.keras.models.load_model(
-            path, custom_objects={"EDLLoss": EDLLoss(K=n_class, annealing=0.1)}
-        )
-        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みました ***", PyColor.END)
-        return model
-
-    model = _load_model()
-    # モデルの評価（どの関数が走る？ => lossのcallが呼ばれてる）
+    model = load_model(
+        loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=0
+    )
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
+    # TODO: このコピーいる？
     x, y = (x_train, y_train)
     # EDLBase.__call__が走る
     # TODO: utils に移植
