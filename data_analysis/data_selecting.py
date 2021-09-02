@@ -42,6 +42,7 @@ def main(
     unc_threthold: float = 0,
     epochs: int = 1,
     experiment_type: str = "",
+    saving_date_id: str = "",
 ):
 
     # データセットの作成
@@ -140,6 +141,21 @@ def main(
     (_x, _y) = _sep_unc_data(x=x, y=y)
     (_x_test, _y_test) = _sep_unc_data(x=x_test, y=y_test)
 
+    # データクレンジングされた後のデータ数をログにとる
+    cleaned_ss_train_dict = Counter(_y.numpy())
+    cleaned_ss_test_dict = Counter(_y_test.numpy())
+    ss_labels = ["num_nr34", "num_nr2", "num_nr1", "num_rem", "num_wake"]
+    cleaned_ss_train_dict = {
+        ss_labels[i] + "_train": cleaned_ss_train_dict[i]
+        for i in cleaned_ss_train_dict.keys()
+    }
+    cleaned_ss_test_dict = {
+        ss_labels[i] + "_test": cleaned_ss_test_dict[i]
+        for i in cleaned_ss_test_dict.keys()
+    }
+    wandb.log(cleaned_ss_train_dict, commit=False)
+    wandb.log(cleaned_ss_test_dict, commit=False)
+
     # データが拾えなかった場合は終了
     if _x.shape[0] == 0 or _x_test.shape[0] == 0:
         return
@@ -202,22 +218,23 @@ def main(
         date_id=date_id,
     )
     # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
-    utils.u_hist2Wandb(
-        y=_y.numpy(),
-        evidence=evidence_train,
-        train_or_test="train",
-        test_label=test_name,
-        date_id=date_id,
-        separate_each_ss=False,
-    )
-    utils.u_hist2Wandb(
-        y=_y_test.numpy(),
-        evidence=evidence_test,
-        train_or_test="test",
-        test_label=test_name,
-        date_id=date_id,
-        separate_each_ss=False,
-    )
+    for is_separating in [True, False]:
+        utils.u_hist2Wandb(
+            y=_y.numpy(),
+            evidence=evidence_train,
+            train_or_test="train",
+            test_label=test_name,
+            date_id=date_id,
+            separate_each_ss=is_separating,
+        )
+        utils.u_hist2Wandb(
+            y=_y_test.numpy(),
+            evidence=evidence_test,
+            train_or_test="test",
+            test_label=test_name,
+            date_id=date_id,
+            separate_each_ss=is_separating,
+        )
     # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
     utils.u_threshold_and_acc2Wandb(
         y=_y.numpy(),
@@ -233,6 +250,11 @@ def main(
         test_label=test_name,
         date_id=date_id,
     )
+    # モデルの保存
+    path = os.path.join(
+        pre_process.my_env.models_dir, test_name, saving_date_id
+    )
+    model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -264,7 +286,7 @@ if __name__ == "__main__":
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     EPOCHS = 200
-    BATCH_SIZE = 512
+    BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 1024
@@ -277,13 +299,13 @@ if __name__ == "__main__":
         "positive_cleansing",
         "negative_cleansing",
     )
-    EXPERIENT_TYPE = "negative_cleansing"  # ここで model
+    EXPERIENT_TYPE = "positive_cleansing"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "data_selecting_test"
+    WANDB_PROJECT = "data_selecting_test001"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -374,6 +396,7 @@ if __name__ == "__main__":
             unc_threthold=UNC_THRETHOLD,
             experiment_type=EXPERIENT_TYPE,
             epochs=EPOCHS,
+            saving_date_id=saving_date_id,
         )
 
         # testの時は一人の被験者で止める
