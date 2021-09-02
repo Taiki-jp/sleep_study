@@ -161,7 +161,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     JB.load()
     date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
         f"stride_{str(STRIDE)}"
-    ][f"kernel_{str(KERNEL_SIZE)}"]
+    ][f"kernel_{str(KERNEL_SIZE)}"]["no_cleansing"]
 
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, date_id_list)
