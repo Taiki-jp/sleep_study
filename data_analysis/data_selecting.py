@@ -18,7 +18,7 @@ from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from collections import Counter
 
-
+# TODO: 使っていない引数の削除
 def main(
     name: str,
     project: str,
@@ -104,6 +104,7 @@ def main(
         is_mul_layer=is_mul_layer,
     )
 
+    # TODO: nn の中に移植
     def _load_model() -> Model:
         print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
         path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
@@ -122,6 +123,7 @@ def main(
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     x, y = (x_train, y_train)
     # EDLBase.__call__が走る
+    # TODO: utils に移植
     def _sep_unc_data(x, y) -> tuple:
         evidence = model.predict(x, batch_size=batch_size)
         alpha = evidence + 1
@@ -142,6 +144,7 @@ def main(
     (_x_test, _y_test) = _sep_unc_data(x=x_test, y=y_test)
 
     # データクレンジングされた後のデータ数をログにとる
+    # TODO: 辞書を作るところまでutilsに移植
     cleaned_ss_train_dict = Counter(_y.numpy())
     cleaned_ss_test_dict = Counter(_y_test.numpy())
     ss_labels = ["num_nr34", "num_nr2", "num_nr1", "num_rem", "num_wake"]
@@ -193,14 +196,10 @@ def main(
         verbose=2,
     )
 
-    # if save_model:
-    #     path = os.path.join(
-    #         pre_process.my_env.models_dir, test_name, date_id
-    #     )
-    #     model.save(path)
-
     evidence_train = _model(_x, training=False)
     evidence_test = _model(_x_test, training=False)
+
+    # TODO: 諸々の計算を一つのメソッドにまとめてutils に移植
 
     # 混合行列をwandbに送信
     utils.conf_mat2Wandb(
@@ -276,6 +275,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
+    # TODO: jsonに移植
     TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
@@ -347,6 +347,7 @@ if __name__ == "__main__":
         date_id_saving_list.append(saving_date_id)
 
         # tagの設定
+        # TODO: wandb のutilsを作成する
         my_tags = [
             test_name,
             PSE_DATA_TAG,
