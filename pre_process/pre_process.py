@@ -55,6 +55,7 @@ class PreProcess:
         )
 
     # データセットの作成（この中で出来るだけ正規化なども含めて終わらせる）
+    # TODO: データ選択方法の見直し
     def make_dataset(
         self,
         train=None,
