@@ -188,6 +188,7 @@ def main(
     )
 
     if save_model:
+        print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
         model.save(path)
     wandb.finish()
@@ -216,7 +217,7 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = False
+    IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
     HAS_NREM2_BIAS = False
@@ -227,7 +228,7 @@ if __name__ == "__main__":
     STRIDE = 1024
     SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
-    FIT_POS = "bottom"
+    FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
@@ -327,6 +328,7 @@ if __name__ == "__main__":
             FIT_POS,
             f"stride_{str(STRIDE)}",
             f"kernel_{str(KERNEL_SIZE)}",
+            "no_cleansing",
         ],
         value=date_id_saving_list,
     )
