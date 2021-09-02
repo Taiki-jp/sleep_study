@@ -460,6 +460,8 @@ class Utils:
             S = tf.reduce_sum(alpha, axis=1, keepdims=True)
             y_pred = alpha / S
             _, n_class = y_pred.shape
+            # 今は5クラス分類以外ありえない
+            assert n_class == 5
             # カテゴリカルに変換
             y_pred = (
                 np.argmax(y_pred, axis=1)
