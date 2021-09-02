@@ -5,7 +5,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタ�
 import tensorflow as tf
 
 tf.random.set_seed(0)
-from tensorflow.python.keras.engine.training import Model
 from data_analysis.utils import Utils
 import sys
 import datetime
@@ -17,7 +16,7 @@ from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from collections import Counter
-from nn.utils import load_model
+from nn.utils import load_model, separate_unc_data
 
 # TODO: 使っていない引数の削除
 def main(
@@ -129,8 +128,28 @@ def main(
             tf.boolean_mask(y, mask.numpy().reshape(x.shape[0])),
         )
 
-    (_x, _y) = _sep_unc_data(x=x, y=y)
-    (_x_test, _y_test) = _sep_unc_data(x=x_test, y=y_test)
+    # 訓練データのクレンジング
+    (_x, _y) = separate_unc_data(
+        x=x,
+        y=y,
+        model=model,
+        batch_size=batch_size,
+        n_class=n_class,
+        experiment_type=experiment_type,
+        unc_threthold=unc_threthold,
+        verbose=0,
+    )
+    # テストデータのクレンジング
+    (_x, _y) = separate_unc_data(
+        x=x_test,
+        y=y_test,
+        model=model,
+        batch_size=batch_size,
+        n_class=n_class,
+        experiment_type=experiment_type,
+        unc_threthold=unc_threthold,
+        verbose=0,
+    )
 
     # データクレンジングされた後のデータ数をログにとる
     # TODO: 辞書を作るところまでutilsに移植
