@@ -183,17 +183,23 @@ class WandbClassificationCallback(WandbCallback):
             # changed axis for my sleep env
             # y_val = np.argmax(y_val, axis=0)
             rec_log_dict = {
-                "rec_" + ss_label: confdiag[i][i] / (ss_dict[i] + 0.0001)
+                "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
+                if ss_dict[i] != 0
+                else np.nan
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             pre_log_dict = {
                 "pre_"
                 + ss_label: confdiag[i][i]
-                / (sum(confmatrix[i]) + confdiag[i][i] + 0.0001)
+                / (sum(confmatrix[i]) + confdiag[i][i])
+                if sum(confmatrix[i]) + confdiag[i][i] != 0
+                else np.nan
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             f_m_log_dict = {
-                "f_m_" + ss_label: rec * pre * 2 / (rec + pre + 0.0001)
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+                if rec + pre != 0
+                else np.nan
                 for (rec, pre, ss_label) in zip(
                     rec_log_dict.values(), pre_log_dict.values(), self.labels
                 )
@@ -205,18 +211,23 @@ class WandbClassificationCallback(WandbCallback):
             # nrem34がないときの処理
             rec_log_dict = {
                 "rec_"
-                + self.labels[i + 1]: confdiag[i + 1][i + 1]
-                / (ss_dict[i + 1] + 0.0001)
+                + self.labels[i + 1]: confdiag[i + 1][i + 1] / (ss_dict[i + 1])
+                if ss_dict[i] != 0
+                else np.nan
                 for i in range(4)
             }
             pre_log_dict = {
                 "pre_"
                 + self.labels[i + 1]: confdiag[i + 1][i + 1]
-                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1] + 0.0001)
+                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1])
+                if sum(confmatrix[i + 1] + confdiag[i + 1][i + 1]) != 0
+                else np.nan
                 for i in range(4)
             }
             f_m_log_dict = {
-                "f_m_" + ss_label: rec * pre * 2 / (rec + pre + 0.0001)
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+                if rec + pre != 0
+                else np.nan
                 for (rec, pre, ss_label) in zip(
                     rec_log_dict.values()[1:],
                     pre_log_dict.values()[1:],
