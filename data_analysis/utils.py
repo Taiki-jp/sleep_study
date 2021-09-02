@@ -438,7 +438,7 @@ class Utils:
         y_pred: Tensor = None,
     ):
         # 計算済みの場合はそれを使うほうが良い
-        if not has_caliculated:
+        if has_caliculated:
             try:
                 assert (
                     evidence is not None
@@ -454,6 +454,7 @@ class Utils:
                 )
                 sys.exit(1)
 
+        else:
             # 各睡眠段階に分けて表示するかどうか
             alpha = evidence + 1
             S = tf.reduce_sum(alpha, axis=1, keepdims=True)
