@@ -89,7 +89,11 @@ def main(
         sys.exit(1)
 
     def _load_model() -> Model:
-        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
+        print(
+            PyColor.GREEN,
+            f"*** {test_name}の{date_id}のモデルを読み込みます ***",
+            PyColor.END,
+        )
         path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
         # path があっているか確認
         if not os.path.exists(path):
@@ -207,7 +211,7 @@ if __name__ == "__main__":
     JB.load()
     date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
         f"stride_{str(STRIDE)}"
-    ][f"kernel_{str(KERNEL_SIZE)}"]["no_cleansing"]
+    ][f"kernel_{str(KERNEL_SIZE)}"]["positive_cleansing"]
 
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, date_id_list)
