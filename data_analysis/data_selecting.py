@@ -17,6 +17,7 @@ from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from collections import Counter
 from nn.utils import load_model, separate_unc_data
+from mywandb.utils import make_ss_dict4wandb
 
 # TODO: 使っていない引数の削除
 def main(
@@ -110,23 +111,6 @@ def main(
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
     x, y = (x_train, y_train)
-    # EDLBase.__call__が走る
-    # TODO: utils に移植
-    def _sep_unc_data(x, y) -> tuple:
-        evidence = model.predict(x, batch_size=batch_size)
-        alpha = evidence + 1
-        unc = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
-        if experiment_type == "positive_cleansing":
-            mask = unc > unc_threthold
-        elif experiment_type == "negative_cleansing":
-            mask = unc < unc_threthold
-        else:
-            raise Exception("正しい実験タイプを指定してください")
-
-        return (
-            tf.boolean_mask(x, mask.numpy().reshape(x.shape[0])),
-            tf.boolean_mask(y, mask.numpy().reshape(x.shape[0])),
-        )
 
     # 訓練データのクレンジング
     (_x, _y) = separate_unc_data(
@@ -140,7 +124,7 @@ def main(
         verbose=0,
     )
     # テストデータのクレンジング
-    (_x, _y) = separate_unc_data(
+    (_x_test, _y_test) = separate_unc_data(
         x=x_test,
         y=y_test,
         model=model,
@@ -152,24 +136,14 @@ def main(
     )
 
     # データクレンジングされた後のデータ数をログにとる
-    # TODO: 辞書を作るところまでutilsに移植
-    cleaned_ss_train_dict = Counter(_y.numpy())
-    cleaned_ss_test_dict = Counter(_y_test.numpy())
-    ss_labels = ["num_nr34", "num_nr2", "num_nr1", "num_rem", "num_wake"]
-    cleaned_ss_train_dict = {
-        ss_labels[i] + "_train": cleaned_ss_train_dict[i]
-        for i in cleaned_ss_train_dict.keys()
-    }
-    cleaned_ss_test_dict = {
-        ss_labels[i] + "_test": cleaned_ss_test_dict[i]
-        for i in cleaned_ss_test_dict.keys()
-    }
-    wandb.log(cleaned_ss_train_dict, commit=False)
-    wandb.log(cleaned_ss_test_dict, commit=False)
+    wandb.log(make_ss_dict4wandb(_y, is_train=True), commit=False)
+    wandb.log(make_ss_dict4wandb(_y_test, is_train=False), commit=False)
 
     # データが拾えなかった場合は終了
-    if _x.shape[0] == 0 or _x_test.shape[0] == 0:
-        return
+    utils.stop_early(_y, mode="catching_assertion")
+    utils.stop_early(_y_test, mode="catching_assertion")
+    # if _x.shape[0] == 0 or _x_test.shape[0] == 0:
+    #     return
 
     _model = EDLModelBase(inputs=inputs, outputs=outputs)
     _model.compile(
@@ -210,53 +184,22 @@ def main(
     # TODO: 諸々の計算を一つのメソッドにまとめてutils に移植
 
     # 混合行列をwandbに送信
-    utils.conf_mat2Wandb(
-        y=_y.numpy(),
-        evidence=evidence_train,
-        train_or_test="train",
-        test_label=test_name,
-        date_id=date_id,
-    )
-    utils.conf_mat2Wandb(
-        y=_y_test.numpy(),
-        evidence=evidence_test,
-        train_or_test="test",
-        test_label=test_name,
-        date_id=date_id,
-    )
-    # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
-    for is_separating in [True, False]:
-        utils.u_hist2Wandb(
+    for train_or_test in ["train", "test"]:
+        utils.make_graphs(
             y=_y.numpy(),
             evidence=evidence_train,
-            train_or_test="train",
-            test_label=test_name,
-            date_id=date_id,
-            separate_each_ss=is_separating,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
         )
-        utils.u_hist2Wandb(
+        utils.make_graphs(
             y=_y_test.numpy(),
-            evidence=evidence_test,
-            train_or_test="test",
-            test_label=test_name,
-            date_id=date_id,
-            separate_each_ss=is_separating,
+            evidence=evidence_train,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
         )
-    # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
-    utils.u_threshold_and_acc2Wandb(
-        y=_y.numpy(),
-        evidence=evidence_train,
-        train_or_test="train",
-        test_label=test_name,
-        date_id=date_id,
-    )
-    utils.u_threshold_and_acc2Wandb(
-        y=_y_test.numpy(),
-        evidence=evidence_test,
-        train_or_test="test",
-        test_label=test_name,
-        date_id=date_id,
-    )
+
     # モデルの保存
     path = os.path.join(
         pre_process.my_env.models_dir, test_name, saving_date_id

@@ -1,4 +1,6 @@
+from typing import Any
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.py_color import PyColor
 import pickle
 import datetime
@@ -41,6 +43,52 @@ class Utils:
         # self.name_dict = self.fr.sl.name_dict
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
+
+    def stop_early(self, mode: str, *args: tuple):
+        if mode == "catching_assertion":
+            try:
+                assert args[0].shape[0] != 0 or args[1].shape[1] != 0
+            except:
+                # 本当は止めずに、このループの処理だけ飛ばして続けたい
+                raise AssertionError("データを拾えませんでした。止めます")
+        else:
+            raise Exception("知らないモードが指定されました")
+
+    # graph_person_id => test_label(test_name), graph_date_id => date_id
+    def make_graphs(
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        train_or_test: str,
+        graph_person_id: str,
+        graph_date_id: str,
+        calling_graph: Any,
+    ):
+        if calling_graph == "all":
+            # 混合行列をwandbに送信
+            self.conf_mat2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
+            for is_separating in [True, False]:
+                self.u_hist2Wandb(
+                    y=y,
+                    evidence=evidence,
+                    train_or_test=train_or_test,
+                    test_label=graph_person_id,
+                    date_id=graph_date_id,
+                    separate_each_ss=is_separating,
+                )
+            self.u_threshold_and_acc2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
 
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
 
