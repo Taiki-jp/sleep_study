@@ -254,7 +254,7 @@ def main(
     path = os.path.join(
         pre_process.my_env.models_dir, test_name, saving_date_id
     )
-    model.save(path)
+    _model.save(path)
     # wandb終了
     wandb.finish()
 
