@@ -102,15 +102,6 @@ class Utils:
         pickle.dump(data, open(file_path, "wb"))
 
     def showSpectrogram(self, *datas, num=4, path=False):
-        """正規化後と正規化前の複数を同時にプロットするためのメソッド
-        例
-        このとき x_trian.shape=(batch, row(128), col(512)) となっている（tmp　も同様）
-        NOTE : 周波数を行方向に取るために転置をプログラム内で行っている(data[k].T のところ)
-
-        Args:
-            num (int, optional): [繰り返したい回数]. Defaults to 4.
-            path (bool, optional): [保存場所を指定したいときはパスを渡す．デフォルトではsleep_study/figures/tmp に入る]. Defaults to False.
-        """
         fig = plt.figure()
         for i, data in enumerate(datas):
             for k in range(num):
@@ -210,7 +201,7 @@ class Utils:
                     ]
                 }
             )
-        plt.clf()
+        plt.close()
         return
 
     # wandbにグラフのログを送る
@@ -225,7 +216,7 @@ class Utils:
             }
         )
         # 画像削除
-        plt.clf()
+        plt.close()
         return
 
     # attention, imageを並べて表示する
@@ -264,7 +255,7 @@ class Utils:
             plt.tight_layout()
             plt.suptitle(f"conf : {title_array[num].numpy():.0%}", size=10)
             plt.savefig(os.path.join(file_path, f"{num}"))
-            plt.clf()
+            plt.close()
 
     # ネットワークグラフを可視化する
     def makeNetworkGraph(self, model, dir2="test", fileName="test"):
@@ -278,6 +269,7 @@ class Utils:
             os.mkdir(path)
 
     # 存在しないディレクトリを自動で作成する
+    # FIXME: 削除予定
     def check_path_auto(self, path):
         dir_list = path.split("\\")
         _dir_list = dir_list
