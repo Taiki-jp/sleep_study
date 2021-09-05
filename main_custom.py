@@ -51,7 +51,7 @@ def main(
     unc_threthold: float = 0,
 ):
 
-    # データの選択
+    # データの選択（移植）
     def __selects_data() -> tuple:
         # データセットの作成(one-hot で処理を行う)
         # カテゴリカルに変換 TODO: make_dataset 内で onehot 表現に変えてもよいかチェック
