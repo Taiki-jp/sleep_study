@@ -136,7 +136,7 @@ def main(
     positive_model = _load_model(is_negative=False, is_positive=True)
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     x, y = (x_train, y_train)
-    # EDLBase.__call__が走る
+
     def _sep_unc_data(x, y) -> tuple:
         evidence = model.predict(x, batch_size=batch_size)
         alpha = evidence + 1
@@ -166,75 +166,9 @@ def main(
         _y_test_over_threthold,
     ) = _sep_unc_data(x=x_test, y=y_test)
 
-    # データクレンジングされた後のデータ数をログにとる
-    # cleaned_ss_train_dict = Counter(_y.numpy())
-    # cleaned_ss_train_dict_over_threthold = Counter(_y_over_threthold.numpy())
-    # cleaned_ss_test_dict = Counter(_y_test.numpy())
-    # cleaned_ss_test_dict_over_threthold = Counter(_y_test_over_threthold.numpy())
-    # ss_labels = ["num_nr34", "num_nr2", "num_nr1", "num_rem", "num_wake"]
-    # cleaned_ss_train_dict = {
-    #     ss_labels[i] + "_train": cleaned_ss_train_dict[i]
-    #     for i in cleaned_ss_train_dict.keys()
-    # }
-    # cleaned_ss_test_dict = {
-    #     ss_labels[i] + "_test": cleaned_ss_test_dict[i]
-    #     for i in cleaned_ss_test_dict.keys()
-    # }
-    # wandb.log(cleaned_ss_train_dict, commit=False)
-    # wandb.log(cleaned_ss_test_dict, commit=False)
-
     # データが拾えなかった場合は終了
     if _x.shape[0] == 0 or _x_test.shape[0] == 0:
         return
-
-    # _model = EDLModelBase(inputs=inputs, outputs=outputs)
-    # _model.compile(
-    #     optimizer=tf.keras.optimizers.Adam(),
-    #     loss=EDLLoss(K=n_class, annealing=0.1),
-    #     metrics=[
-    #         "accuracy",
-    #     ],
-    # )
-    # tensorboard作成
-    # log_dir = os.path.join(
-    #     pre_process.my_env.project_dir, "my_edl", test_name, date_id
-    # )
-    # tf_callback = tf.keras.callbacks.TensorBoard(
-    #     log_dir=log_dir, histogram_freq=1
-    # )
-
-    # _model.fit(
-    #     x=_x,
-    #     y=_y,
-    #     batch_size=batch_size,
-    #     validation_data=(_x_test, _y_test),
-    #     epochs=epochs,
-    #     callbacks=[
-    #         tf_callback,
-    #         WandbClassificationCallback(
-    #             validation_data=(_x_test, _y_test),
-    #             log_confusion_matrix=True,
-    #             labels=["nr34", "nr2", "nr1", "rem", "wake"],
-    #         ),
-    #     ],
-    #     verbose=2,
-    # )
-
-    # if save_model:
-    #     path = os.path.join(
-    #         pre_process.my_env.models_dir, test_name, date_id
-    #     )
-    #     model.save(path)
-
-    # ここ追加したけど、使ってない（いらない）
-    # evidence_train = model(_x, training=False)
-    # evidence_test = model(_x_test, training=False)
-    # evidence_train_over_threthold = positive_model(
-    #     _x_over_threthold, training=False
-    # )
-    # evidence_test_over_threthold = positive_model(
-    #     _x_test_over_threthold, training=False
-    # )
 
     train_or_test = ("train", "test")
     base_model_or_positive_model = (model, positive_model)
@@ -244,36 +178,37 @@ def main(
     )
 
     for is_train_or_test_label, __datas in zip(train_or_test, datas):
-        for __model, (__x, __y) in zip(base_model_or_positive_model, __datas):
-            # evidence = __model(__x, training=False)
-            evidence = __model.predict(__x, batch_size=batch_size)
-            # 混合行列をwandbに送信
-            utils.conf_mat2Wandb(
-                y=__y.numpy(),
-                evidence=evidence,
-                train_or_test=is_train_or_test_label,
-                test_label=test_name,
-                date_id=saving_date_id,
-            )
-            for is_separating in (True, False):
+        evidence_base = model.predict(__datas[0][0], batch_size=batch_size)
+        evidence_positive = positive_model.predict(__datas[1][0])
+        evidence = tf.concat([evidence_base, evidence_positive], axis=0)
+        __y = tf.concat([__datas[0][1], __datas[1][1]], axis=0)
+        # 混合行列をwandbに送信
+        utils.conf_mat2Wandb(
+            y=__y.numpy(),
+            evidence=evidence,
+            train_or_test=is_train_or_test_label,
+            test_label=test_name,
+            date_id=saving_date_id,
+        )
+        for is_separating in (True, False):
 
-                # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
-                utils.u_hist2Wandb(
-                    y=__y.numpy(),
-                    evidence=evidence,
-                    train_or_test=is_train_or_test_label,
-                    test_label=test_name,
-                    date_id=saving_date_id,
-                    separate_each_ss=is_separating,
-                )
-            # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
-            utils.u_threshold_and_acc2Wandb(
+            # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
+            utils.u_hist2Wandb(
                 y=__y.numpy(),
                 evidence=evidence,
                 train_or_test=is_train_or_test_label,
                 test_label=test_name,
                 date_id=saving_date_id,
+                separate_each_ss=is_separating,
             )
+        # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
+        utils.u_threshold_and_acc2Wandb(
+            y=__y.numpy(),
+            evidence=evidence,
+            train_or_test=is_train_or_test_label,
+            test_label=test_name,
+            date_id=saving_date_id,
+        )
     # wandb終了
     wandb.finish()
 

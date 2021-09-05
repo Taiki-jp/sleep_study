@@ -1,4 +1,6 @@
+from typing import Any
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.py_color import PyColor
 import pickle
 import datetime
@@ -42,6 +44,52 @@ class Utils:
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
 
+    def stop_early(self, mode: str, *args: tuple):
+        if mode == "catching_assertion":
+            try:
+                assert args[0].shape[0] != 0 or args[1].shape[1] != 0
+            except:
+                # 本当は止めずに、このループの処理だけ飛ばして続けたい
+                raise AssertionError("データを拾えませんでした。止めます")
+        else:
+            raise Exception("知らないモードが指定されました")
+
+    # graph_person_id => test_label(test_name), graph_date_id => date_id
+    def make_graphs(
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        train_or_test: str,
+        graph_person_id: str,
+        graph_date_id: str,
+        calling_graph: Any,
+    ):
+        if calling_graph == "all":
+            # 混合行列をwandbに送信
+            self.conf_mat2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
+            for is_separating in [True, False]:
+                self.u_hist2Wandb(
+                    y=y,
+                    evidence=evidence,
+                    train_or_test=train_or_test,
+                    test_label=graph_person_id,
+                    date_id=graph_date_id,
+                    separate_each_ss=is_separating,
+                )
+            self.u_threshold_and_acc2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
+
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
 
         file_path = os.path.join(
@@ -54,15 +102,6 @@ class Utils:
         pickle.dump(data, open(file_path, "wb"))
 
     def showSpectrogram(self, *datas, num=4, path=False):
-        """正規化後と正規化前の複数を同時にプロットするためのメソッド
-        例
-        このとき x_trian.shape=(batch, row(128), col(512)) となっている（tmp　も同様）
-        NOTE : 周波数を行方向に取るために転置をプログラム内で行っている(data[k].T のところ)
-
-        Args:
-            num (int, optional): [繰り返したい回数]. Defaults to 4.
-            path (bool, optional): [保存場所を指定したいときはパスを渡す．デフォルトではsleep_study/figures/tmp に入る]. Defaults to False.
-        """
         fig = plt.figure()
         for i, data in enumerate(datas):
             for k in range(num):
@@ -162,7 +201,7 @@ class Utils:
                     ]
                 }
             )
-        plt.clf()
+        plt.close()
         return
 
     # wandbにグラフのログを送る
@@ -177,7 +216,7 @@ class Utils:
             }
         )
         # 画像削除
-        plt.clf()
+        plt.close()
         return
 
     # attention, imageを並べて表示する
@@ -216,7 +255,7 @@ class Utils:
             plt.tight_layout()
             plt.suptitle(f"conf : {title_array[num].numpy():.0%}", size=10)
             plt.savefig(os.path.join(file_path, f"{num}"))
-            plt.clf()
+            plt.close()
 
     # ネットワークグラフを可視化する
     def makeNetworkGraph(self, model, dir2="test", fileName="test"):
@@ -230,6 +269,7 @@ class Utils:
             os.mkdir(path)
 
     # 存在しないディレクトリを自動で作成する
+    # FIXME: 削除予定
     def check_path_auto(self, path):
         dir_list = path.split("\\")
         _dir_list = dir_list
@@ -460,6 +500,8 @@ class Utils:
             S = tf.reduce_sum(alpha, axis=1, keepdims=True)
             y_pred = alpha / S
             _, n_class = y_pred.shape
+            # 今は5クラス分類以外ありえない
+            assert n_class == 5
             # カテゴリカルに変換
             y_pred = (
                 np.argmax(y_pred, axis=1)

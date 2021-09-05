@@ -546,7 +546,7 @@ if __name__ == "__main__":
 
     # ANCHOR: hyper_paramerter
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -567,21 +567,21 @@ if __name__ == "__main__":
         "positive_cleansing",
         "negative_cleansing",
     )
-    EXPERIENT_TYPE = "positive_cleansing"  # ここで model
+    EXPERIENT_TYPE = "no_cleansing"  # ここで model
     MODEL_TYPE_LIST = [
         "dnn",
         "enn",
         "h_enn",
     ]
-    MODEL_TYPE = "enn"
+    MODEL_TYPE = "h_enn"
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "master000"
-    ENN_TAG = "enn" if IS_ENN else "dnn"
+    WANDB_PROJECT = "test" if TEST_RUN else "master_custom"
+    ENN_TAG = MODEL_TYPE
 
     # オブジェクトの作成
     pre_process = PreProcess(
