@@ -36,6 +36,7 @@ def main(
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     batch_size: int = 0,
+    log_all_in_one: bool = False,
 ):
 
     # データセットの作成
@@ -111,29 +112,51 @@ def main(
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
 
     # trainとtestのループ処理
-    train_test_holder = [(x_train, y_train), (x_test, y_test)]
-    train_test_label = ["train", "test"]
+    # train_test_holder = [(x_train, y_train), (x_test, y_test)]
+    # NOTE: 一時的な変更
+    train_test_holder = [(x_test, y_test)]
+    # train_test_holder = [(x_train, y_train), (x_test, y_test)]
+    # train_test_label = ["train", "test"]
+    # NOTE: 一時的な変更
+    train_test_label = ["test"]
+    # trainの平均をログ取る用のリスト
+    train_log_list = list()
+    # testの平均をログ取る用のリスト
+    test_log_list = list()
     for train_or_test, data in zip(train_test_label, train_test_holder):
         x, y = data
         # EDLBase.__call__が走る
         evidence = model.predict(x, batch_size=batch_size)
         # 混合行列をwandbに送信
-        utils.conf_mat2Wandb(
-            y=y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            test_label=test_name,
-            date_id=date_id,
-        )
+        # utils.conf_mat2Wandb(
+        #     y=y,
+        #     evidence=evidence,
+        #     train_or_test=train_or_test,
+        #     test_label=test_name,
+        #     date_id=date_id,
+        #     log_all_in_one=log_all_in_one,
+        # )
         # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
-        utils.u_hist2Wandb(
-            y=y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            test_label=test_name,
-            date_id=date_id,
-            separate_each_ss=True,
-        )
+        # utils.u_hist2Wandb(
+        #     y=y,
+        #     evidence=evidence,
+        #     train_or_test=train_or_test,
+        #     test_label=test_name,
+        #     date_id=date_id,
+        #     separate_each_ss=True,
+        #     log_all_in_one=log_all_in_one,
+        # )
+
+        # utils.u_hist2Wandb(
+        #     y=y,
+        #     evidence=evidence,
+        #     train_or_test=train_or_test,
+        #     test_label=test_name,
+        #     date_id=date_id,
+        #     separate_each_ss=False,
+        #     log_all_in_one=log_all_in_one,
+        # )
+
         # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
             y=y,
@@ -141,11 +164,15 @@ def main(
             train_or_test=train_or_test,
             test_label=test_name,
             date_id=date_id,
+            log_all_in_one=log_all_in_one,
         )
-        # 先にwandbが閉じないように10秒待つ
-        # time.sleep(10)
     # wandb終了
     wandb.finish()
+
+    if log_all_in_one:
+        return train_log_list, test_log_list
+
+    return
 
 
 if __name__ == "__main__":
@@ -164,8 +191,10 @@ if __name__ == "__main__":
         # なんか下のやつ使えなくなっている、、
         # tf.config.run_functions_eagerly(True)
 
-    # ハイパーパラメータの設定
-    TEST_RUN = True
+    # ANCHOR: ハイパーパラメータの設定
+    TEST_RUN = False
+    # WANDB_PROJECT = "test_0905_01" if TEST_RUN else "edl-analysis_0905"
+    WANDB_PROJECT = "一致率結合の表示テスト01"  # プロジェクトを固定
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -186,7 +215,6 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "edl-analysis"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -209,9 +237,10 @@ if __name__ == "__main__":
     # 読み込むモデルの日付リストを返す
     JB = JsonBase("../nn/model_id.json")
     JB.load()
+    # no_cleansing: ベースモデルの評価のため
     date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
         f"stride_{str(STRIDE)}"
-    ][f"kernel_{str(KERNEL_SIZE)}"]["positive_cleansing"]
+    ][f"kernel_{str(KERNEL_SIZE)}"]["no_cleansing"]
 
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, date_id_list)
@@ -264,6 +293,7 @@ if __name__ == "__main__":
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
             batch_size=BATCH_SIZE,
+            log_all_in_one=True,
         )
 
         # testの時は一人の被験者で止める
