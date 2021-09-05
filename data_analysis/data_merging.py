@@ -42,6 +42,7 @@ def main(
     epochs: int = 1,
     experiment_type: str = "",
     saving_date_id: str = "",
+    log_all_in_one: bool = False,
 ):
 
     # データセットの作成
@@ -170,10 +171,11 @@ def main(
     if _x.shape[0] == 0 or _x_test.shape[0] == 0:
         return
 
-    train_or_test = ("train", "test")
-    base_model_or_positive_model = (model, positive_model)
+    # train_or_test = ("train", "test")
+    train_or_test = "test"
+    # base_model_or_positive_model = (model, positive_model)
     datas = (
-        ((_x, _y), (_x_over_threthold, _y_over_threthold)),
+        # ((_x, _y), (_x_over_threthold, _y_over_threthold)),
         ((_x_test, _y_test), (_x_test_over_threthold, _y_test_over_threthold)),
     )
 
@@ -183,24 +185,24 @@ def main(
         evidence = tf.concat([evidence_base, evidence_positive], axis=0)
         __y = tf.concat([__datas[0][1], __datas[1][1]], axis=0)
         # 混合行列をwandbに送信
-        utils.conf_mat2Wandb(
-            y=__y.numpy(),
-            evidence=evidence,
-            train_or_test=is_train_or_test_label,
-            test_label=test_name,
-            date_id=saving_date_id,
-        )
-        for is_separating in (True, False):
+        # utils.conf_mat2Wandb(
+        #     y=__y.numpy(),
+        #     evidence=evidence,
+        #     train_or_test=is_train_or_test_label,
+        #     test_label=test_name,
+        #     date_id=saving_date_id,
+        # )
+        # for is_separating in (True, False):
 
-            # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
-            utils.u_hist2Wandb(
-                y=__y.numpy(),
-                evidence=evidence,
-                train_or_test=is_train_or_test_label,
-                test_label=test_name,
-                date_id=saving_date_id,
-                separate_each_ss=is_separating,
-            )
+        #     # # 不確かさのヒストグラムをwandbに送信 NOTE: separate_each_ss を Ttrue にすると睡眠段階のヒストグラムになる
+        #     utils.u_hist2Wandb(
+        #         y=__y.numpy(),
+        #         evidence=evidence,
+        #         train_or_test=is_train_or_test_label,
+        #         test_label=test_name,
+        #         date_id=saving_date_id,
+        #         separate_each_ss=is_separating,
+        #     )
         # # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
         utils.u_threshold_and_acc2Wandb(
             y=__y.numpy(),
@@ -208,6 +210,7 @@ def main(
             train_or_test=is_train_or_test_label,
             test_label=test_name,
             date_id=saving_date_id,
+            log_all_in_one=log_all_in_one,
         )
     # wandb終了
     wandb.finish()
@@ -230,6 +233,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
+    WANDB_PROJECT = "データマージの表示テスト00"
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -258,7 +262,6 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "data_merging"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -375,6 +378,7 @@ if __name__ == "__main__":
             experiment_type=EXPERIENT_TYPE,
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
+            log_all_in_one=True,
         )
 
         # testの時は一人の被験者で止める
