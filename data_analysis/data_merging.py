@@ -1,17 +1,11 @@
 import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
-
-tf.random.set_seed(0)
 from tensorflow.python.keras.engine.training import Model
 from data_analysis.utils import Utils
 import sys
 import datetime
 import wandb
-from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
@@ -33,14 +27,10 @@ def main(
     has_inception: bool = True,
     data_type: str = None,
     sample_size: int = 0,
-    is_enn: bool = True,
     wandb_config: dict = dict(),
     kernel_size: int = 0,
-    is_mul_layer: bool = False,
     batch_size: int = 0,
     unc_threthold: float = 0,
-    epochs: int = 1,
-    experiment_type: str = "",
     saving_date_id: str = "",
     log_all_in_one: bool = False,
 ):
@@ -61,18 +51,11 @@ def main(
 
     # config の追加
     added_config = {
-        "attention": has_attention,
-        "inception": has_inception,
         "test wake before replaced": ss_test_dict[4],
         "test rem before replaced": ss_test_dict[3],
         "test nr1 before replaced": ss_test_dict[2],
         "test nr2 before replaced": ss_test_dict[1],
         "test nr34 before replaced": ss_test_dict[0],
-        "train wake before replaced": ss_train_dict[4],
-        "train rem before replaced": ss_train_dict[3],
-        "train nr1 before replaced": ss_train_dict[2],
-        "train nr2 before replaced": ss_train_dict[1],
-        "train nr34 before replaced": ss_train_dict[0],
     }
     wandb_config.update(added_config)
 
@@ -85,15 +68,6 @@ def main(
         sync_tensorboard=True,
         dir=pre_process.my_env.project_dir,
     )
-
-    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
-    if data_type == "spectrum":
-        shape = (int(kernel_size / 2), 1)
-    elif data_type == "spectrogram":
-        shape = (128, 512, 1)
-    else:
-        print("correct here based on your model")
-        sys.exit(1)
 
     def _load_model(
         is_positive: bool = False, is_negative: bool = False
@@ -375,7 +349,6 @@ if __name__ == "__main__":
             is_mul_layer=IS_MUL_LAYER,
             batch_size=BATCH_SIZE,
             unc_threthold=UNC_THRETHOLD,
-            experiment_type=EXPERIENT_TYPE,
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
             log_all_in_one=True,
