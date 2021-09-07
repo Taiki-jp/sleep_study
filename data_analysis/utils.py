@@ -437,7 +437,15 @@ class Utils:
         return np.array(fixed_array)
 
     # 混合行列をwandbに送信
-    def conf_mat2Wandb(self, y, evidence, train_or_test, test_label, date_id):
+    def conf_mat2Wandb(
+        self,
+        y,
+        evidence,
+        train_or_test,
+        test_label,
+        date_id,
+        log_all_in_one: bool = False,
+    ):
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         y_pred = alpha / S
@@ -476,6 +484,7 @@ class Utils:
         has_caliculated: bool = False,
         alpha: Tensor = None,
         y_pred: Tensor = None,
+        log_all_in_one: bool = False,
     ):
         # 計算済みの場合はそれを使うほうが良い
         if has_caliculated:
@@ -577,7 +586,13 @@ class Utils:
 
     # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
     def u_threshold_and_acc2Wandb(
-        self, y, evidence, test_label, train_or_test, date_id
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        test_label: str,
+        train_or_test: str,
+        date_id: str,
+        log_all_in_one: bool = False,
     ):
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
@@ -618,10 +633,32 @@ class Utils:
             existing_list.append(sum_existing)
             _thresh_hold_list.append(thresh_hold)
 
+        if log_all_in_one:
+            # 被験者すべてに関して同じグラフにまとめるためにwandbに送信
+            data = [
+                [__unc4wandb, __acc4wandb]
+                for (__unc4wandb, __acc4wandb) in zip(
+                    thresh_hold_list, acc_list
+                )
+            ]
+            table = wandb.Table(
+                data=data, columns=["unc_threthold", "accuracy"]
+            )
+            wandb.log(
+                {
+                    "unc-acc_plot": wandb.plot.line(
+                        table,
+                        "unc_threthold",
+                        "accuracy",
+                        title="unc-acc plot",
+                    )
+                }
+            )
+
         # グラフの作成
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1)
-        # 五角形のプロット
+        # 五角形のプロット(一致率)
         ax1.scatter(
             _thresh_hold_list,
             acc_list,
@@ -634,7 +671,7 @@ class Utils:
         ax1.set_xlabel("uncertainty threshold")
         ax1.set_ylabel("accuracy")
         ax2 = ax1.twinx()
-        # 三角形のプロット
+        # 三角形のプロット(正解数)
         ax2.scatter(
             _thresh_hold_list,
             true_list,
@@ -644,7 +681,7 @@ class Utils:
         )
         # なぞる
         ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
-        # 四角形のプロット
+        # 四角形のプロット(全体のサンプル数)
         ax2.scatter(
             _thresh_hold_list,
             existing_list,
@@ -665,6 +702,7 @@ class Utils:
             os.makedirs(path)
         file_path = os.path.join(path, "uncertainty" + "_" + date_id + ".png")
         plt.savefig(file_path)
+        # 保存したグラフをwandbに送信
         self.save_graph2Wandb(
             path=file_path, name="uncertainty", train_or_test=train_or_test
         )

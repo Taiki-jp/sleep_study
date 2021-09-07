@@ -194,7 +194,7 @@ if __name__ == "__main__":
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
     # WANDB_PROJECT = "test_0905_01" if TEST_RUN else "edl-analysis_0905"
-    WANDB_PROJECT = "一致率結合の表示テスト01"  # プロジェクトを固定
+    WANDB_PROJECT = "データマージの表示テスト00"  # プロジェクトを固定
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -260,6 +260,7 @@ if __name__ == "__main__":
             f"stride_{STRIDE}",
             f"sample_{SAMPLE_SIZE}",
             ENN_TAG,
+            "base_model",
         ]
         wandb_config = {
             "test name": test_name,
