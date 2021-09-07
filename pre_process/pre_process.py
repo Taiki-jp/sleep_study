@@ -314,7 +314,9 @@ class PreProcess:
         return records_train, records_test
 
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
-    def split_train_test_from_records(self, records, test_id, pse_data):
+    def split_train_test_from_records(
+        self, records, test_id, pse_data: bool = False
+    ):
         # NOTE : pse_data is needed for avoiding split data
         if pse_data:
             print("仮データのためスキップします")

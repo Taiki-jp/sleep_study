@@ -45,6 +45,26 @@ class JsonBase(object):
         with open(self.json_file, "w") as f:
             json.dump(self.json_dict, f, indent=4)
 
+    # 複数リスト => 要素を辞書にまとめたリストを作成するメソッド
+    def make_list_of_dict_from_mul_list(self, *args) -> list:
+        first_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
+            args[4]
+        ]["no_cleansing"]
+        second_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
+            args[4]
+        ]["positive_cleansing"]
+        third_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
+            args[4]
+        ]["negative_cleansing"]
+
+        keys = ("nothing", "negative", "positive")
+        values = [first_list, second_list, third_list]
+
+        # マップ関数によって iterable に変換してる kigasuru
+        mapped = map(lambda x, y, z: dict(nothing=x, negative=y, positive=z), first_list, second_list, third_list)
+
+        return list(mapped)
+
 
 if __name__ == "__main__":
     from data_analysis.py_color import PyColor

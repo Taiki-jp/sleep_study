@@ -11,8 +11,7 @@ def load_model(
     loaded_name: str,
     n_class: int,
     verbose: int,
-    date_id: dict = {},
-    test_name: str = "",
+    model_id: dict = {},
     is_positive: bool = False,
     is_negative: bool = False,
 ) -> Model:
@@ -24,24 +23,24 @@ def load_model(
         path = os.path.join(
             os.environ["sleep"],
             "models",
-            test_name,
-            date_id["positive"],
+            loaded_name,
+            model_id["positive"],
         )
     # negative かつ positive でない
     elif is_negative and is_positive == False:
         path = os.path.join(
             os.environ["sleep"],
             "models",
-            test_name,
-            date_id["negative"],
+            loaded_name,
+            model_id["negative"],
         )
     # 上に漏れた場合は no-cleansing を読み込む
     else:
         path = os.path.join(
             os.environ["sleep"],
             "models",
-            test_name,
-            date_id["nothing"],
+            loaded_name,
+            model_id["nothing"],
         )
     if not os.path.exists(path):
         print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
