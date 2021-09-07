@@ -1,3 +1,6 @@
+from typing import Any
+from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.py_color import PyColor
 import pickle
 import datetime
@@ -5,6 +8,9 @@ import os
 import wandb
 from pre_process.file_reader import FileReader
 from random import shuffle, choices, random, seed
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
@@ -38,6 +44,52 @@ class Utils:
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
 
+    def stop_early(self, mode: str, *args: tuple):
+        if mode == "catching_assertion":
+            try:
+                assert args[0].shape[0] != 0 or args[1].shape[1] != 0
+            except:
+                # 本当は止めずに、このループの処理だけ飛ばして続けたい
+                raise AssertionError("データを拾えませんでした。止めます")
+        else:
+            raise Exception("知らないモードが指定されました")
+
+    # graph_person_id => test_label(test_name), graph_date_id => date_id
+    def make_graphs(
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        train_or_test: str,
+        graph_person_id: str,
+        graph_date_id: str,
+        calling_graph: Any,
+    ):
+        if calling_graph == "all":
+            # 混合行列をwandbに送信
+            self.conf_mat2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
+            for is_separating in [True, False]:
+                self.u_hist2Wandb(
+                    y=y,
+                    evidence=evidence,
+                    train_or_test=train_or_test,
+                    test_label=graph_person_id,
+                    date_id=graph_date_id,
+                    separate_each_ss=is_separating,
+                )
+            self.u_threshold_and_acc2Wandb(
+                y=y,
+                evidence=evidence,
+                train_or_test=train_or_test,
+                test_label=graph_person_id,
+                date_id=graph_date_id,
+            )
+
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
 
         file_path = os.path.join(
@@ -50,15 +102,6 @@ class Utils:
         pickle.dump(data, open(file_path, "wb"))
 
     def showSpectrogram(self, *datas, num=4, path=False):
-        """正規化後と正規化前の複数を同時にプロットするためのメソッド
-        例
-        このとき x_trian.shape=(batch, row(128), col(512)) となっている（tmp　も同様）
-        NOTE : 周波数を行方向に取るために転置をプログラム内で行っている(data[k].T のところ)
-
-        Args:
-            num (int, optional): [繰り返したい回数]. Defaults to 4.
-            path (bool, optional): [保存場所を指定したいときはパスを渡す．デフォルトではsleep_study/figures/tmp に入る]. Defaults to False.
-        """
         fig = plt.figure()
         for i, data in enumerate(datas):
             for k in range(num):
@@ -141,6 +184,9 @@ class Utils:
         )
         # パスを通す
         self.check_path_auto(path=path)
+        if not os.path.exists(path):
+            print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
+            os.makedirs(path)
         # ファイル名を指定して保存
         plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
 
@@ -155,7 +201,7 @@ class Utils:
                     ]
                 }
             )
-        plt.clf()
+        plt.close()
         return
 
     # wandbにグラフのログを送る
@@ -170,7 +216,7 @@ class Utils:
             }
         )
         # 画像削除
-        plt.clf()
+        plt.close()
         return
 
     # attention, imageを並べて表示する
@@ -209,7 +255,7 @@ class Utils:
             plt.tight_layout()
             plt.suptitle(f"conf : {title_array[num].numpy():.0%}", size=10)
             plt.savefig(os.path.join(file_path, f"{num}"))
-            plt.clf()
+            plt.close()
 
     # ネットワークグラフを可視化する
     def makeNetworkGraph(self, model, dir2="test", fileName="test"):
@@ -223,6 +269,7 @@ class Utils:
             os.mkdir(path)
 
     # 存在しないディレクトリを自動で作成する
+    # FIXME: 削除予定
     def check_path_auto(self, path):
         dir_list = path.split("\\")
         _dir_list = dir_list
@@ -264,15 +311,26 @@ class Utils:
         cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
         # 予測ラベルのクラス数に応じてラベル名を変更する
+
         if n_class == 5:
             labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+            # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
+            if (
+                len(Counter(y_true)) == 4
+                and len(Counter(y_pred)) == 4
+                and min(y_true) == 1
+                and min(y_pred) == 1
+            ):
+                # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
+                labels.pop(0)
+
         elif n_class == 4:
             labels = ["nr34", "nr12", "rem", "wake"]
         elif n_class == 3:
             labels = ["nrem", "rem", "wake"]
         elif n_class == 2:
             labels = ["non-target", "target"]
-        df = pd.DataFrame(cm, columns=labels, index=labels)
+        df = pd.DataFrame(cm)
         return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas=False):
@@ -322,7 +380,7 @@ class Utils:
         except:
             print("your color is smaller than target array")
             sys.exit(1)
-        colors = list(color_obj.__dict__.values())[2 : 2 + target_len]
+        colors = list(color_obj.__dict__.values())[11 : 11 + target_len]
         ax.hist(
             target_array, bins=10, label=hist_label, stacked=True, color=colors
         )
@@ -379,7 +437,15 @@ class Utils:
         return np.array(fixed_array)
 
     # 混合行列をwandbに送信
-    def conf_mat2Wandb(self, y, evidence, train_or_test, test_label, date_id):
+    def conf_mat2Wandb(
+        self,
+        y,
+        evidence,
+        train_or_test,
+        test_label,
+        date_id,
+        log_all_in_one: bool = False,
+    ):
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         y_pred = alpha / S
@@ -407,26 +473,51 @@ class Utils:
     # 不確かさのヒストグラムをwandbに送信
     def u_hist2Wandb(
         self,
-        y,
-        evidence,
-        train_or_test,
-        test_label,
-        date_id,
-        dir2="histgram",
-        separate_each_ss=False,
-        unc=None,
+        y: Tensor,
+        evidence: Tensor,
+        train_or_test: str,
+        test_label: str,
+        date_id: str,
+        dir2: str = "histgram",
+        separate_each_ss: bool = False,
+        unc: Tensor = None,
+        has_caliculated: bool = False,
+        alpha: Tensor = None,
+        y_pred: Tensor = None,
+        log_all_in_one: bool = False,
     ):
-        # 各睡眠段階に分けて表示するかどうか
-        alpha = evidence + 1
-        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
-        y_pred = alpha / S
-        _, n_class = y_pred.shape
-        # カテゴリカルに変換
-        y_pred = (
-            np.argmax(y_pred, axis=1)
-            if not self.catch_nrem2
-            else self.my_argmax(y_pred, axis=1)
-        )
+        # 計算済みの場合はそれを使うほうが良い
+        if has_caliculated:
+            try:
+                assert (
+                    evidence is not None
+                    and unc is not None
+                    and alpha is not None
+                    and y_pred is not None
+                )
+            except AssertionError:
+                print(
+                    PyColor.RED_FLASH,
+                    "計算済みの場合，evidence, unc, alpha, y_pred を渡してください",
+                    PyColor.END,
+                )
+                sys.exit(1)
+
+        else:
+            # 各睡眠段階に分けて表示するかどうか
+            alpha = evidence + 1
+            S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+            y_pred = alpha / S
+            _, n_class = y_pred.shape
+            # 今は5クラス分類以外ありえない
+            assert n_class == 5
+            # カテゴリカルに変換
+            y_pred = (
+                np.argmax(y_pred, axis=1)
+                if not self.catch_nrem2
+                else self.my_argmax(y_pred, axis=1)
+            )
+        # unc だけを渡す場合
         if unc is not None:
             uncertainty = unc
         else:
@@ -495,7 +586,13 @@ class Utils:
 
     # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
     def u_threshold_and_acc2Wandb(
-        self, y, evidence, test_label, train_or_test, date_id
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        test_label: str,
+        train_or_test: str,
+        date_id: str,
+        log_all_in_one: bool = False,
     ):
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
@@ -536,10 +633,32 @@ class Utils:
             existing_list.append(sum_existing)
             _thresh_hold_list.append(thresh_hold)
 
+        if log_all_in_one:
+            # 被験者すべてに関して同じグラフにまとめるためにwandbに送信
+            data = [
+                [__unc4wandb, __acc4wandb]
+                for (__unc4wandb, __acc4wandb) in zip(
+                    thresh_hold_list, acc_list
+                )
+            ]
+            table = wandb.Table(
+                data=data, columns=["unc_threthold", "accuracy"]
+            )
+            wandb.log(
+                {
+                    "unc-acc_plot": wandb.plot.line(
+                        table,
+                        "unc_threthold",
+                        "accuracy",
+                        title="unc-acc plot",
+                    )
+                }
+            )
+
         # グラフの作成
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1)
-        # 五角形のプロット
+        # 五角形のプロット(一致率)
         ax1.scatter(
             _thresh_hold_list,
             acc_list,
@@ -552,7 +671,7 @@ class Utils:
         ax1.set_xlabel("uncertainty threshold")
         ax1.set_ylabel("accuracy")
         ax2 = ax1.twinx()
-        # 三角形のプロット
+        # 三角形のプロット(正解数)
         ax2.scatter(
             _thresh_hold_list,
             true_list,
@@ -562,7 +681,7 @@ class Utils:
         )
         # なぞる
         ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
-        # 四角形のプロット
+        # 四角形のプロット(全体のサンプル数)
         ax2.scatter(
             _thresh_hold_list,
             existing_list,
@@ -579,9 +698,11 @@ class Utils:
         path = os.path.join(
             self.env.figure_dir, "uncertainty", test_label, train_or_test
         )
-        self.check_path_auto(path=path)
+        if not os.path.exists(path):
+            os.makedirs(path)
         file_path = os.path.join(path, "uncertainty" + "_" + date_id + ".png")
         plt.savefig(file_path)
+        # 保存したグラフをwandbに送信
         self.save_graph2Wandb(
             path=file_path, name="uncertainty", train_or_test=train_or_test
         )
@@ -655,15 +776,13 @@ class Utils:
             shape=(row,), minval=0, maxval=np.pi * 4
         )
         input_class0 = (
-            x_bias + (theta_class0/4/np.pi) * np.cos(theta_class0),
-            y_bias + (theta_class0/4/np.pi) * np.sin(theta_class0),
+            x_bias + (theta_class0 / 4 / np.pi) * np.cos(theta_class0),
+            y_bias + (theta_class0 / 4 / np.pi) * np.sin(theta_class0),
         )
         # pi ずらす
         input_class1 = (
-            x_bias
-            + np.cos(theta_class1 + np.pi) * (theta_class1/4/np.pi),
-            y_bias
-            + np.sin(theta_class1 + np.pi) * (theta_class1/4/np.pi),
+            x_bias + np.cos(theta_class1 + np.pi) * (theta_class1 / 4 / np.pi),
+            y_bias + np.sin(theta_class1 + np.pi) * (theta_class1 / 4 / np.pi),
         )
         x_train = tf.concat([input_class0, input_class1], axis=1)
         x_train = tf.transpose(x_train)
@@ -674,6 +793,31 @@ class Utils:
         y_test = None
         return (x_train, x_test), (y_train, y_test)
 
+    # 仮データ作成メソッドの親メソッド
+    def make_2d_psedo_data(
+        self,
+        row: int,
+        col: int,
+        x_bias: int = 0,
+        y_bias: int = 0,
+        seed: int = 0,
+        data_type: str = "",
+    ) -> tuple:
+        # 極座標のデータ
+        if len(data_type) == 0 and type(data_type) == str:
+            print(PyColor.RED_FLASH, "データタイプを指定してください", PyColor.END)
+        elif data_type == "type01":
+            return self.polar_data(
+                row=row, col=col, x_bias=x_bias, y_bias=y_bias
+            )
+        elif data_type == "type02":
+            return self.point_symmetry_data(row, col, x_bias, y_bias, seed)
+        elif data_type == "type03":
+            return self.archimedes_spiral(row, col, x_bias, y_bias, seed)
+        else:
+            print(PyColor.RED_FLASH, "データタイプの指定方法を確認してください", PyColor.END)
+            sys.exit(1)
+
 
 if __name__ == "__main__":
     utils = Utils()
@@ -681,8 +825,8 @@ if __name__ == "__main__":
         100, 2, 0, 0
     )
     x_train = x_train.numpy()
-    plt.scatter(x_train[:100,0], x_train[:100,1], c="r")
-    plt.scatter(x_train[100:,0], x_train[100:,1], c="b")
+    plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
+    plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
     plt.savefig("hoge.png")
 
     # ===============

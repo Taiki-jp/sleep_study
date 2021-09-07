@@ -11,6 +11,8 @@ def spectrum_conv(
     has_attention: bool = True,
     has_inception: bool = True,
     is_mul_layer: bool = False,
+    is_out_logits: bool = False,
+    n_class: int = 5,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -92,6 +94,12 @@ def spectrum_conv(
             x = tf.multiply(x, attention)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+
+    # 出力を持つかどうか
+    if is_out_logits:
+        x = tf.keras.layers.Dense(n_class ** 2)(x)
+        x = tf.keras.layers.Dense(n_class)(x)
+
     return x
 
 
@@ -145,6 +153,7 @@ def edl_classifier_1d(
     has_dropout: bool = False,
     is_mul_layer: bool = False,
     has_mul_output: bool = False,
+    hidden_outputs: bool = False,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -226,6 +235,9 @@ def edl_classifier_1d(
             x = tf.multiply(x, attention)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
+
+    if hidden_outputs:
+        return x
 
     # enn output1
     if has_dropout:
@@ -464,7 +476,7 @@ class EDLModelBase(tf.keras.Model):
             y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
             # Loss
             loss = self.compiled_loss(
-                y, alpha, regularization_losses=self.losses
+                y, evidence, regularization_losses=self.losses
             )
 
         # Gradients
@@ -497,21 +509,81 @@ class EDLModelBase(tf.keras.Model):
         # metrics_dict.update(u_dict)
         return metrics_dict
 
-    @tf.function
-    def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
-        assert np.ndim(uncertainty) == 2  # (batch, 1)
-        assert y_true.shape == y_pred.shape  # (batch, n_class)
-        _y_true_list = list()
-        _y_pred_list = list()
-        for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
-            if _u > u_threshold:
-                _y_true_list.append(_y_true)
-                _y_pred_list.append(_y_pred)
-        u_acc = tf.keras.metrics.categorical_accuracy(
-            np.array(y_true), np.array(y_pred)
-        )
-        return {"u_acc": u_acc}
+    # @tf.function
+    # def u_accuracy(self, y_true, y_pred, uncertainty, u_threshold=0):
+    #     assert np.ndim(uncertainty) == 2  # (batch, 1)
+    #     assert y_true.shape == y_pred.shape  # (batch, n_class)
+    #     _y_true_list = list()
+    #     _y_pred_list = list()
+    #     for _y_true, _y_pred, _u in zip(y_true, y_pred, uncertainty):
+    #         if _u > u_threshold:
+    #             _y_true_list.append(_y_true)
+    #             _y_pred_list.append(_y_pred)
+    #     u_acc = tf.keras.metrics.categorical_accuracy(
+    #         np.array(y_true), np.array(y_pred)
+    #     )
+    #     return {"u_acc": u_acc}
 
+
+# =========
+# 階層的ENN
+# =========
+class H_EDLModelBase(tf.keras.Model):
+    def __init__(self, n_class=5, **kwargs):
+        super().__init__(**kwargs)
+        self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.n_class = n_class
+
+    @tf.function
+    def train_step(self, data):
+        x, y = data
+
+        with tf.GradientTape() as tape:
+            evidence = self(x, training=True)
+            alpha = evidence + 1
+            # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+            y_pred = alpha / tf.reduce_sum(
+                alpha, axis=1, keepdims=True
+            )  # (32, 5)
+            # yをone-hot表現にして送る
+            y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
+            # Loss
+            loss = self.compiled_loss(
+                y, evidence, regularization_losses=self.losses
+            )
+
+        # Gradients
+        training_vars = self.trainable_variables
+        gradients = tape.gradient(loss, training_vars)
+
+        # Step with optimizer
+        self.optimizer.apply_gradients(zip(gradients, training_vars))
+        # accuracyのメトリクスにはy_predを入れる
+        self.compiled_metrics.update_state(y, y_pred)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        return {m.name: m.result() for m in self.metrics}
+
+    @tf.function
+    def test_step(self, data):
+        # Unpack the data
+        x, y = data
+        # Compute predictions
+        evidence = self(x, training=False)
+        alpha = evidence + 1
+        y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+        # Updates the metrics tracking the loss
+        # yをone-hot表現にして送る
+        y = tf.one_hot(y, depth=self.n_class)
+        # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
+        # Update the metrics.
+        self.compiled_metrics.update_state(y, y_pred)
+        metrics_dict = {m.name: m.result() for m in self.metrics}
+        # metrics_dict.update(u_dict)
+        return metrics_dict
+
+
+# 睡眠データのモデルを返す
 
 if __name__ == "__main__":
     import os

@@ -24,6 +24,7 @@ class PreProcess:
         is_previous: bool,
         stride: int,
         is_normal: bool,
+        has_nrem2_bias: bool = False,
     ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -43,6 +44,7 @@ class PreProcess:
             stride=self.stride,
             is_normal=self.is_normal,
         )
+        self.has_nrem2_bias = has_nrem2_bias
         # LoadSleepData の参照を作成
         self.fr = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
@@ -53,6 +55,7 @@ class PreProcess:
         )
 
     # データセットの作成（この中で出来るだけ正規化なども含めて終わらせる）
+    # TODO: データ選択方法の見直し
     def make_dataset(
         self,
         train=None,
@@ -324,7 +327,12 @@ class PreProcess:
 
     # 訓練データのサイズをセットする
     def set_datasize(
-        self, ss_list, target_ss, isStorchastic, each_data_size, class_size
+        self,
+        ss_list,
+        target_ss,
+        isStorchastic,
+        each_data_size,
+        class_size,
     ):
 
         if isStorchastic:
@@ -332,13 +340,22 @@ class PreProcess:
             sys.exit(1)
         else:
             if class_size == 5:  # NR34, NR2, NR1, REM, WAKE
-                return {
-                    1: each_data_size,
-                    2: each_data_size,
-                    3: each_data_size,
-                    4: each_data_size,
-                    5: each_data_size,
-                }
+                if self.has_nrem2_bias:
+                    return {
+                        1: each_data_size,
+                        2: each_data_size * 2,
+                        3: each_data_size,
+                        4: each_data_size,
+                        5: each_data_size,
+                    }
+                else:
+                    return {
+                        1: each_data_size,
+                        2: each_data_size,
+                        3: each_data_size,
+                        4: each_data_size,
+                        5: each_data_size,
+                    }
             elif class_size == 4:  # NR34, NR12, REM, WAKE
                 return {
                     1: each_data_size,

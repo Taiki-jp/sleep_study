@@ -8,7 +8,13 @@ from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
 # EDLのロス関数
 class EDLLoss(tf.keras.losses.Loss):
-    def __init__(self, K, annealing, name="custom_edl_loss", reduction="auto"):
+    def __init__(
+        self,
+        K: int,
+        annealing: float,
+        name: str = "custom_edl_loss",
+        reduction="auto",
+    ):
         super().__init__(name=name, reduction=reduction)
         self.K = K
         self.annealing = annealing
@@ -17,6 +23,7 @@ class EDLLoss(tf.keras.losses.Loss):
     def call(self, y_true, evidence, unc=None):
         # y_trueはone-hotの状態
         alpha = evidence + 1  # (32:batch_size, 5:n_class)
+        # カテゴリカルで送られてきたときは one-hot 表現に変換
         return self.loss_eq5(y_true=y_true, alpha=alpha, unc=unc)
 
     def KL(self, alpha):

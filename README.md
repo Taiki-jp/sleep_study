@@ -23,6 +23,12 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 - feature/dnn : determinstic nn の学習用ブランチ
 
+## TODO
+| DATA / MODEL| dnn | enn | proposed1(negative) | proposed2(aggressive) | proposed3(hierarichical) |
+----|----|----|----|----|----|
+| psedo | code | code | code | code | code |
+| sleep | code | code | code | code | code |
+
 # Prefix
 
 - feat: 新機能実装
@@ -34,6 +40,12 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - test: 機能テストの追加
 - chore: makefile,ライブラリ,その他の補足ツールの変更
   > （引用：[takadamalab](https://github.com/takadamalab)）
+
+# wandb
+## wandb のコード名
+- code_CS : seed の比較を行うコード
+- code_dnn : Determinstic NN の実験（比較のため）を行うコード
+- code_enn : ENN の実験を行うコード
 
 # Requirement
 
