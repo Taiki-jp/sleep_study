@@ -22,6 +22,7 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - feature/sep_learning : 何のブランチか忘れた
 - feature/data_selecting : 不確かさの低いデータを拾ってきて分類する
 - feature/dnn : determinstic nn の学習用ブランチ
+- feature/how2show_merged_result : マージ後の結果をどのように見せるか変更するブランチ（masterベース）
 
 ## TODO
 | DATA / MODEL| dnn | enn | proposed1(negative) | proposed2(aggressive) | proposed3(hierarichical) |
