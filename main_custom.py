@@ -4,7 +4,7 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
 
-tf.random.set_seed(0)
+tf.random.set_seed(0)  # TODO: モジュールのインポートの部分から他の部分に移行する
 from tensorflow.python.data.ops.dataset_ops import DatasetV2
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.ops.array_ops import boolean_mask
@@ -567,7 +567,7 @@ if __name__ == "__main__":
         "positive_cleansing",
         "negative_cleansing",
     )
-    EXPERIENT_TYPE = "no_cleansing"  # ここで model
+    EXPERIMENT_TYPE = "no_cleansing"  # ここで model
     MODEL_TYPE_LIST = [
         "dnn",
         "enn",
@@ -625,7 +625,7 @@ if __name__ == "__main__":
             f"sample_{SAMPLE_SIZE}",
             ENN_TAG,
             MODEL_TYPE,
-            EXPERIENT_TYPE,
+            EXPERIMENT_TYPE,
         ]
 
         wandb_config = {
@@ -639,7 +639,7 @@ if __name__ == "__main__":
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
             "model type": MODEL_TYPE,
-            "experiment type": EXPERIENT_TYPE,
+            "experiment type": EXPERIMENT_TYPE,
         }
 
         main(
@@ -664,7 +664,7 @@ if __name__ == "__main__":
             subnet_starting_point=SUBNET_STARTING_POINNT,
             annealing_param=ANNEALING_RATIO,
             model_type=MODEL_TYPE,
-            experiment_type=EXPERIENT_TYPE,
+            experiment_type=EXPERIMENT_TYPE,
             has_inception=HAS_INCEPTION,
         )
 

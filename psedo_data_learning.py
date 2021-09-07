@@ -65,7 +65,7 @@ def main(
     )
     model = tf.keras.Model(inputs=shape, outputs=outputs)
     # モデルの構成
-    print(PyColor.RED_FLASH, model.summary(), PyColor.END)
+    print(model.summary())
     # モデルのコンパイル
     model.compile(
         optimizer=tf.keras.optimizers.Adam(),
@@ -96,6 +96,7 @@ def main(
                 test_label=TEST_NAME,
                 date_id=date_id,
                 separate_each_ss=False,
+                has_caliculated=True,
             )
 
         return (
@@ -120,6 +121,7 @@ def main(
     else:
         print(PyColor.RED_FLASH, "すべてのデータが分離されました", PyColor.END)
 
+
 if __name__ == "__main__":
     import datetime
     import wandb
@@ -140,8 +142,13 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ANCHOR: ハイパラの設定
-    TEST_RUN = False
+    TEST_RUN = True
     TEST_NAME = "test"
+    DATA_TYPE_DICT = {
+        "polar": "type01",
+        "point_async": "type02",
+        "archimedes": "type03",
+    }
     DATA_TYPE = "type01"
     # code 名によって実験を分類
     # code_C(ompare)S(eed)
@@ -211,7 +218,7 @@ if __name__ == "__main__":
             project_name=PROJECT_NAME,
             experiment_type=EXPERIMENT_TYPE,
             utils=utils,
-            annealing_param=ANNEALING_RATIO
+            annealing_param=ANNEALING_RATIO,
         )
         # git の作成
         root_dir = os.path.join(os.environ["sleep"], "figures")
@@ -235,5 +242,5 @@ if __name__ == "__main__":
         wandb.finish()
 
         if TEST_RUN:
-            print(PyColor.RED_FLASH, "*** finish test run ***", PyColor.END)   
+            print(PyColor.RED_FLASH, "*** finish test run ***", PyColor.END)
             break
