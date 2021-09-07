@@ -1,7 +1,7 @@
 from collections import Counter
 from tensorflow.python.framework.ops import Tensor
 
-
+# 各睡眠段階の数を返す関数
 def make_ss_dict4wandb(ss_array: Tensor, is_train: bool) -> dict:
     try:
         assert type(ss_array) == Tensor
