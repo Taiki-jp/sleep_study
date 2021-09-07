@@ -1,3 +1,4 @@
+from mywandb.utils import make_ss_dict4wandb
 import os
 import tensorflow as tf
 from tensorflow.python.keras.engine.training import Model
@@ -44,20 +45,9 @@ def main(
         to_one_hot_vector=False,
         each_data_size=sample_size,
     )
-    # データセットの数を表示
-    print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
 
     # config の追加
-    added_config = {
-        "test wake before replaced": ss_test_dict[4],
-        "test rem before replaced": ss_test_dict[3],
-        "test nr1 before replaced": ss_test_dict[2],
-        "test nr2 before replaced": ss_test_dict[1],
-        "test nr34 before replaced": ss_test_dict[0],
-    }
-    wandb_config.update(added_config)
+    wandb_config.update(make_ss_dict4wandb(ss_array=y_test, is_train=False))
 
     # wandbの初期化
     wandb.init(
@@ -69,41 +59,6 @@ def main(
         dir=pre_process.my_env.project_dir,
     )
 
-    def _load_model(
-        is_positive: bool = False, is_negative: bool = False
-    ) -> Model:
-        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みます ***", PyColor.END)
-        if is_positive and is_negative == False:
-            path = os.path.join(
-                os.environ["sleep"],
-                "models",
-                test_name,
-                date_id["positive"],
-            )
-        elif is_negative and is_positive == False:
-            path = os.path.join(
-                os.environ["sleep"],
-                "models",
-                test_name,
-                date_id["negative"],
-            )
-        else:
-            path = os.path.join(
-                os.environ["sleep"],
-                "models",
-                test_name,
-                date_id["nothing"],
-            )
-
-        # path があっているか確認
-        if not os.path.exists(path):
-            print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
-            sys.exit(1)
-        model = tf.keras.models.load_model(
-            path, custom_objects={"EDLLoss": EDLLoss(K=n_class, annealing=0.1)}
-        )
-        print(PyColor.GREEN, f"*** {test_name}のモデルを読み込みました ***", PyColor.END)
-        return model
 
     # データクレンジングを行うベースとなるモデルを読み込む
     model = _load_model(is_negative=False, is_positive=False)

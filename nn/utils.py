@@ -8,11 +8,41 @@ from tensorflow.python.framework.ops import Tensor
 
 # モデルの読み込み用関数
 def load_model(
-    loaded_name: str, model_id: str, n_class: int, verbose: int
+    loaded_name: str,
+    n_class: int,
+    verbose: int,
+    date_id: dict = {},
+    test_name: str = "",
+    is_positive: bool = False,
+    is_negative: bool = False,
 ) -> Model:
+    # 表示するかどうか
     if verbose != 0:
         print(PyColor.GREEN, f"*** {loaded_name}のモデルを読み込みます ***", PyColor.END)
-    path = os.path.join(os.environ["sleep"], "models", loaded_name, model_id)
+    # positive かつ negative でない
+    if is_positive and is_negative == False:
+        path = os.path.join(
+            os.environ["sleep"],
+            "models",
+            test_name,
+            date_id["positive"],
+        )
+    # negative かつ positive でない
+    elif is_negative and is_positive == False:
+        path = os.path.join(
+            os.environ["sleep"],
+            "models",
+            test_name,
+            date_id["negative"],
+        )
+    # 上に漏れた場合は no-cleansing を読み込む
+    else:
+        path = os.path.join(
+            os.environ["sleep"],
+            "models",
+            test_name,
+            date_id["nothing"],
+        )
     if not os.path.exists(path):
         print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
         sys.exit(1)
