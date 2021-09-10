@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.py_color import PyColor
@@ -584,21 +584,12 @@ class Utils:
             path=file_path, name="hist", train_or_test=train_or_test
         )
 
-    # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
-    def u_threshold_and_acc2Wandb(
-        self,
-        y: ndarray,
-        evidence: Tensor,
-        test_label: str,
-        train_or_test: str,
-        date_id: str,
-        log_all_in_one: bool = False,
-    ):
+    # ENN の計算(evidence => unc, pred, alpha)
+    def calc_enn_output_from_evidence(self, evidence: Tensor) -> tuple:
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
         y_pred = alpha / S
         _, n_class = y_pred.shape
-        # カテゴリカルに変換
         y_pred = (
             np.argmax(y_pred, axis=1)
             if not self.catch_nrem2
@@ -609,6 +600,19 @@ class Utils:
         uncertainty = tf.reshape(uncertainty, -1)
         # listに落とし込む
         uncertainty = [u.numpy() for u in uncertainty]
+        return evidence, alpha, uncertainty, y_pred
+
+    # 閾値を設定して分類した時の一致率とサンプル数をwandbに送信
+    def u_threshold_and_acc2Wandb(
+        self,
+        y: ndarray,
+        evidence: Tensor,
+        test_label: str,
+        train_or_test: str,
+        date_id: str,
+        evidence_positive: Tensor = None,
+        log_all_in_one: bool = False,
+    ):
         # 一致率のリスト
         acc_list = list()
         # 正解数のリスト
@@ -619,8 +623,42 @@ class Utils:
         _thresh_hold_list = list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
+
+        # evidence からENNの出力を計算
+        _, _, uncertainty, y_pred = self.calc_enn_output_from_evidence(
+            evidence=evidence
+        )
+        # 別のevidence からENNの出力を計算
+        if evidence_positive is not None:
+            (
+                _,
+                _,
+                uncertainty_replacing,
+                y_pred_replacing,
+            ) = self.calc_enn_output_from_evidence(evidence=evidence_positive)
+        # NOTE: 以下の実装ではベースモデルの不確かさの高い部分（0.5 - 1.0）を置き換えモデルの出力で置き換えるため、順番を気にする必要がある
+        # よってサイズの確認による順番が揃っているかどうかのチェックが必要
+        try:
+            assert uncertainty.shape[0] == uncertainty_replacing.shape[0]
+        except:
+            raise AssertionError("サイズが揃っていません。データを削ってモデルに入れていませんか？")
+
         for thresh_hold in thresh_hold_list:
+            # 不確かさが大きい時は別のモデルの予測を使う
             tmp_y_pred = y_pred[uncertainty <= thresh_hold]
+            tmp_y_pred_replacing = y_pred_replacing[uncertainty <= thresh_hold]
+            tmp_unc = uncertainty[uncertainty <= thresh_hold]
+            # tmp_uncとtmp_y_pred のサイズの確認（順番の確定のために必要）
+            try:
+                assert tmp_y_pred.shape[0] == tmp_unc.shape[0] and tmp_y_pred_replacing.shape[0] == tmp_y_pred.shape[0]
+            except:
+                raise AssertionError("サイズが揃っていません。原因なんだろう。。")
+
+            # 不確かさの大きいものは置き換える
+            tmp_y_pred = [
+                tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
+                for i, __unc in enumerate(tmp_unc)
+            ]
             tmp_y_true = y[uncertainty <= thresh_hold]
             sum_true = sum(tmp_y_pred == tmp_y_true)
             sum_existing = len(tmp_y_true)

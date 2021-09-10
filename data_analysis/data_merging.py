@@ -69,41 +69,14 @@ def main(
         is_negative=False,
     )
 
-    # 訓練データのクレンジング
-    (_x, _), (_, _) = separate_unc_data(
-        x=x,
-        y=y,
-        model=model,
-        batch_size=batch_size,
-        n_class=n_class,
-        experiment_type="positive_cleansing",  # NOTE: 今回使うのは固定
-        unc_threthold=unc_threthold,
-        verbose=1,
-    )
-
-    # テストデータのクレンジング
-    (_x_test, _y_test), (
-        _x_test_over_threthold,
-        _y_test_over_threthold,
-    ) = separate_unc_data(
-        x=x_test,
-        y=y_test,
-        model=model,
-        batch_size=batch_size,
-        n_class=n_class,
-        experiment_type="positive_cleansing",  # NOTE: 今回使うのは固定
-        unc_threthold=unc_threthold,
-        verbose=1,
-    )
-
     # クレンジング後のデータに対してグラフを作成
-    evidence_base = model.predict(_x_test, batch_size=batch_size)
-    evidence_positive = positive_model.predict(_x_test_over_threthold)
-    evidence = tf.concat([evidence_base, evidence_positive], axis=0)
-    __y = tf.concat([_y_test, _y_test_over_threthold], axis=0)
+    # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
+    evidence_base = model.predict(x_test, batch_size=batch_size)
+    evidence_positive = positive_model.predict(x_test)
     utils.u_threshold_and_acc2Wandb(
-        y=__y.numpy(),
-        evidence=evidence,
+        y=y.numpy(),
+        evidence=evidence_base,
+        evidence_positive=evidence_positive,
         train_or_test="train",
         test_label=test_name,
         date_id=saving_date_id,
