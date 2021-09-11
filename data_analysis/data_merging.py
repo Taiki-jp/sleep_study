@@ -28,7 +28,7 @@ def main(
 ):
 
     # データセットの作成
-    (x, y), (x_test, y_test) = pre_process.make_dataset(
+    (_, _), (x_test, y_test) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -74,7 +74,7 @@ def main(
     evidence_base = model.predict(x_test, batch_size=batch_size)
     evidence_positive = positive_model.predict(x_test)
     utils.u_threshold_and_acc2Wandb(
-        y=y.numpy(),
+        y=y_test,
         evidence=evidence_base,
         evidence_positive=evidence_positive,
         train_or_test="train",
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = True
-    WANDB_PROJECT = "test/data_merging_0907_000"
+    TEST_RUN = False
+    WANDB_PROJECT = "test_data_merging_0911_000"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 256
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     JB = JsonBase("../nn/model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "enn", "spectrum", "middle", "stride_1024"
+        "enn", "spectrum", "middle", "stride_1024", "kernel_512"
     )
 
     # モデルのidを記録するためのリスト
@@ -171,6 +171,7 @@ if __name__ == "__main__":
             unc_threthold=UNC_THRETHOLD,
             saving_date_id=saving_date_id,
             log_all_in_one=True,
+            sample_size=SAMPLE_SIZE,  # これがないとtrainの分割のところでデータがなくてエラーが起きてしまう
         )
 
         # testの時は一人の被験者で止める

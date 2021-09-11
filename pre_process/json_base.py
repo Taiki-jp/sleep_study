@@ -57,11 +57,13 @@ class JsonBase(object):
             args[4]
         ]["negative_cleansing"]
 
-        keys = ("nothing", "negative", "positive")
-        values = [first_list, second_list, third_list]
-
         # マップ関数によって iterable に変換してる kigasuru
-        mapped = map(lambda x, y, z: dict(nothing=x, negative=y, positive=z), first_list, second_list, third_list)
+        mapped = map(
+            lambda x, y, z: dict(nothing=x, positive=y, negative=z),
+            first_list,
+            second_list,
+            third_list,
+        )
 
         return list(mapped)
 

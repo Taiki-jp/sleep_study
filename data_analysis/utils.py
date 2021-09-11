@@ -613,14 +613,12 @@ class Utils:
         evidence_positive: Tensor = None,
         log_all_in_one: bool = False,
     ):
-        # 一致率のリスト
         acc_list = list()
-        # 正解数のリスト
         true_list = list()
-        # 残ったサンプル数のリスト
         existing_list = list()
-        # 閾値の空リスト
-        _thresh_hold_list = list()
+        _threshold_list = list()
+        acc_list_replaced = list()
+        _threshold_list_replaced = list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
 
@@ -639,7 +637,7 @@ class Utils:
         # NOTE: 以下の実装ではベースモデルの不確かさの高い部分（0.5 - 1.0）を置き換えモデルの出力で置き換えるため、順番を気にする必要がある
         # よってサイズの確認による順番が揃っているかどうかのチェックが必要
         try:
-            assert uncertainty.shape[0] == uncertainty_replacing.shape[0]
+            assert len(uncertainty) == len(uncertainty_replacing)
         except:
             raise AssertionError("サイズが揃っていません。データを削ってモデルに入れていませんか？")
 
@@ -647,29 +645,50 @@ class Utils:
             # 不確かさが大きい時は別のモデルの予測を使う
             tmp_y_pred = y_pred[uncertainty <= thresh_hold]
             tmp_y_pred_replacing = y_pred_replacing[uncertainty <= thresh_hold]
+            uncertainty = np.array(uncertainty)
             tmp_unc = uncertainty[uncertainty <= thresh_hold]
             # tmp_uncとtmp_y_pred のサイズの確認（順番の確定のために必要）
             try:
-                assert tmp_y_pred.shape[0] == tmp_unc.shape[0] and tmp_y_pred_replacing.shape[0] == tmp_y_pred.shape[0]
+                assert (
+                    tmp_y_pred.shape[0] == tmp_unc.shape[0]
+                    and tmp_y_pred_replacing.shape[0] == tmp_y_pred.shape[0]
+                )
             except:
                 raise AssertionError("サイズが揃っていません。原因なんだろう。。")
 
-            # 不確かさの大きいものは置き換える
-            tmp_y_pred = [
-                tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
-                for i, __unc in enumerate(tmp_unc)
-            ]
+            # 不確かさの大きいものは置き換える（0.5以上から不確かなものが入ってくる）
+            if thresh_hold > 0.5:
+                tmp_y_pred_replaced = [
+                    tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
+                    for i, __unc in enumerate(tmp_unc)
+                ]
+            # 閾値未満であれば空リストを返す
+            else:
+                tmp_y_pred_replaced = list()
+
             tmp_y_true = y[uncertainty <= thresh_hold]
-            sum_true = sum(tmp_y_pred == tmp_y_true)
-            sum_existing = len(tmp_y_true)
-            if sum_existing == 0:
-                print("trueラベルがありませんでした")
-                continue
-            acc = sum_true / sum_existing
-            acc_list.append(acc)
-            true_list.append(sum_true)
-            existing_list.append(sum_existing)
-            _thresh_hold_list.append(thresh_hold)
+
+            # 置き換え前の情報
+            self.__calc_true_acc(
+                pred_labels=tmp_y_pred,
+                thresh_hold=thresh_hold,
+                true_labels=tmp_y_true,
+                acc_list=acc_list,
+                true_list=true_list,
+                existing_list=existing_list,
+                threshold_list=_threshold_list,
+                is_replacing_mode=False,
+            )
+
+            # 置き換え後の情報(一致率のみ使用)
+            self.__calc_true_acc(
+                pred_labels=tmp_y_pred_replaced,
+                thresh_hold=thresh_hold,
+                true_labels=tmp_y_true,
+                acc_list=acc_list_replaced,
+                threshold_list=_threshold_list_replaced,
+                is_replacing_mode=True,
+            )
 
         if log_all_in_one:
             # 被験者すべてに関して同じグラフにまとめるためにwandbに送信
@@ -698,37 +717,57 @@ class Utils:
         ax1 = fig.add_subplot(1, 1, 1)
         # 五角形のプロット(一致率)
         ax1.scatter(
-            _thresh_hold_list,
+            _threshold_list,
             acc_list,
             c="#f46d43",
             label="accuracy",
             marker="p",
         )
         # なぞる
-        ax1.plot(_thresh_hold_list, acc_list, c="#f46d43", linestyle=":")
+        ax1.plot(_threshold_list, acc_list, c="#f46d43", linestyle=":")
         ax1.set_xlabel("uncertainty threshold")
         ax1.set_ylabel("accuracy")
         ax2 = ax1.twinx()
+
+        # 星形のプロット(一致率)
+        ax1.scatter(
+            _threshold_list_replaced,
+            acc_list_replaced,
+            c="#f46d43",
+            label="accuracy",
+            marker="*",
+        )
+        # なぞる
+        ax1.plot(
+            _threshold_list_replaced,
+            acc_list_replaced,
+            c="#f46d43",
+            linestyle=":",
+        )
+        ax1.set_xlabel("uncertainty threshold")
+        ax1.set_ylabel("accuracy_replaced")
+        # ax2 = ax1.twinx()
+
         # 三角形のプロット(正解数)
         ax2.scatter(
-            _thresh_hold_list,
+            _threshold_list,
             true_list,
             c="#43caf4",
             label="true_num",
             marker="^",
         )
         # なぞる
-        ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
+        ax2.plot(_threshold_list, true_list, c="#43caf4", linestyle=":")
         # 四角形のプロット(全体のサンプル数)
         ax2.scatter(
-            _thresh_hold_list,
+            _threshold_list,
             existing_list,
             c="#43f4c6",
             label="all_num",
             marker="s",
         )
         # なぞる
-        ax2.plot(_thresh_hold_list, existing_list, c="#43f4c6", linestyle=":")
+        ax2.plot(_threshold_list, existing_list, c="#43f4c6", linestyle=":")
         ax2.set_ylabel("samples")
         ax1.legend()
         ax2.legend()
@@ -758,6 +797,37 @@ class Utils:
             append_images=images[1:],
             loop=0,
         )
+
+    # 正解の数、合計のサンプル数、一致率の計算
+    def __calc_true_acc(
+        self,
+        true_labels: ndarray,
+        pred_labels: ndarray,
+        thresh_hold: float,
+        acc_list: list = list(),
+        true_list: list = list(),
+        existing_list: list = list(),
+        threshold_list: list = list(),
+        is_replacing_mode: bool = False,
+    ):
+        # 空リストが入ってきたら終わり
+        if len(pred_labels) == 0:
+            print("predラベルがありませんでした")
+            return
+        sum_true = sum(true_labels == pred_labels)
+        sum_existing = len(true_labels)
+        # 実ラベルがなかったら終わり
+        if sum_existing == 0:
+            print("tureラベルがありませんでした")
+            return
+        acc = sum_true / sum_existing
+        acc_list.append(acc)
+        threshold_list.append(thresh_hold)
+        if is_replacing_mode:
+            return
+        true_list.append(sum_true)
+        existing_list.append(sum_existing)
+        return
 
     # 極座標で考える
     def polar_data(

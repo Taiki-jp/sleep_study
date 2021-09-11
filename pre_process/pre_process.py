@@ -77,7 +77,7 @@ class PreProcess:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
-            print("仮の睡眠データを作成します")
+            print("- 仮の睡眠データを作成します")
             return self.make_pse_sleep_data(
                 n_class=class_size,
                 data_size=each_data_size,
@@ -87,7 +87,7 @@ class PreProcess:
         if is_set_data_size:
 
             if self.verbose == 0:
-                print("訓練データのサイズを揃えます")
+                print("- 訓練データのサイズを揃えます")
 
             # 各睡眠段階のサイズを決定する
             ss_dict_train = self.set_datasize(
