@@ -1,5 +1,6 @@
 from typing import Any, Tuple
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.py_color import PyColor
 import pickle
@@ -945,6 +946,80 @@ class Utils:
         else:
             print(PyColor.RED_FLASH, "データタイプの指定方法を確認してください", PyColor.END)
             sys.exit(1)
+
+    # 各睡眠段階のF値の計算
+    def calc_each_ss_f_m(self, x: Tensor, y: Tensor, model: Model, n_class: int = 5, batch_size: int = 32):
+        labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+        y_pred = np.argmax(model.predict(x, batch_size=batch_size), axis=1)
+        confmatrix = confusion_matrix(y_true=y, y_pred=y_pred, labels=range(n_class))
+        confdiag = np.eye(len(confmatrix)) * confmatrix
+        # print(confdiag)
+        np.fill_diagonal(confmatrix, 0)
+
+        # NOTE: Tensor型できたときのみこの処理にする
+        if type(y) is not np.ndarray:
+            ss_dict = Counter(y.numpy())
+        else:
+            ss_dict = Counter(y)
+
+        if confmatrix.shape[0] == 5:
+            rec_log_dict = {
+                "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
+                if ss_dict[i] != 0
+                else np.nan
+                for (ss_label, i) in zip(labels, range(len(labels)))
+            }
+            pre_log_dict = {
+                "pre_"
+                + ss_label: confdiag[i][i]
+                / (sum(confmatrix[i]) + confdiag[i][i])
+                if sum(confmatrix[i]) + confdiag[i][i] != 0
+                else np.nan
+                for (ss_label, i) in zip(labels, range(len(labels)))
+            }
+            f_m_log_dict = {
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+                if rec + pre != 0
+                else np.nan
+                for (rec, pre, ss_label) in zip(
+                    rec_log_dict.values(), pre_log_dict.values(), labels
+                )
+            }
+            rec_log_dict.update(pre_log_dict)
+            rec_log_dict.update(f_m_log_dict)
+            wandb.log(rec_log_dict, commit=False)
+        elif confmatrix.shape[0] == 4:
+            # nrem34がないときの処理
+            rec_log_dict = {
+                "rec_"
+                + labels[i + 1]: confdiag[i + 1][i + 1] / (ss_dict[i + 1])
+                if ss_dict[i] != 0
+                else np.nan
+                for i in range(4)
+            }
+            pre_log_dict = {
+                "pre_"
+                + labels[i + 1]: confdiag[i + 1][i + 1]
+                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1])
+                if sum(confmatrix[i + 1] + confdiag[i + 1][i + 1]) != 0
+                else np.nan
+                for i in range(4)
+            }
+            f_m_log_dict = {
+                "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+                if rec + pre != 0
+                else np.nan
+                for (rec, pre, ss_label) in zip(
+                    rec_log_dict.values()[1:],
+                    pre_log_dict.values()[1:],
+                    labels[1:],
+                )
+            }
+            rec_log_dict.update(pre_log_dict)
+            rec_log_dict.update(f_m_log_dict)
+            wandb.log(rec_log_dict, commit=False)
+        
+
 
 
 if __name__ == "__main__":
