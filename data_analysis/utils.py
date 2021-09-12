@@ -204,6 +204,14 @@ class Utils:
         plt.close()
         return
 
+    # DataFrameをcsv出力する
+    def to_csv(self, df: pd.DataFrame, path: str, edit_mode: str):
+        if edit_mode == "append":
+            df.to_csv(path, mode="a", header=True)
+        else:
+            print("勝手に実装してください")
+            sys.exit(1)
+
     # wandbにグラフのログを送る
     def save_graph2Wandb(self, path, name, train_or_test):
         im_read = plt.imread(path)
@@ -612,6 +620,7 @@ class Utils:
         date_id: str,
         evidence_positive: Tensor = None,
         log_all_in_one: bool = False,
+        is_early_stop_and_return_data_frame: bool = False,
     ):
         acc_list = list()
         true_list = list()
@@ -711,6 +720,17 @@ class Utils:
                     )
                 }
             )
+        # csv出力のみ行ってwandbには送信しない
+        if is_early_stop_and_return_data_frame:
+            d = {
+                "accuracy": acc_list,
+                "replaced": acc_list_replaced,
+                "unc": _threshold_list,
+                "unc_replaced": _threshold_list_replaced,
+            }
+            df = pd.DataFrame.from_dict(d, orient="index")
+            # このまま出すと普通の転置が行ってしまうので転置する
+            return df.transpose()
 
         # グラフの作成
         fig = plt.figure()

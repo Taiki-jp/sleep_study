@@ -73,7 +73,7 @@ def main(
     # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
     evidence_base = model.predict(x_test, batch_size=batch_size)
     evidence_positive = positive_model.predict(x_test)
-    utils.u_threshold_and_acc2Wandb(
+    df_result = utils.u_threshold_and_acc2Wandb(
         y=y_test,
         evidence=evidence_base,
         evidence_positive=evidence_positive,
@@ -81,7 +81,11 @@ def main(
         test_label=test_name,
         date_id=saving_date_id,
         log_all_in_one=log_all_in_one,
+        is_early_stop_and_return_data_frame=True,
     )
+    # csv出力
+    output_path = "20210911.csv"
+    utils.to_csv(df_result, path=output_path, edit_mode="append")
 
     # wandb終了
     wandb.finish()
