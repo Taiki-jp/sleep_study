@@ -948,10 +948,19 @@ class Utils:
             sys.exit(1)
 
     # 各睡眠段階のF値の計算
-    def calc_each_ss_f_m(self, x: Tensor, y: Tensor, model: Model, n_class: int = 5, batch_size: int = 32):
+    def calc_each_ss_f_m(
+        self,
+        x: Tensor,
+        y: Tensor,
+        model: Model,
+        n_class: int = 5,
+        batch_size: int = 32,
+    ):
         labels = ["nr34", "nr2", "nr1", "rem", "wake"]
         y_pred = np.argmax(model.predict(x, batch_size=batch_size), axis=1)
-        confmatrix = confusion_matrix(y_true=y, y_pred=y_pred, labels=range(n_class))
+        confmatrix = confusion_matrix(
+            y_true=y, y_pred=y_pred, labels=range(n_class)
+        )
         confdiag = np.eye(len(confmatrix)) * confmatrix
         # print(confdiag)
         np.fill_diagonal(confmatrix, 0)
@@ -1018,9 +1027,25 @@ class Utils:
             rec_log_dict.update(pre_log_dict)
             rec_log_dict.update(f_m_log_dict)
             wandb.log(rec_log_dict, commit=False)
-        
 
-
+    # 各睡眠段階の一致率の計算
+    def calc_ss_acc(
+        self,
+        x: Tensor,
+        y: Tensor,
+        model: Model,
+        n_class: int = 5,
+        batch_size: int = 32,
+    ):
+        y_pred = self.my_argmax(model.predict(x, batch_size=batch_size), axis=1)
+        confmatrix = confusion_matrix(
+            y_true=y, y_pred=y_pred, labels=range(n_class)
+        )
+        confdiag = np.eye(len(confmatrix)) * confmatrix
+        # print(confdiag)
+        # 一致率の計算
+        acc = sum(confdiag)/sum(confmatrix)
+        wandb.log({"accuracy":acc}, commit=False)
 
 if __name__ == "__main__":
     utils = Utils()

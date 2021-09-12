@@ -83,7 +83,7 @@ def main(
     )
 
     # 各睡眠段階のF値を計算wandbに送信
-    Utils().calc_each_ss_f_m(
+    Utils().calc_ss_acc(
         x=_x_test,
         y=_y_test,
         model=model,
