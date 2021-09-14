@@ -30,7 +30,7 @@ def main(
     n_class: int = 5,
     pse_data: bool = False,
     test_name: str = None,
-    date_id: str = None,
+    date_id: dict = None,
     has_attention: bool = False,
     has_inception: bool = True,
     data_type: str = None,
@@ -140,8 +140,8 @@ def main(
     wandb.log(make_ss_dict4wandb(_y_test, is_train=False), commit=False)
 
     # データが拾えなかった場合は終了
-    utils.stop_early(_y, mode="catching_assertion")
-    utils.stop_early(_y_test, mode="catching_assertion")
+    utils.stop_early(y=_y, mode="catching_assertion")
+    utils.stop_early(y=_y_test, mode="catching_assertion")
     # if _x.shape[0] == 0 or _x_test.shape[0] == 0:
     #     return
 
@@ -153,9 +153,8 @@ def main(
             "accuracy",
         ],
     )
-    # tensorboard作成
     log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id
+        pre_process.my_env.project_dir, "my_edl", test_name, date_id["nothing"]
     )
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
@@ -191,6 +190,7 @@ def main(
             train_or_test=train_or_test,
             graph_person_id=test_name,
             calling_graph="all",
+            graph_date_id=saving_date_id,
         )
         utils.make_graphs(
             y=_y_test.numpy(),
@@ -198,13 +198,14 @@ def main(
             train_or_test=train_or_test,
             graph_person_id=test_name,
             calling_graph="all",
+            graph_date_id=saving_date_id,
         )
 
     # モデルの保存
-    path = os.path.join(
-        pre_process.my_env.models_dir, test_name, saving_date_id
-    )
-    _model.save(path)
+    # path = os.path.join(
+    #     pre_process.my_env.models_dir, test_name, saving_date_id
+    # )
+    # _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -256,7 +257,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "data_selecting_test001"
+    WANDB_PROJECT = "test_data_selecting"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -279,15 +280,15 @@ if __name__ == "__main__":
     # 読み込むモデルの日付リストを返す
     JB = JsonBase("../nn/model_id.json")
     JB.load()
-    date_id_list = JB.json_dict[ENN_TAG][DATA_TYPE][FIT_POS][
-        f"stride_{str(STRIDE)}"
-    ][f"kernel_{str(KERNEL_SIZE)}"]["no_cleansing"]
+    model_date_list = JB.make_list_of_dict_from_mul_list(
+        "enn", "spectrum", "middle", "stride_1024", "kernel_512"
+    )
 
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
     for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list, date_id_list)
+        zip(pre_process.name_list, model_date_list)
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
@@ -355,14 +356,16 @@ if __name__ == "__main__":
         if TEST_RUN:
             break
 
-    JB.dump(
-        keys=[
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            f"{EXPERIENT_TYPE}",
-        ],
-        value=date_id_saving_list,
-    )
+    # モデルを保存しないのでコメントアウト
+    # TODO: モデルの保存を行う変数に応じて場合分け
+    # JB.dump(
+    #     keys=[
+    #         ENN_TAG,
+    #         DATA_TYPE,
+    #         FIT_POS,
+    #         f"stride_{str(STRIDE)}",
+    #         f"kernel_{str(KERNEL_SIZE)}",
+    #         f"{EXPERIENT_TYPE}",
+    #     ],
+    #     value=date_id_saving_list,
+    # )
