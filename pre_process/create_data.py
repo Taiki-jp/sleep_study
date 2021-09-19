@@ -1,4 +1,6 @@
 import datetime
+
+from pandas.core.frame import DataFrame
 from data_analysis.py_color import PyColor
 from collections import Counter
 from pre_process.record import Record, multipleRecords
@@ -16,8 +18,8 @@ class CreateData(object):
 
     def make_spectrum(
         self,
-        tanita_data: pd.core.frame.DataFrame,
-        psg_data: pd.core.frame.DataFrame,
+        tanita_data: DataFrame,
+        psg_data: DataFrame,
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
