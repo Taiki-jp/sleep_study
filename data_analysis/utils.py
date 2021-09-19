@@ -1,4 +1,5 @@
 from typing import Any, Tuple
+from pandas.core.frame import DataFrame
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
@@ -1044,6 +1045,22 @@ class Utils:
         acc = sum(y_pred == y.numpy()) / len(y)
         wandb.log({"accuracy": acc}, commit=False)
 
+    def make_df_of_time_series_ss(
+        self, evidence_base: Tensor, evidence_positive: Tensor, y_true: ndarray
+    ) -> DataFrame:
+        _, _, _, y_pred_base = self.calc_enn_output_from_evidence(
+            evidence=evidence_base
+        )
+        _, _, _, y_pred_sub = self.calc_enn_output_from_evidence(
+            evidence=evidence_positive
+        )
+        df = {
+            "y_true": y_true,
+            "y_pred_main": y_pred_base,
+            "y_pred_sub": y_pred_sub,
+        }
+        return pd.DataFrame(df)
+
 
 if __name__ == "__main__":
     utils = Utils()
@@ -1054,26 +1071,3 @@ if __name__ == "__main__":
     plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
     plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
     plt.savefig("hoge.png")
-
-    # ===============
-    # make graph test
-    # ===============
-    # root_dir = os.path.join(os.environ["sleep"], "figures")
-    # each_dir_name_list = ["main_network", "sub_network", "merged_network"]
-    # saved_path_list = [
-    #     os.path.join(
-    #         root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
-    #     )
-    #     for i in range(3)
-    # ]
-    # for saved_path in saved_path_list:
-    #     utils.make_gif(saved_path=saved_path)
-
-    # =========================
-    # point_symmetry_data test
-    # =========================
-    # (x_train, x_test), (y_train, y_test) = utils.polar_data(100, 2, 0, 0)
-    # print(x_train)
-    # =========================
-    # archimedes_spiral test
-    # =========================

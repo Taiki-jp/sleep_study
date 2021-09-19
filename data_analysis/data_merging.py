@@ -36,20 +36,21 @@ def main(
         pse_data=False,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        is_set_data_size=False,
     )
 
     # config の追加
     wandb_config.update(make_ss_dict4wandb(ss_array=y_test, is_train=False))
 
     # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
+    # wandb.init(
+    #     name=name,
+    #     project=project,
+    #     tags=my_tags,
+    #     config=wandb_config,
+    #     sync_tensorboard=True,
+    #     dir=pre_process.my_env.project_dir,
+    # )
 
     # データクレンジングを行うベースとなるモデルを読み込む
     model = load_model(
@@ -70,47 +71,22 @@ def main(
         is_negative=False,
     )
 
-    # テストデータのクレンジング
-    (_x_test, _y_test) = separate_unc_data(
-        x=x_test,
-        y=y_test,
-        model=model,
-        batch_size=batch_size,
-        n_class=n_class,
-        experiment_type="positive_cleansing",
-        unc_threthold=unc_threthold,
-        verbose=0,
-    )
-
-    # 各睡眠段階のF値を計算wandbに送信
-    Utils().calc_ss_acc(
-        x=_x_test,
-        y=_y_test,
-        model=model,
-        n_class=n_class,
-        batch_size=batch_size,
-    )
-
     # # クレンジング後のデータに対してグラフを作成
     # # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
-    # evidence_base = model.predict(x_test, batch_size=batch_size)
-    # evidence_positive = positive_model.predict(x_test)
-    # df_result = utils.u_threshold_and_acc2Wandb(
-    #     y=y_test,
-    #     evidence=evidence_base,
-    #     evidence_positive=evidence_positive,
-    #     train_or_test="train",
-    #     test_label=test_name,
-    #     date_id=saving_date_id,
-    #     log_all_in_one=log_all_in_one,
-    #     is_early_stop_and_return_data_frame=True,
-    # )
-    # # csv出力
-    # output_path = "20210911.csv"
-    # utils.to_csv(df_result, path=output_path, edit_mode="append")
+    evidence_base = model.predict(x_test, batch_size=batch_size)
+    evidence_positive = positive_model.predict(x_test)
+    # 時系列に出力する
+    df_result = utils.make_df_of_time_series_ss(
+        evidence_base=evidence_base,
+        evidence_positive=evidence_positive,
+        y_true=y_test,
+    )
+    # csv出力
+    output_path = f"{test_name}.csv"
+    utils.to_csv(df_result, path=output_path, edit_mode="append")
 
     # wandb終了
-    wandb.finish()
+    # wandb.finish()
 
 
 if __name__ == "__main__":
@@ -124,7 +100,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "test"
+    WANDB_PROJECT = "test_0916"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 256
@@ -183,7 +159,7 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
-            name=f"{test_name}",
+            name=test_name,
             project=WANDB_PROJECT,
             train=train,
             test=test,

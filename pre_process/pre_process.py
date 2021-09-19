@@ -10,6 +10,7 @@ import tensorflow.keras.preprocessing.image as tf_image
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from pre_process.load_sleep_data import LoadSleepData
+from pre_process.record import Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -58,21 +59,21 @@ class PreProcess:
     # TODO: データ選択方法の見直し
     def make_dataset(
         self,
-        train=None,
-        test=None,
-        is_set_data_size=True,
-        target_ss=None,
-        is_storchastic=True,
-        is_shuffle=True,
-        is_multiply=False,
-        mul_num=None,
-        each_data_size=1000,
-        class_size=5,
-        normalize=True,
-        catch_none=True,
-        insert_channel_axis=True,
-        to_one_hot_vector=True,
-        pse_data=False,
+        train: list = None,
+        test: list = None,
+        is_set_data_size: bool = True,
+        target_ss: int = None,
+        is_storchastic: bool = True,
+        is_shuffle: bool = True,
+        is_multiply: bool = False,
+        mul_num: float = None,
+        each_data_size: int = 1000,
+        class_size: int = 5,
+        normalize: bool = True,
+        catch_none: bool = True,
+        insert_channel_axis: bool = True,
+        to_one_hot_vector: bool = True,
+        pse_data: bool = False,
     ):
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
