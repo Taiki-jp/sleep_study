@@ -47,6 +47,11 @@ ENN の構造は上記の通り（InceptionV3 の一部を利用）
 - code_dnn : Determinstic NN の実験（比較のため）を行うコード
 - code_enn : ENN の実験を行うコード
 
+## wandb のプロジェクト名(作成するたびに忘れるので追記すること)
+- 中間発表 : 中間発表に向けた資料作り
+- test_{project_name} : 各種プロジェクトのテスト
+
+
 # Requirement
 
 ## windows

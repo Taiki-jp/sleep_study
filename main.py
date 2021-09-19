@@ -225,15 +225,15 @@ if __name__ == "__main__":
     BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 1024
-    SAMPLE_SIZE = 5000
+    STRIDE = 16
+    SAMPLE_SIZE = 50000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "master"
+    WANDB_PROJECT = "test" if TEST_RUN else ""
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 

@@ -15,7 +15,9 @@ def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
     FIT_POS_LIST = ["top", "middle", "bottom"]
-    STRIDE_LIST = [1024, 16, 4]
+    # ストライドは 0.25秒 or 1秒 or 64秒
+    STRIDE_LIST = [1024, 16, 4, 1]
+    # 窓のサイズは 32秒 or 64秒
     KERNEL_SIZE_LIST = [1024, 512]
     IS_NORMAL = True
     IS_PREVIOUS = False
