@@ -601,13 +601,19 @@ class Utils:
 
 if __name__ == "__main__":
     utils = Utils()
-    root_dir = os.path.join(os.environ["sleep"], "figures")
-    each_dir_name_list = ["main_network", "sub_network", "merged_network"]
-    saved_path_list = [
-        os.path.join(
-            root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
-        )
-        for i in range(3)
-    ]
-    for saved_path in saved_path_list:
-        utils.make_gif(saved_path=saved_path)
+    import pandas as pd
+    import os, sys
+
+    filepath = os.path.join(os.environ["git"], "sleep_study", "acc.csv")
+    df = pd.read_csv(filepath)
+
+    # root_dir = os.path.join(os.environ["sleep"], "figures")
+    # each_dir_name_list = ["main_network", "sub_network", "merged_network"]
+    # saved_path_list = [
+    #     os.path.join(
+    #         root_dir, each_dir_name_list[i], "check_uncertainty", "16", "8"
+    #     )
+    #     for i in range(3)
+    # ]
+    # for saved_path in saved_path_list:
+    #     utils.make_gif(saved_path=saved_path)
