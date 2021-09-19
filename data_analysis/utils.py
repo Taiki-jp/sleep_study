@@ -74,6 +74,7 @@ class Utils:
                 test_label=graph_person_id,
                 date_id=graph_date_id,
             )
+            # 睡眠段階と正負の色分けで2パターン作成
             for is_separating in [True, False]:
                 self.u_hist2Wandb(
                     y=y,
@@ -623,82 +624,44 @@ class Utils:
         log_all_in_one: bool = False,
         is_early_stop_and_return_data_frame: bool = False,
     ):
+        alpha = evidence + 1
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)
+        y_pred = alpha / S
+        _, n_class = y_pred.shape
+        # カテゴリカルに変換
+        y_pred = (
+            np.argmax(y_pred, axis=1)
+            if not self.catch_nrem2
+            else self.my_argmax(y_pred, axis=1)
+        )
+        uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        # 1次元に落とし込む
+        uncertainty = tf.reshape(uncertainty, -1)
+        # listに落とし込む
+        uncertainty = [u.numpy() for u in uncertainty]
+        # 一致率のリスト
         acc_list = list()
+        # 正解数のリスト
         true_list = list()
+        # 残ったサンプル数のリスト
         existing_list = list()
-        _threshold_list = list()
-        acc_list_replaced = list()
-        _threshold_list_replaced = list()
+        # 閾値の空リスト
+        _thresh_hold_list = list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
-
-        # evidence からENNの出力を計算
-        _, _, uncertainty, y_pred = self.calc_enn_output_from_evidence(
-            evidence=evidence
-        )
-        # 別のevidence からENNの出力を計算
-        if evidence_positive is not None:
-            (
-                _,
-                _,
-                uncertainty_replacing,
-                y_pred_replacing,
-            ) = self.calc_enn_output_from_evidence(evidence=evidence_positive)
-        # NOTE: 以下の実装ではベースモデルの不確かさの高い部分（0.5 - 1.0）を置き換えモデルの出力で置き換えるため、順番を気にする必要がある
-        # よってサイズの確認による順番が揃っているかどうかのチェックが必要
-        try:
-            assert len(uncertainty) == len(uncertainty_replacing)
-        except:
-            raise AssertionError("サイズが揃っていません。データを削ってモデルに入れていませんか？")
-
         for thresh_hold in thresh_hold_list:
-            # 不確かさが大きい時は別のモデルの予測を使う
             tmp_y_pred = y_pred[uncertainty <= thresh_hold]
-            tmp_y_pred_replacing = y_pred_replacing[uncertainty <= thresh_hold]
-            uncertainty = np.array(uncertainty)
-            tmp_unc = uncertainty[uncertainty <= thresh_hold]
-            # tmp_uncとtmp_y_pred のサイズの確認（順番の確定のために必要）
-            try:
-                assert (
-                    tmp_y_pred.shape[0] == tmp_unc.shape[0]
-                    and tmp_y_pred_replacing.shape[0] == tmp_y_pred.shape[0]
-                )
-            except:
-                raise AssertionError("サイズが揃っていません。原因なんだろう。。")
-
-            # 不確かさの大きいものは置き換える（0.5以上から不確かなものが入ってくる）
-            if thresh_hold > 0.5:
-                tmp_y_pred_replaced = [
-                    tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
-                    for i, __unc in enumerate(tmp_unc)
-                ]
-            # 閾値未満であれば空リストを返す
-            else:
-                tmp_y_pred_replaced = list()
-
             tmp_y_true = y[uncertainty <= thresh_hold]
-
-            # 置き換え前の情報
-            self.__calc_true_acc(
-                pred_labels=tmp_y_pred,
-                thresh_hold=thresh_hold,
-                true_labels=tmp_y_true,
-                acc_list=acc_list,
-                true_list=true_list,
-                existing_list=existing_list,
-                threshold_list=_threshold_list,
-                is_replacing_mode=False,
-            )
-
-            # 置き換え後の情報(一致率のみ使用)
-            self.__calc_true_acc(
-                pred_labels=tmp_y_pred_replaced,
-                thresh_hold=thresh_hold,
-                true_labels=tmp_y_true,
-                acc_list=acc_list_replaced,
-                threshold_list=_threshold_list_replaced,
-                is_replacing_mode=True,
-            )
+            sum_true = sum(tmp_y_pred == tmp_y_true)
+            sum_existing = len(tmp_y_true)
+            if sum_existing == 0:
+                print("trueラベルがありませんでした")
+                continue
+            acc = sum_true / sum_existing
+            acc_list.append(acc)
+            true_list.append(sum_true)
+            existing_list.append(sum_existing)
+            _thresh_hold_list.append(thresh_hold)
 
         if log_all_in_one:
             # 被験者すべてに関して同じグラフにまとめるためにwandbに送信
@@ -721,74 +684,43 @@ class Utils:
                     )
                 }
             )
-        # csv出力のみ行ってwandbには送信しない
-        if is_early_stop_and_return_data_frame:
-            d = {
-                "accuracy": acc_list,
-                "replaced": acc_list_replaced,
-                "unc": _threshold_list,
-                "unc_replaced": _threshold_list_replaced,
-            }
-            df = pd.DataFrame.from_dict(d, orient="index")
-            # このまま出すと普通の転置が行ってしまうので転置する
-            return df.transpose()
 
         # グラフの作成
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1)
         # 五角形のプロット(一致率)
         ax1.scatter(
-            _threshold_list,
+            _thresh_hold_list,
             acc_list,
             c="#f46d43",
             label="accuracy",
             marker="p",
         )
         # なぞる
-        ax1.plot(_threshold_list, acc_list, c="#f46d43", linestyle=":")
+        ax1.plot(_thresh_hold_list, acc_list, c="#f46d43", linestyle=":")
         ax1.set_xlabel("uncertainty threshold")
         ax1.set_ylabel("accuracy")
         ax2 = ax1.twinx()
-
-        # 星形のプロット(一致率)
-        ax1.scatter(
-            _threshold_list_replaced,
-            acc_list_replaced,
-            c="#f46d43",
-            label="accuracy",
-            marker="*",
-        )
-        # なぞる
-        ax1.plot(
-            _threshold_list_replaced,
-            acc_list_replaced,
-            c="#f46d43",
-            linestyle=":",
-        )
-        ax1.set_xlabel("uncertainty threshold")
-        ax1.set_ylabel("accuracy_replaced")
-        # ax2 = ax1.twinx()
-
         # 三角形のプロット(正解数)
         ax2.scatter(
-            _threshold_list,
+            _thresh_hold_list,
             true_list,
             c="#43caf4",
             label="true_num",
             marker="^",
         )
         # なぞる
-        ax2.plot(_threshold_list, true_list, c="#43caf4", linestyle=":")
+        ax2.plot(_thresh_hold_list, true_list, c="#43caf4", linestyle=":")
         # 四角形のプロット(全体のサンプル数)
         ax2.scatter(
-            _threshold_list,
+            _thresh_hold_list,
             existing_list,
             c="#43f4c6",
             label="all_num",
             marker="s",
         )
         # なぞる
-        ax2.plot(_threshold_list, existing_list, c="#43f4c6", linestyle=":")
+        ax2.plot(_thresh_hold_list, existing_list, c="#43f4c6", linestyle=":")
         ax2.set_ylabel("samples")
         ax1.legend()
         ax2.legend()
@@ -805,6 +737,188 @@ class Utils:
             path=file_path, name="uncertainty", train_or_test=train_or_test
         )
         return
+        # acc_list = list()
+        # true_list = list()
+        # existing_list = list()
+        # _threshold_list = list()
+        # acc_list_replaced = list()
+        # _threshold_list_replaced = list()
+        # # 閾値のリスト
+        # thresh_hold_list = np.arange(0.1, 1.1, 0.1)
+
+        # # evidence からENNの出力を計算
+        # _, _, uncertainty, y_pred = self.calc_enn_output_from_evidence(
+        #     evidence=evidence
+        # )
+        # # 別のevidence からENNの出力を計算
+        # if evidence_positive is not None:
+        #     (
+        #         _,
+        #         _,
+        #         uncertainty_replacing,
+        #         y_pred_replacing,
+        #     ) = self.calc_enn_output_from_evidence(evidence=evidence_positive)
+        # # NOTE: 以下の実装ではベースモデルの不確かさの高い部分（0.5 - 1.0）を置き換えモデルの出力で置き換えるため、順番を気にする必要がある
+        # # よってサイズの確認による順番が揃っているかどうかのチェックが必要
+        # try:
+        #     assert len(uncertainty) == len(uncertainty_replacing)
+        # except:
+        #     raise AssertionError("サイズが揃っていません。データを削ってモデルに入れていませんか？")
+
+        # for thresh_hold in thresh_hold_list:
+        #     # 不確かさが大きい時は別のモデルの予測を使う
+        #     tmp_y_pred = y_pred[uncertainty <= thresh_hold]
+        #     tmp_y_pred_replacing = y_pred_replacing[uncertainty <= thresh_hold]
+        #     uncertainty = np.array(uncertainty)
+        #     tmp_unc = uncertainty[uncertainty <= thresh_hold]
+        #     # tmp_uncとtmp_y_pred のサイズの確認（順番の確定のために必要）
+        #     try:
+        #         assert (
+        #             tmp_y_pred.shape[0] == tmp_unc.shape[0]
+        #             and tmp_y_pred_replacing.shape[0] == tmp_y_pred.shape[0]
+        #         )
+        #     except:
+        #         raise AssertionError("サイズが揃っていません。原因なんだろう。。")
+
+        #     # 不確かさの大きいものは置き換える（0.5以上から不確かなものが入ってくる）
+        #     if thresh_hold > 0.5:
+        #         tmp_y_pred_replaced = [
+        #             tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
+        #             for i, __unc in enumerate(tmp_unc)
+        #         ]
+        #     # 閾値未満であれば空リストを返す
+        #     else:
+        #         tmp_y_pred_replaced = list()
+
+        #     tmp_y_true = y[uncertainty <= thresh_hold]
+
+        #     # 置き換え前の情報
+        #     self.__calc_true_acc(
+        #         pred_labels=tmp_y_pred,
+        #         thresh_hold=thresh_hold,
+        #         true_labels=tmp_y_true,
+        #         acc_list=acc_list,
+        #         true_list=true_list,
+        #         existing_list=existing_list,
+        #         threshold_list=_threshold_list,
+        #         is_replacing_mode=False,
+        #     )
+
+        #     # 置き換え後の情報(一致率のみ使用)
+        #     self.__calc_true_acc(
+        #         pred_labels=tmp_y_pred_replaced,
+        #         thresh_hold=thresh_hold,
+        #         true_labels=tmp_y_true,
+        #         acc_list=acc_list_replaced,
+        #         threshold_list=_threshold_list_replaced,
+        #         is_replacing_mode=True,
+        #     )
+
+        # if log_all_in_one:
+        #     # 被験者すべてに関して同じグラフにまとめるためにwandbに送信
+        #     data = [
+        #         [__unc4wandb, __acc4wandb]
+        #         for (__unc4wandb, __acc4wandb) in zip(
+        #             thresh_hold_list, acc_list
+        #         )
+        #     ]
+        #     table = wandb.Table(
+        #         data=data, columns=["unc_threthold", "accuracy"]
+        #     )
+        #     wandb.log(
+        #         {
+        #             "unc-acc_plot": wandb.plot.line(
+        #                 table,
+        #                 "unc_threthold",
+        #                 "accuracy",
+        #                 title="unc-acc plot",
+        #             )
+        #         }
+        #     )
+        # # csv出力のみ行ってwandbには送信しない
+        # if is_early_stop_and_return_data_frame:
+        #     d = {
+        #         "accuracy": acc_list,
+        #         "replaced": acc_list_replaced,
+        #         "unc": _threshold_list,
+        #         "unc_replaced": _threshold_list_replaced,
+        #     }
+        #     df = pd.DataFrame.from_dict(d, orient="index")
+        #     # このまま出すと普通の転置が行ってしまうので転置する
+        #     return df.transpose()
+
+        # # グラフの作成
+        # fig = plt.figure()
+        # ax1 = fig.add_subplot(1, 1, 1)
+        # # 五角形のプロット(一致率)
+        # ax1.scatter(
+        #     _threshold_list,
+        #     acc_list,
+        #     c="#f46d43",
+        #     label="accuracy",
+        #     marker="p",
+        # )
+        # # なぞる
+        # ax1.plot(_threshold_list, acc_list, c="#f46d43", linestyle=":")
+        # ax1.set_xlabel("uncertainty threshold")
+        # ax1.set_ylabel("accuracy")
+        # ax2 = ax1.twinx()
+
+        # # 星形のプロット(一致率)
+        # ax1.scatter(
+        #     _threshold_list_replaced,
+        #     acc_list_replaced,
+        #     c="#f46d43",
+        #     label="accuracy",
+        #     marker="*",
+        # )
+        # # なぞる
+        # ax1.plot(
+        #     _threshold_list_replaced,
+        #     acc_list_replaced,
+        #     c="#f46d43",
+        #     linestyle=":",
+        # )
+        # ax1.set_xlabel("uncertainty threshold")
+        # ax1.set_ylabel("accuracy_replaced")
+        # # ax2 = ax1.twinx()
+
+        # # 三角形のプロット(正解数)
+        # ax2.scatter(
+        #     _threshold_list,
+        #     true_list,
+        #     c="#43caf4",
+        #     label="true_num",
+        #     marker="^",
+        # )
+        # # なぞる
+        # ax2.plot(_threshold_list, true_list, c="#43caf4", linestyle=":")
+        # # 四角形のプロット(全体のサンプル数)
+        # ax2.scatter(
+        #     _threshold_list,
+        #     existing_list,
+        #     c="#43f4c6",
+        #     label="all_num",
+        #     marker="s",
+        # )
+        # # なぞる
+        # ax2.plot(_threshold_list, existing_list, c="#43f4c6", linestyle=":")
+        # ax2.set_ylabel("samples")
+        # ax1.legend()
+        # ax2.legend()
+        # plt.legend()
+        # path = os.path.join(
+        #     self.env.figure_dir, "uncertainty", test_label, train_or_test
+        # )
+        # if not os.path.exists(path):
+        #     os.makedirs(path)
+        # file_path = os.path.join(path, "uncertainty" + "_" + date_id + ".png")
+        # plt.savefig(file_path)
+        # # 保存したグラフをwandbに送信
+        # self.save_graph2Wandb(
+        #     path=file_path, name="uncertainty", train_or_test=train_or_test
+        # )
+        # return
 
     # gif の作成
     def make_gif(self, saved_path: str):
