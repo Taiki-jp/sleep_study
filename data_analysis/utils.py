@@ -1048,16 +1048,18 @@ class Utils:
     def make_df_of_time_series_ss(
         self, evidence_base: Tensor, evidence_positive: Tensor, y_true: ndarray
     ) -> DataFrame:
-        _, _, _, y_pred_base = self.calc_enn_output_from_evidence(
+        _, _, unc_base, y_pred_base = self.calc_enn_output_from_evidence(
             evidence=evidence_base
         )
-        _, _, _, y_pred_sub = self.calc_enn_output_from_evidence(
+        _, _, unc_sub, y_pred_sub = self.calc_enn_output_from_evidence(
             evidence=evidence_positive
         )
         df = {
             "y_true": y_true,
             "y_pred_main": y_pred_base,
             "y_pred_sub": y_pred_sub,
+            "unc_base": unc_base,
+            "unc_sub": unc_sub,
         }
         return pd.DataFrame(df)
 
