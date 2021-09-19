@@ -15,8 +15,8 @@ def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
     FIT_POS_LIST = ["top", "middle", "bottom"]
-    STRIDE_LIST = [1024, 16, 4]
-    KERNEL_SIZE_LIST = [1024, 512]
+    STRIDE_LIST = [480]
+    KERNEL_SIZE_LIST = [512]
     IS_NORMAL = True
     IS_PREVIOUS = False
 
@@ -38,6 +38,16 @@ def main():
                 FR = FileReader()
                 JB = JsonBase("pre_processed_id.json")
                 JB.load()
+                JB.dump(
+                    keys=[
+                        DATA_TYPE,
+                        FIT_POS,
+                        f"stride_{str(STRIDE)}",
+                        f"kernel_{str(KERNEL_SIZE)}",
+                    ],
+                    value=date_id,
+                    is_pre_dump=True
+                )
                 utils = Utils()
 
                 target_folders = FR.my_env.set_raw_folder_path(
@@ -83,7 +93,7 @@ def main():
                         records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
                     )
 
-                    # jsonへの書き込み
+                # jsonへの書き込み
                 JB.dump(
                     keys=[
                         DATA_TYPE,

@@ -110,22 +110,6 @@ def main(
             loss=EDLLoss(K=n_class, annealing=0.1),
             metrics=[
                 "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(),
             ],
         )
 
@@ -138,21 +122,6 @@ def main(
             ),
             metrics=[
                 "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
             ],
         )
 
@@ -164,11 +133,6 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
 
-    # TODO: 使いたいけど、何をもとに早期終了するかは難しい、、
-    # early_callback = tf.keras.callbacks.EarlyStopping(
-    #     monitor='val_loss',
-    # )
-
     model.fit(
         x_train,
         y_train,
@@ -177,7 +141,6 @@ def main(
         epochs=epochs,
         callbacks=[
             tf_callback,
-            # WandbCallback(),
             WandbClassificationCallback(
                 validation_data=(x_test, y_test),
                 log_confusion_matrix=True,
@@ -211,7 +174,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -220,12 +183,12 @@ if __name__ == "__main__":
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
-    HAS_NREM2_BIAS = False
+    HAS_NREM2_BIAS = True
     EPOCHS = 100
     BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 1024
+    STRIDE = 480
     SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
@@ -234,7 +197,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test"
+    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -269,15 +232,10 @@ if __name__ == "__main__":
         my_tags = [
             test_name,
             PSE_DATA_TAG,
-            ATTENTION_TAG,
-            INCEPTION_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"kernel_{KERNEL_SIZE}",
-            f"stride_{STRIDE}",
-            f"sample_{SAMPLE_SIZE}",
-            ENN_TAG,
-            f"date_id_{date_id}",
+            f"kernel:{KERNEL_SIZE}",
+            f"stride:{STRIDE}",
+            f"sample:{SAMPLE_SIZE}",
+            f"model:{ENN_TAG}",
         ]
         # _splited_test_name = test_name.split("_")
 
@@ -295,7 +253,7 @@ if __name__ == "__main__":
             "model_type": ENN_TAG,
         }
         main(
-            name=f"code_{ENN_TAG}",
+            name=test_name,
             project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,

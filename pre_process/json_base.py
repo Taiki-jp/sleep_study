@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+from data_analysis.py_color import PyColor
 
 
 class JsonBase(object):
@@ -21,7 +22,9 @@ class JsonBase(object):
         with open(self.json_file) as f:
             self.json_dict = json.load(f)
 
-    def dump(self, keys: list, value: str) -> None:
+    def dump(self, keys: list, value: str, is_pre_dump: bool = False) -> None:
+        if is_pre_dump:
+            print(PyColor().RED_FLASH, "jsonに出力できるか確認します", PyColor().END)
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
         if key_len > 6:

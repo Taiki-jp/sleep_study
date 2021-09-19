@@ -37,6 +37,22 @@
                     "kernel_512": "20210712-091518",
                     "kernel_1024": "20210712-085902"
                 },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
+                },
                 "stride_1024": {
                     "kernel_512": [
                         "20210824-161134",
@@ -185,6 +201,22 @@
                     ],
                     "kernel_1024": "20210712-061843"
                 },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
+                },
                 "stride_1024": {
                     "kernel_512": [
                         "20210821-115403",
@@ -260,6 +292,22 @@
                 "stride_16": {
                     "kernel_512": "20210712-035434",
                     "kernel_1024": "20210712-033808"
+                },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
                 },
                 "stride_1024": {
                     "kernel_512": [
@@ -357,6 +405,22 @@
                 "stride_16": {
                     "kernel_512": "20210712-091518",
                     "kernel_1024": "20210712-085902"
+                },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
                 },
                 "stride_1024": {
                     "kernel_512": {
@@ -519,6 +583,22 @@
                         "positive_cleansing": []
                     },
                     "kernel_1024": "20210712-061843"
+                },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210919-232908"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
                 },
                 "stride_1024": {
                     "kernel_512": {
@@ -751,6 +831,22 @@
                 "stride_16": {
                     "kernel_512": "20210712-035434",
                     "kernel_1024": "20210712-033808"
+                },
+                "stride_480": {
+                    "kernel_512": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    },
+                    "kernel_1024": {
+                        "no_cleansing": [
+                            "20210712-085816"
+                        ],
+                        "positive_cleansing": [],
+                        "negative_cleansing": []
+                    }
                 },
                 "stride_1024": {
                     "kernel_512": [

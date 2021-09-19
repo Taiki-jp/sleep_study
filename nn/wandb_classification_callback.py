@@ -150,7 +150,7 @@ class WandbClassificationCallback(WandbCallback):
             self.best = self.current
 
     def _log_confusion_matrix(self):
-        eps4zero_div = 0.00000001
+        eps4zero_div = 0.0001
         # テストデータからラベルを作成
 
         x_val = self.validation_data[0]
@@ -185,16 +185,14 @@ class WandbClassificationCallback(WandbCallback):
             # y_val = np.argmax(y_val, axis=0)
             rec_log_dict = {
                 "rec_"
-                + ss_label: confdiag[i][i]
-                + eps4zero_div / (ss_dict[i])
-                + eps4zero_div
+                + ss_label: (confdiag[i][i]
+                + eps4zero_div) / (ss_dict[i] + eps4zero_div)
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             pre_log_dict = {
                 "pre_"
-                + ss_label: confdiag[i][i]
-                + eps4zero_div / (sum(confmatrix[i]) + confdiag[i][i])
-                + eps4zero_div
+                + ss_label: (confdiag[i][i]
+                + eps4zero_div) / (sum(confmatrix[i]) + confdiag[i][i] + eps4zero_div)
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             f_m_log_dict = {
@@ -210,17 +208,15 @@ class WandbClassificationCallback(WandbCallback):
             # nrem34がないときの処理
             rec_log_dict = {
                 "rec_"
-                + self.labels[i + 1]: confdiag[i + 1][i + 1]
-                + eps4zero_div / (ss_dict[i + 1])
-                + eps4zero_div
+                + self.labels[i + 1]: (confdiag[i + 1][i + 1]
+                + eps4zero_div) / (ss_dict[i + 1] + eps4zero_div)
                 for i in range(4)
             }
             pre_log_dict = {
                 "pre_"
-                + self.labels[i + 1]: confdiag[i + 1][i + 1]
-                + eps4zero_div
-                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1])
-                + eps4zero_div
+                + self.labels[i + 1]: (confdiag[i + 1][i + 1]
+                + eps4zero_div)
+                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1] + eps4zero_div)
                 for i in range(4)
             }
             f_m_log_dict = {
