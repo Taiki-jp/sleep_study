@@ -19,9 +19,11 @@ from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from pre_process.record import Record
 from collections import Counter
+from data_analysis.utils import Utils
 
 
 def main(
+    log_tf_projector: bool, 
     name: str,
     project: str,
     train: list,
@@ -43,6 +45,7 @@ def main(
     wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
+    utils:Utils = None,
 ):
 
     # データセットの作成
@@ -149,6 +152,22 @@ def main(
         ],
         verbose=2,
     )
+    # 混合行列・不確かさ・ヒストグラムの作成
+    tuple_x = (x_train, x_test)
+    tuple_y = (y_train, y_test)
+    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
+        evidence = model.predict(_x)
+        utils.make_graphs(
+            y=_y,
+            evidence=evidence,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
+            graph_date_id=date_id,
+        )
+    # tensorboardのログ
+    # if log_tf_projector:
+    #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
 
     if save_model:
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
@@ -175,6 +194,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
+    EPOCHS = 100
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -184,7 +204,6 @@ if __name__ == "__main__":
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
     HAS_NREM2_BIAS = True
-    EPOCHS = 100
     BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
@@ -231,13 +250,11 @@ if __name__ == "__main__":
         # tagの設定
         my_tags = [
             test_name,
-            PSE_DATA_TAG,
             f"kernel:{KERNEL_SIZE}",
             f"stride:{STRIDE}",
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
         ]
-        # _splited_test_name = test_name.split("_")
 
         wandb_config = {
             "test name": test_name,
@@ -253,6 +270,7 @@ if __name__ == "__main__":
             "model_type": ENN_TAG,
         }
         main(
+            log_tf_projector=True,
             name=test_name,
             project=WANDB_PROJECT,
             pre_process=pre_process,
@@ -274,6 +292,7 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
+            utils=Utils()
         )
 
         # testの時は一人の被験者で止める

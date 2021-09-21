@@ -32,6 +32,8 @@ from data_analysis.my_color import MyColor
 from pre_process.my_env import MyEnv
 from PIL import Image
 import glob
+from tensorboard.plugins import projector
+from nn.losses import EDLLoss
 
 
 # 便利な関数をまとめたもの
@@ -44,6 +46,56 @@ class Utils:
         # self.name_dict = self.fr.sl.name_dict
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
+
+    # tensorboard のプロジェクタの作成
+    def make_tf_projector(self, x: Tensor, y: ndarray, batch_size: int, hidden_layer_id: str, log_dir: str, data_type: str, model_loads: bool = False, model: Model = None, date_id: str = "") -> None:
+        # モデルの読み込み（コンパイル済み）
+        if model_loads and model is None:
+            print(
+                PyColor().CYAN,
+                PyColor().RETURN,
+                f"*** {test_name}のモデルを読み込みます ***",
+                PyColor().END,
+            )
+            path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+            model = tf.keras.models.load_model(
+                path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
+            )
+            print(
+                PyColor().CYAN,
+                PyColor().RETURN,
+                f"*** {test_name}のモデルを読み込みました ***",
+                PyColor().END,
+            )
+        # 新しいモデルの作成
+        new_model = tf.keras.Model(
+            inputs=model.input, outputs=model.layers[hidden_layer_id].output
+        )
+        hidden = new_model.predict(x, batch_size=batch_size)
+        hidden = hidden.reshape(x.shape[0], -1)
+        evidence = model.predict(x, batch_size=batch_size)
+        alpha, _, unc, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        # ディレクトリの作成
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        # ラベルの保存
+        label_path = os.path.join(log_dir, "metadata.tsv")
+        with open(label_path, "w") as f:
+            f.write("index\tlabel\tuncrt\n")
+            for index, (label, u) in enumerate(zip(y, unc)):
+                f.write(f"{index}\t{str(label)}\t{str(u)}\n")
+        # チェックポイントの作成
+        embedding_var = tf.Variable(hidden, name="hidden")
+        check_point_file = os.path.join(log_dir, "embedding.ckpt")
+        ckpt = tf.train.Checkpoint(embedding=embedding_var)
+        ckpt.save(check_point_file)
+        # projectorの設定
+        config = projector.ProjectorConfig()
+        embedding = config.embeddings.add()
+        embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
+        embedding.metadata_path = "metadata.tsv"
+        projector.visualize_embeddings(log_dir, config)
+        return
 
     def stop_early(self, mode: str, y: Any):
         if mode == "catching_assertion":

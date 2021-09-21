@@ -194,7 +194,7 @@ def main(
         )
         utils.make_graphs(
             y=_y_test.numpy(),
-            evidence=evidence_train,
+            evidence=evidence_train, ここ注意のためあえてエラー出るようにしてます
             train_or_test=train_or_test,
             graph_person_id=test_name,
             calling_graph="all",
