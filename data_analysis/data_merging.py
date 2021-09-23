@@ -77,7 +77,7 @@ def main(
         model=model,
         batch_size=batch_size,
         n_class=n_class,
-        experiment_type="positive",
+        experiment_type="positive_cleansing",
         unc_threthold=unc_threthold,
         verbose=0,
     )
@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "test_code4acc_metric"
+    WANDB_PROJECT = "test"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 256

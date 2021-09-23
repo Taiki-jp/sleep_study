@@ -1,14 +1,19 @@
 from collections import Counter
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.framework.ops import EagerTensor
 from numpy import ndarray
 
 # 各睡眠段階の数を返す関数
 def make_ss_dict4wandb(ss_array: Tensor, is_train: bool) -> dict:
     try:
-        assert type(ss_array) == Tensor or type(ss_array) == ndarray
+        assert (
+            type(ss_array) == Tensor
+            or type(ss_array) == ndarray
+            or type(ss_array) == EagerTensor
+        )
     except:
         raise AssertionError("ss_array の型チェックしてください")
-    if type(ss_array) == Tensor:
+    if type(ss_array) == Tensor or type(ss_array) == EagerTensor:
         d = Counter(ss_array.numpy())
     else:
         d = Counter(ss_array)

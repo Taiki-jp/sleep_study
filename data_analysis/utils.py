@@ -45,10 +45,10 @@ class Utils:
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
 
-    def stop_early(self, mode: str, *args: tuple):
+    def stop_early(self, mode: str, y: Any):
         if mode == "catching_assertion":
             try:
-                assert args[0].shape[0] != 0 or args[1].shape[1] != 0
+                assert y.shape[0] != 0 or y.shape[1] != 0
             except:
                 # 本当は止めずに、このループの処理だけ飛ばして続けたい
                 raise AssertionError("データを拾えませんでした。止めます")
@@ -1037,15 +1037,13 @@ class Utils:
         n_class: int = 5,
         batch_size: int = 32,
     ):
-        y_pred = self.my_argmax(model.predict(x, batch_size=batch_size), axis=1)
-        confmatrix = confusion_matrix(
-            y_true=y, y_pred=y_pred, labels=range(n_class)
-        )
-        confdiag = np.eye(len(confmatrix)) * confmatrix
-        # print(confdiag)
         # 一致率の計算
-        acc = sum(confdiag)/sum(confmatrix)
-        wandb.log({"accuracy":acc}, commit=False)
+        y_pred = self.my_argmax(
+            model.predict(x, batch_size=batch_size), axis=1
+        )
+        acc = sum(y_pred == y.numpy()) / len(y)
+        wandb.log({"accuracy": acc}, commit=False)
+
 
 if __name__ == "__main__":
     utils = Utils()
