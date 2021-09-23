@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from pandas.core.frame import DataFrame
 from sklearn import datasets
 from sklearn.decomposition import PCA
 import sys
@@ -134,14 +135,38 @@ def make_parallel_graph(targets, datas, comp_types):
     plt.show()
 
 
+# 5段階=>4段階推定を行う関数(NR12を統合)
+def calc_4ss_from_5ss(ss_df: DataFrame) -> DataFrame:
+    # NR2(1) => NR1(2)
+    ss_df["y_true"][ss_df["y_true"] == 1] = 2
+    ss_df["y_pred_main"][ss_df["y_pred_main"] == 1] = 2
+    ss_df["y_pred_sub"][ss_df["y_pred_sub"] == 1] = 2
+    # NR34(0) => NR34(1)
+    ss_df["y_true"][ss_df["y_true"] == 0] = 1
+    # 現在存在する睡眠段階
+    # Wake: 4, Rem: 3, NR12: 2, NR34: 1
+    return ss_df
+
+
 if __name__ == "__main__":
-    pca_data, pca_target = make_pca(
-        show_data=False, pse_data=True, data_type="sleep"
+    import os
+    from glob import glob
+    import pandas as pd
+
+    folder_path = os.path.join(
+        os.environ["sleep"], "tmp_outputs", "enn_outputs"
     )
-    t_sne_data, t_sne_target = make_t_sne(show_data=False, pse_data=True)
-    compression_types = ("pca", "t-sne")
-    make_parallel_graph(
-        targets=(pca_target, t_sne_target),
-        datas=(pca_data, t_sne_data),
-        comp_types=compression_types,
-    )
+    target_files = glob(folder_path + "/*.csv")
+    # 読み込むファイルでループ処理
+    for filepath in target_files:
+        df = pd.read_csv(filepath)
+        # 5段階を4段階にして出力
+        fixed_df = calc_4ss_from_5ss(ss_df=df)
+        output_folder_path = os.path.join(
+            os.environ["sleep"], "tmp_outputs", "enn_outputs_4stage"
+        )
+        if not os.path.exists(output_folder_path):
+            os.makedirs(output_folder_path)
+        _, filename = os.path.split(filepath)
+        output_path = os.path.join(output_folder_path, filename)
+        fixed_df.to_csv(output_path)
