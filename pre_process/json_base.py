@@ -61,11 +61,12 @@ class JsonBase(object):
         ]["negative_cleansing"]
 
         # マップ関数によって iterable に変換してる kigasuru
+        # TODO: 最大のものに合わせてループを繰り返すようにする
         mapped = map(
             lambda x, y, z: dict(nothing=x, positive=y, negative=z),
             first_list,
-            second_list,
-            third_list,
+            first_list,
+            first_list,
         )
 
         return list(mapped)

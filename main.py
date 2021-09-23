@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 100
+    EPOCHS = 200
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 480
-    SAMPLE_SIZE = 5000
+    SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride"
+    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride_fixed_sample"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -254,6 +254,7 @@ if __name__ == "__main__":
             f"stride:{STRIDE}",
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
+            f"epoch:{EPOCHS}"
         ]
 
         wandb_config = {

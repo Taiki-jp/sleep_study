@@ -87,7 +87,7 @@ def main(
         dir=pre_process.my_env.project_dir,
     )
 
-    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
+    # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum":
         shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
@@ -194,7 +194,7 @@ def main(
         )
         utils.make_graphs(
             y=_y_test.numpy(),
-            evidence=evidence_train, ここ注意のためあえてエラー出るようにしてます
+            evidence=evidence_test,
             train_or_test=train_or_test,
             graph_person_id=test_name,
             calling_graph="all",
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 1024
+    STRIDE = 480
     SAMPLE_SIZE = 5000
     UNC_THRETHOLD = 0.5
     DATA_TYPE = "spectrum"
@@ -256,8 +256,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "test_data_selecting"
+    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride_fixed_sample"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -271,6 +270,7 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
+        has_nrem2_bias=True
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA
@@ -281,8 +281,12 @@ if __name__ == "__main__":
     JB = JsonBase("../nn/model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "enn", "spectrum", "middle", "stride_1024", "kernel_512"
+        "enn", "spectrum", "middle", "stride_480", "kernel_512"
     )
+    try:
+        assert len(model_date_list) != 0
+    except AssertionError("model_date_listの中身が空です"):
+        sys.exit(1)
 
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
@@ -302,16 +306,11 @@ if __name__ == "__main__":
         # TODO: wandb のutilsを作成する
         my_tags = [
             test_name,
-            PSE_DATA_TAG,
-            ATTENTION_TAG,
-            INCEPTION_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"kernel_{KERNEL_SIZE}",
-            f"stride_{STRIDE}",
-            f"sample_{SAMPLE_SIZE}",
-            ENN_TAG,
-            EXPERIENT_TYPE,
+            f"kernel:{KERNEL_SIZE}",
+            f"stride:{STRIDE}",
+            f"sample:{SAMPLE_SIZE}",
+            f"model:{ENN_TAG}",
+            f"{EXPERIENT_TYPE}"
         ]
         wandb_config = {
             "test name": test_name,
@@ -358,14 +357,14 @@ if __name__ == "__main__":
 
     # モデルを保存しないのでコメントアウト
     # TODO: モデルの保存を行う変数に応じて場合分け
-    # JB.dump(
-    #     keys=[
-    #         ENN_TAG,
-    #         DATA_TYPE,
-    #         FIT_POS,
-    #         f"stride_{str(STRIDE)}",
-    #         f"kernel_{str(KERNEL_SIZE)}",
-    #         f"{EXPERIENT_TYPE}",
-    #     ],
-    #     value=date_id_saving_list,
-    # )
+    JB.dump(
+        keys=[
+            ENN_TAG,
+            DATA_TYPE,
+            FIT_POS,
+            f"stride_{str(STRIDE)}",
+            f"kernel_{str(KERNEL_SIZE)}",
+            f"{EXPERIENT_TYPE}",
+        ],
+        value=date_id_saving_list,
+    )
