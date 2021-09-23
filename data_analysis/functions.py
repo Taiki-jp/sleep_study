@@ -143,6 +143,8 @@ def calc_4ss_from_5ss(ss_df: DataFrame) -> DataFrame:
     ss_df["y_pred_sub"][ss_df["y_pred_sub"] == 1] = 2
     # NR34(0) => NR34(1)
     ss_df["y_true"][ss_df["y_true"] == 0] = 1
+    ss_df["y_pred_main"][ss_df["y_pred_main"] == 0] = 1
+    ss_df["y_pred_sub"][ss_df["y_pred_sub"] == 0] = 1
     # 現在存在する睡眠段階
     # Wake: 4, Rem: 3, NR12: 2, NR34: 1
     return ss_df
