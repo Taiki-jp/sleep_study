@@ -179,33 +179,36 @@ def main(
 
     evidence_train = _model(_x, training=False)
     evidence_test = _model(_x_test, training=False)
+    evidence_positive_train = model(_x, training=False)
+    evidence_positive_test = model(_x_test, training=False)
 
     # TODO: 諸々の計算を一つのメソッドにまとめてutils に移植
 
     # 混合行列をwandbに送信
-    for train_or_test in ["train", "test"]:
-        utils.make_graphs(
-            y=_y.numpy(),
-            evidence=evidence_train,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=saving_date_id,
-        )
-        utils.make_graphs(
-            y=_y_test.numpy(),
-            evidence=evidence_train,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=saving_date_id,
-        )
+    utils.make_graphs(
+        y=_y.numpy(),
+        evidence=evidence_train,
+        evidence_positive=evidence_positive_train,
+        train_or_test="train",
+        graph_person_id=test_name,
+        calling_graph="all",
+        graph_date_id=saving_date_id,
+    )
+    utils.make_graphs(
+        y=_y_test.numpy(),
+        evidence=evidence_test,
+        evidence_positive=evidence_positive_test,
+        train_or_test="test",
+        graph_person_id=test_name,
+        calling_graph="all",
+        graph_date_id=saving_date_id,
+    )
 
     # モデルの保存
-    # path = os.path.join(
-    #     pre_process.my_env.models_dir, test_name, saving_date_id
-    # )
-    # _model.save(path)
+    path = os.path.join(
+        pre_process.my_env.models_dir, test_name, saving_date_id
+    )
+    _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -237,13 +240,13 @@ if __name__ == "__main__":
     IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    EPOCHS = 200
+    EPOCHS = 100
     BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 1024
     SAMPLE_SIZE = 5000
-    UNC_THRETHOLD = 0.5
+    UNC_THRETHOLD = 0.2
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     EXPERIMENT_TYPES = (
@@ -257,7 +260,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "test_data_selecting"
+    WANDB_PROJECT = "test" if TEST_RUN else "enn_threthold"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -271,6 +274,7 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
+        has_nrem2_bias=True,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA

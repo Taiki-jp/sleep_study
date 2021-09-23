@@ -64,6 +64,7 @@ class Utils:
         graph_person_id: str,
         graph_date_id: str,
         calling_graph: Any,
+        evidence_positive: Tensor,
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -89,6 +90,7 @@ class Utils:
                 train_or_test=train_or_test,
                 test_label=graph_person_id,
                 date_id=graph_date_id,
+                evidence_positive=evidence_positive,
             )
 
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
