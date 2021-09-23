@@ -150,25 +150,62 @@ def calc_4ss_from_5ss(ss_df: DataFrame) -> DataFrame:
     return ss_df
 
 
+# csvファイルから一致率を計算
+def calc_acc_based_on_unc(df: DataFrame) -> tuple:
+    unc_threthold = [0.1 * i for i in range(1, 11)]
+    acc_list = list()
+    model_list = list()
+    unc_list = list()
+    for unc in unc_threthold:
+        df_trimmed = df[df["unc_base"] < unc]
+        # マージした予測ラベル
+        # NOTE: iterrowsメソッドにて行のループ処理可能
+        y_pred_merged_series = [
+            rec["y_pred_main"] if rec["unc_base"] < 0.5 else rec["y_pred_sub"]
+            for _, rec in df_trimmed.iterrows()
+        ]
+        # 全体のラベル数
+        all_num = df_trimmed.shape[0]
+        # 正解のラベル数
+        true_num = sum(df_trimmed["y_true"] == y_pred_merged_series)
+        true_num_base = sum(df_trimmed["y_true"] == df_trimmed["y_pred_main"])
+        # 一致率
+        acc = true_num / (all_num + 0.00001)
+        acc_base = true_num_base / (all_num + 0.00001)
+        acc_list.extend([acc, acc_base])
+        unc_list.extend([unc, unc])
+        model_list.extend(["Proposed", "base"])
+
+    return unc_list, acc_list, model_list
+
+
 if __name__ == "__main__":
     import os
     from glob import glob
     import pandas as pd
+    from tqdm import tqdm
 
     folder_path = os.path.join(
-        os.environ["sleep"], "tmp_outputs", "enn_outputs"
+        os.environ["sleep"], "tmp_outputs", "enn_outputs_4stage"
     )
     target_files = glob(folder_path + "/*.csv")
+    # 一致率,uncのリスト
+    acc_list = list()
+    model_list = list()
+    unc_list = list()
     # 読み込むファイルでループ処理
-    for filepath in target_files:
+    for filepath in tqdm(target_files):
         df = pd.read_csv(filepath)
-        # 5段階を4段階にして出力
-        fixed_df = calc_4ss_from_5ss(ss_df=df)
-        output_folder_path = os.path.join(
-            os.environ["sleep"], "tmp_outputs", "enn_outputs_4stage"
-        )
-        if not os.path.exists(output_folder_path):
-            os.makedirs(output_folder_path)
-        _, filename = os.path.split(filepath)
-        output_path = os.path.join(output_folder_path, filename)
-        fixed_df.to_csv(output_path)
+        unc, acc, model = calc_acc_based_on_unc(df)
+        acc_list.extend(acc)
+        unc_list.extend(unc)
+        model_list.extend(model)
+
+    df = pd.DataFrame(
+        {"unc": unc_list, "accuracy": acc_list, "model": model_list}
+    )
+    folder_path = os.path.join(
+        os.environ["sleep"], "tmp_outputs", "enn_outputs_4stage_accuracy"
+    )
+    filepath = os.path.join(folder_path, "output.csv")
+    df.to_csv(filepath)
