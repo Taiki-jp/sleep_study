@@ -10,6 +10,7 @@ import tensorflow.keras.preprocessing.image as tf_image
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from pre_process.load_sleep_data import LoadSleepData
+from pre_process.record import Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -314,7 +315,8 @@ class PreProcess:
         return records_train, records_test
 
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
-    def split_train_test_from_records(self, records, test_id, pse_data):
+    # NOTE: testnameによってデータを分離するように実装を変更する
+    def split_train_test_from_records(self, records: list, test_id: int, pse_data: bool):
         # NOTE : pse_data is needed for avoiding split data
         if pse_data:
             print("仮データのためスキップします")

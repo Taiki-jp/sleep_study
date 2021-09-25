@@ -257,8 +257,11 @@ if __name__ == "__main__":
     )
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
+    # enumerate関数を使うとname_listの途中からでもインデックスは0から始まってしまう
+    # そのためname_list の繰り返しを0以外から始められるように同じサイズのインデックスを指定するリストを作成
+    name_list_id = [i for i in range(len(pre_process.name_list))]
 
-    for test_id, test_name in enumerate(pre_process.name_list):
+    for test_id, test_name in zip(name_list_id, pre_process.name_list):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
