@@ -13,6 +13,4 @@ model_saved_by_save_method/
 logs/
 .pytest_cache/
 
-!*.ipynb
-
 pre_process/pre_processed_id.json
