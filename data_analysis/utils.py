@@ -65,6 +65,7 @@ class Utils:
         graph_date_id: str,
         calling_graph: Any,
         evidence_positive: Tensor,
+        unc_threthold: float,
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -90,6 +91,7 @@ class Utils:
                 train_or_test=train_or_test,
                 test_label=graph_person_id,
                 date_id=graph_date_id,
+                unc_threthold=unc_threthold,
                 evidence_positive=evidence_positive,
             )
 
@@ -624,6 +626,7 @@ class Utils:
         evidence_positive: Tensor = None,
         log_all_in_one: bool = False,
         is_early_stop_and_return_data_frame: bool = False,
+        unc_threthold: float = 0,
     ):
         acc_list = list()
         true_list = list()
@@ -669,9 +672,11 @@ class Utils:
                 raise AssertionError("サイズが揃っていません。原因なんだろう。。")
 
             # 不確かさの大きいものは置き換える（0.5以上から不確かなものが入ってくる）
-            if thresh_hold > 0.5:
+            if thresh_hold > unc_threthold:
                 tmp_y_pred_replaced = [
-                    tmp_y_pred[i] if __unc < 0.5 else tmp_y_pred_replacing[i]
+                    tmp_y_pred[i]
+                    if __unc < unc_threthold
+                    else tmp_y_pred_replacing[i]
                     for i, __unc in enumerate(tmp_unc)
                 ]
             # 閾値未満であれば空リストを返す

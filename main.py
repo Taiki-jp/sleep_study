@@ -220,12 +220,12 @@ if __name__ == "__main__":
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
-    HAS_NREM2_BIAS = False
-    EPOCHS = 100
+    HAS_NREM2_BIAS = True
+    EPOCHS = 500
     BATCH_SIZE = 512
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 1024
+    STRIDE = 16
     SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
@@ -234,7 +234,9 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test"
+    WANDB_PROJECT = (
+        "sampling_test_base_learning" if TEST_RUN else "base_learning"
+    )
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 

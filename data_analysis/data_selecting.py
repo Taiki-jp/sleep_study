@@ -149,9 +149,7 @@ def main(
     _model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=EDLLoss(K=n_class, annealing=0.1),
-        metrics=[
-            "accuracy",
-        ],
+        metrics=["accuracy", "loss"],  # 追加部分
     )
     log_dir = os.path.join(
         pre_process.my_env.project_dir, "my_edl", test_name, date_id["nothing"]
@@ -193,6 +191,7 @@ def main(
         graph_person_id=test_name,
         calling_graph="all",
         graph_date_id=saving_date_id,
+        unc_threthold=unc_threthold,
     )
     utils.make_graphs(
         y=_y_test.numpy(),
@@ -202,13 +201,14 @@ def main(
         graph_person_id=test_name,
         calling_graph="all",
         graph_date_id=saving_date_id,
+        unc_threthold=unc_threthold,
     )
 
     # モデルの保存
-    path = os.path.join(
-        pre_process.my_env.models_dir, test_name, saving_date_id
-    )
-    _model.save(path)
+    # path = os.path.join(
+    #     pre_process.my_env.models_dir, test_name, saving_date_id
+    # )
+    # _model.save(path)
     # wandb終了
     wandb.finish()
 
