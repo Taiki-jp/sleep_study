@@ -19,6 +19,7 @@ from pre_process.json_base import JsonBase
 from data_analysis.py_color import PyColor
 from pre_process.record import Record
 from collections import Counter
+from data_analysis.utils import Utils
 
 
 def main(
@@ -43,6 +44,7 @@ def main(
     wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
+    utils: Utils = None,
 ):
 
     # データセットの作成
@@ -187,6 +189,23 @@ def main(
         verbose=2,
     )
 
+    # 混合行列・不確かさ・ヒストグラムの作成
+    tuple_x = (x_train, x_test)
+    tuple_y = (y_train, y_test)
+    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
+        evidence = model.predict(_x)
+        utils.make_graphs(
+            y=_y,
+            evidence=evidence,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
+            graph_date_id=date_id,
+            is_each_unc=True,
+        )
+    # tensorboardのログ
+    # if log_tf_projector:
+    #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
     if save_model:
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
@@ -221,11 +240,11 @@ if __name__ == "__main__":
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
     HAS_NREM2_BIAS = True
-    EPOCHS = 500
-    BATCH_SIZE = 512
+    EPOCHS = 10
+    BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
+    STRIDE = 1024
     SAMPLE_SIZE = 5000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
@@ -234,6 +253,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
+    WANDB_PROJECT = "test" if TEST_RUN else "base_learning"
     WANDB_PROJECT = (
         "sampling_test_base_learning" if TEST_RUN else "base_learning"
     )
@@ -318,6 +338,7 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
+            utils=Utils(),
         )
 
         # testの時は一人の被験者で止める
