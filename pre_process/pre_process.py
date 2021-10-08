@@ -313,18 +313,18 @@ class PreProcess:
 
         return records_train, records_test
 
-    # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
+    # 訓練データとテストデータをスプリット（交差検証）
     def split_train_test_from_records(
-        self, records, test_id, pse_data: bool = False
-    ):
+        self, records: list, test_id: int, pse_data: bool = False
+    ) -> tuple:
         # NOTE : pse_data is needed for avoiding split data
         if pse_data:
             print("仮データのためスキップします")
             return (None, None)
-        test_records = records[test_id]
+        test_records = records.pop(test_id)
         train_records = list()
-        for i in range(len(records)):
-            train_records.extend(records[i])
+        for record in records:
+            train_records.extend(record)
         return (train_records, test_records)
 
     # 訓練データのサイズをセットする

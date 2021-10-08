@@ -254,11 +254,12 @@ if __name__ == "__main__":
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
     WANDB_PROJECT = "test" if TEST_RUN else "base_learning"
-    WANDB_PROJECT = (
-        "sampling_test_base_learning" if TEST_RUN else "base_learning"
-    )
+    # WANDB_PROJECT = (
+    #     "sampling_test_base_learning" if TEST_RUN else "base_learning"
+    # )
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
+    STARTING_ID = 0
 
     # 記録用のjsonファイルを読み込む
     JB = JsonBase("../nn/model_id.json")
@@ -280,8 +281,11 @@ if __name__ == "__main__":
     )
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
-
-    for test_id, test_name in enumerate(pre_process.name_list):
+    test_id_list = [i for i in range(len(pre_process.name_list))]
+    # ループ
+    for test_id, test_name in zip(
+        test_id_list[STARTING_ID:], pre_process.name_list[STARTING_ID:]
+    ):
         date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         date_id_saving_list.append(date_id)
         (train, test) = pre_process.split_train_test_from_records(
