@@ -65,7 +65,7 @@ class JsonBase(object):
         mapped = map(
             lambda x, y, z: dict(nothing=x, positive=y, negative=z),
             first_list,
-            first_list,
+            second_list,
             first_list,
         )
 

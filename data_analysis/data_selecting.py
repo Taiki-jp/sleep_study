@@ -242,7 +242,7 @@ if __name__ == "__main__":
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 480
-    SAMPLE_SIZE = 5000
+    SAMPLE_SIZE = 10000
     UNC_THRETHOLD = 0.5
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"

@@ -1,6 +1,7 @@
 from nn.wandb_classification_callback import WandbClassificationCallback
 import sys
 import os
+from tensorflow import keras
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
@@ -113,6 +114,7 @@ def main(
             loss=EDLLoss(K=n_class, annealing=0.1),
             metrics=[
                 "accuracy",
+                "mse"
             ],
         )
 
@@ -125,6 +127,7 @@ def main(
             ),
             metrics=[
                 "accuracy",
+                # "mse"
             ],
         )
 
@@ -193,8 +196,8 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
-    EPOCHS = 200
+    TEST_RUN = True
+    EPOCHS = 5
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -204,11 +207,11 @@ if __name__ == "__main__":
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
     HAS_NREM2_BIAS = True
-    BATCH_SIZE = 512
+    BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 480
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 40000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride_fixed_sample"
+    WANDB_PROJECT = "test" if TEST_RUN else "base_learning"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 

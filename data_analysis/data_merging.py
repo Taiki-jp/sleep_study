@@ -123,13 +123,13 @@ if __name__ == "__main__":
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     WANDB_PROJECT = "test"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 256
     N_CLASS = 5
-    STRIDE = 1024
+    STRIDE = 480
     SAMPLE_SIZE = 5000
     UNC_THRETHOLD = 0.5
     EXPERIMENT_TYPES = (
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     JB = JsonBase("../nn/model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "enn", "spectrum", "middle", "stride_1024", "kernel_512"
+        "enn", "spectrum", "middle", f"stride_{STRIDE}", "kernel_512"
     )
 
     # モデルのidを記録するためのリスト

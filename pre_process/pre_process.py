@@ -323,8 +323,9 @@ class PreProcess:
             return (None, None)
         test_records = records[test_id]
         train_records = list()
-        for i in range(len(records)):
-            train_records.extend(records[i])
+        for record_id, record in enumerate(records):
+            if test_id != record_id:
+                train_records.extend(record)
         return (train_records, test_records)
 
     # 訓練データのサイズをセットする
