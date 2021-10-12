@@ -14,11 +14,11 @@ from pre_process.json_base import JsonBase
 def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
-    FIT_POS_LIST = ["top", "middle", "bottom"]
-    STRIDE_LIST = [480]
+    FIT_POS_LIST = ["middle"]
+    STRIDE_LIST = [1024]
     KERNEL_SIZE_LIST = [512]
     IS_NORMAL = True
-    IS_PREVIOUS = False
+    IS_PREVIOUS = True
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -46,7 +46,7 @@ def main():
                         f"kernel_{str(KERNEL_SIZE)}",
                     ],
                     value=date_id,
-                    is_pre_dump=True
+                    is_pre_dump=True,
                 )
                 utils = Utils()
 
@@ -88,9 +88,14 @@ def main():
                         kernel_size=KERNEL_SIZE,
                         stride=STRIDE,
                         fit_pos=FIT_POS,
+                        target_name=name,
                     )
                     utils.dump_with_pickle(
-                        records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
+                        records,
+                        name,
+                        data_type=DATA_TYPE,
+                        fit_pos=FIT_POS,
+                        date_id=date_id,
                     )
 
                 # jsonへの書き込み

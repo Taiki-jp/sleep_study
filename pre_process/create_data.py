@@ -23,6 +23,7 @@ class CreateData(object):
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
+        target_name: str = ""
     ) -> list:
         # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
@@ -107,6 +108,8 @@ class CreateData(object):
                 print(PyColor.RED_FLASH, "Noneの時刻が入ってきました", PyColor.END)
             try:
                 record.ss = psg_data["ss"][fit_index]
+                # 名前もログる
+                record.name = target_name
             except IndentationError:
                 print(
                     PyColor.RED_FLASH,

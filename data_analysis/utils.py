@@ -144,14 +144,18 @@ class Utils:
                 date_id=graph_date_id,
             )
 
-    def dump_with_pickle(self, data, file_name, data_type, fit_pos):
+    def dump_with_pickle(self, data, file_name, data_type, fit_pos, date_id: str = ""):
 
         file_path = os.path.join(
             self.env.pre_processed_dir, data_type, fit_pos
         )
         if not os.path.exists(file_path):
             os.makedirs(file_path)
-        file_path = os.path.join(file_path, file_name + "_" + self.id + ".sav")
+        # date_idが空の場合はメンバ変数のidを利用する
+        if len(date_id) == 0:
+            file_path = os.path.join(file_path, file_name + "_" + self.id + ".sav")
+        else:
+            file_path = os.path.join(file_path, file_name + "_" + date_id + ".sav")
         print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
         pickle.dump(data, open(file_path, "wb"))
 
@@ -572,7 +576,8 @@ class Utils:
             y_pred = alpha / S
             _, n_class = y_pred.shape
             # 今は5クラス分類以外ありえない
-            assert n_class == 5
+            # NOTE: 被験者分類の実装のためクラス数5を変更
+            # assert n_class == 5
             # カテゴリカルに変換
             y_pred = (
                 np.argmax(y_pred, axis=1)

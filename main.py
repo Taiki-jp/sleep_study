@@ -2,6 +2,7 @@ from nn.wandb_classification_callback import WandbClassificationCallback
 import sys
 import os
 from tensorflow import keras
+from sklearn.preprocessing import OneHotEncoder
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
@@ -21,10 +22,12 @@ from data_analysis.py_color import PyColor
 from pre_process.record import Record
 from collections import Counter
 from data_analysis.utils import Utils
+import pandas as pd
 
 
 def main(
-    log_tf_projector: bool, 
+    # is_person_predict: bool,
+    log_tf_projector: bool,
     name: str,
     project: str,
     train: list,
@@ -46,7 +49,7 @@ def main(
     wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
-    utils:Utils = None,
+    utils: Utils = None,
 ):
 
     # データセットの作成
@@ -57,11 +60,23 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        is_person_classification=True,
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
+    # 名前分類の時必要な処理
+    y_train_df = pd.DataFrame({"name": y_train.tolist()})
+    y_test_df = pd.DataFrame({"name": y_test.tolist()})
+    # one-hot表現に変更
+    oe = OneHotEncoder(sparse=True, dtype=int)
+    # one-hotで返すときは下をコメントアウト
+    # y_train = oe.fit_transform(y_train_df)
+    y_train_categorical = oe.fit_transform(y_train_df)
+    y_test_categorical = oe.fit_transform(y_test_df)
+    y_train = y_train_categorical.indices
+    y_test = y_test_categorical.indices
 
     # config の追加
     added_config = {
@@ -108,14 +123,11 @@ def main(
         is_mul_layer=is_mul_layer,
     )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
+        model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=[
-                "accuracy",
-                "mse"
-            ],
+            metrics=["accuracy", "mse"],
         )
 
     else:
@@ -173,8 +185,8 @@ def main(
     #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
 
     if save_model:
-        print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
+        print(PyColor().GREEN_FLASH, f"{path}にモデルを保存します ...", PyColor().END)
         model.save(path)
     wandb.finish()
 
@@ -197,21 +209,21 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 5
+    EPOCHS = 100
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
-    IS_PREVIOUS = False
+    IS_PREVIOUS = True
     IS_NORMAL = True
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
-    IS_MUL_LAYER = False
-    HAS_NREM2_BIAS = True
-    BATCH_SIZE = 256
-    N_CLASS = 5
+    IS_MUL_LAYER = True
+    HAS_NREM2_BIAS = False
+    BATCH_SIZE = 32
+    N_CLASS = 9
     KERNEL_SIZE = 512
-    STRIDE = 480
-    SAMPLE_SIZE = 40000
+    STRIDE = 1024
+    SAMPLE_SIZE = 500
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -250,6 +262,8 @@ if __name__ == "__main__":
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
+        # testデータとtrainデータのマージ
+        train.extend(test)
         # tagの設定
         my_tags = [
             test_name,
@@ -257,7 +271,7 @@ if __name__ == "__main__":
             f"stride:{STRIDE}",
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
-            f"epoch:{EPOCHS}"
+            f"epoch:{EPOCHS}",
         ]
 
         wandb_config = {
@@ -296,7 +310,7 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
-            utils=Utils()
+            utils=Utils(),
         )
 
         # testの時は一人の被験者で止める

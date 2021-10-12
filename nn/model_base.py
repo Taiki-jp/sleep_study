@@ -229,7 +229,7 @@ def edl_classifier_1d(
         if has_attention:
             # (13, 13, 1)
             attention = tf.keras.layers.Conv1D(
-                1, kernel_size=3, padding="same"
+                1, kernel_size=3, padding="same", name="attention"
             )(x)
             attention = tf.keras.layers.Activation("sigmoid")(attention)
             x = tf.multiply(x, attention)

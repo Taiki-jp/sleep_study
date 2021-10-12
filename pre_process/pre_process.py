@@ -1,4 +1,5 @@
 import datetime
+from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 import sys
 import os
 import numpy as np
@@ -9,7 +10,9 @@ import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from data_analysis.py_color import PyColor
 from pre_process.load_sleep_data import LoadSleepData
+import pandas as pd
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -73,6 +76,7 @@ class PreProcess:
         insert_channel_axis=True,
         to_one_hot_vector=True,
         pse_data=False,
+        is_person_classification: bool = False,
     ):
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
@@ -208,8 +212,15 @@ class PreProcess:
                 print("データサイズをそろえずにデータセットを作成します")
 
         # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
-        y_train = self.list2SS(train)
-        y_test = self.list2SS(test)
+        # 被験者を正解データとしたクラス分類をするか、睡眠段階を正解データとしたクラス分類をするか
+        if is_person_classification:
+            print(PyColor().RED_FLASH, "被験者を正解データとします", PyColor().END)
+            y_train = self.list2Name(train)
+            y_test = self.list2Name(test)
+        else:
+            print(PyColor().RED_FLASH, "睡眠段階を正解データとします", PyColor().END)
+            y_train = self.list2SS(train)
+            y_test = self.list2SS(test)
         if self.data_type == "spectrum":
             x_train = self.list2Spectrum(train)
             x_test = self.list2Spectrum(test)
@@ -223,8 +234,12 @@ class PreProcess:
         # Noneの処理をするかどうか
         if catch_none is True:
             print("- noneの処理を行います")
-            x_train, y_train = self.catch_none(x_train, y_train)
-            x_test, y_test = self.catch_none(x_test, y_test)
+            x_train, y_train = self.catch_none(
+                x_train,
+                y_train,
+                is_person_classification=is_person_classification,
+            )
+            x_test, y_test = self.catch_none(x_test, y_test, is_person_classification=is_person_classification)
 
         # max正規化をするかどうか
         if normalize is True:
@@ -267,12 +282,16 @@ class PreProcess:
         return (x_train, y_train), (x_test, y_test)
 
     # recordからスペクトラムの作成
-    def list2Spectrum(self, list_data):
+    def list2Spectrum(self, list_data: list) -> ndarray:
         return np.array([data.spectrum for data in list_data])
 
     # recordから睡眠段階の作成
-    def list2SS(self, list_data):
+    def list2SS(self, list_data: list) -> ndarray:
         return np.array([k.ss for k in list_data])
+
+    # recordから各被験者の作成
+    def list2Name(self, list_data: list) -> ndarray:
+        return np.array([k.name for k in list_data])
 
     # recordからスペクトログラムの作成
     def list2Spectrogram(self, list_data):
@@ -384,9 +403,9 @@ class PreProcess:
             X /= X.max()
 
     # NONEの睡眠段階をキャッチして入力データごと消去
-    def catch_none(self, x_data, y_data):
-        import pandas as pd
-
+    def catch_none(
+        self, x_data, y_data, is_person_classification: bool = False
+    ):
         x_data = list(x_data)
         y_data = list(y_data)
         # 保存用のリストを確保
@@ -396,7 +415,10 @@ class PreProcess:
             if not pd.isnull(ss):
                 _x_data.append(x_data[num])
                 _y_data.append(y_data[num])
-        return np.array(_x_data), np.array(_y_data).astype(np.int32)
+        if is_person_classification:
+            return np.array(_x_data), np.array(_y_data)
+        else:
+            return np.array(_x_data), np.array(_y_data).astype(np.int32)
 
     # ラベルをクラス数に合わせて変更
     def change_label(self, y_data, n_class, target_class=None):
