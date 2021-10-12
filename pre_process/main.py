@@ -14,8 +14,8 @@ from pre_process.json_base import JsonBase
 def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
-    FIT_POS_LIST = ["top", "middle", "bottom"]
-    STRIDE_LIST = [480]
+    FIT_POS_LIST = ["middle"]
+    STRIDE_LIST = [16]
     KERNEL_SIZE_LIST = [512]
     IS_NORMAL = True
     IS_PREVIOUS = False
@@ -53,7 +53,7 @@ def main():
                 target_folders = FR.my_env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
                 )
-                # 実験を効率よくするためにランダムに並べ替える
+                # 実験を効率よくするためにランダムに並べ替える（エラーをはく時に毎回同じ被験者で止まらないようにするため）
                 target_folders = random.sample(
                     target_folders, len(target_folders)
                 )

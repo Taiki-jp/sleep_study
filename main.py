@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 5
+    EPOCHS = 100
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -210,8 +210,8 @@ if __name__ == "__main__":
     BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 480
-    SAMPLE_SIZE = 40000
+    STRIDE = 16
+    SAMPLE_SIZE = 200000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"

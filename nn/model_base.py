@@ -170,6 +170,7 @@ def edl_classifier_1d(
             padding=padding,
             use_bias=False,
             name=conv_name,
+            # kernel_regularizer=tf.keras.regularizers.l2(0.001)
         )(x)
         x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
         x = tf.keras.layers.Activation("relu", name=name)(x)
