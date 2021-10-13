@@ -204,7 +204,7 @@
                 "stride_480": {
                     "kernel_512": {
                         "no_cleansing": [
-                            "20210712-085816"
+                            "20211012-164805"
                         ],
                         "positive_cleansing": [],
                         "negative_cleansing": []
@@ -587,7 +587,7 @@
                 "stride_480": {
                     "kernel_512": {
                         "no_cleansing": [
-                            "20211011-235025"
+                            "20211012-235934"
                         ],
                         "positive_cleansing": [
                             "20210924-002400",

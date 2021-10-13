@@ -179,13 +179,15 @@ def edl_classifier_1d(
     x = tf.keras.layers.Conv1D(3, 4, strides=2, name="shrink_tensor_layer")(x)
     x = tf.keras.layers.Activation("relu")(x)
     # 畳み込み開始01
-    x = _conv1d_bn(x, 32, 3, strides=2, padding="valid", name="first_layer")
-    x = _conv1d_bn(x, 32, 3, padding="valid", name="second_layer")
+    x_skipping_01 = _conv1d_bn(x, 32, 3, strides=2, padding="same", name="first_layer")
+    x = _conv1d_bn(x_skipping_01, 32, 3, padding="same", name="second_layer")
     x = _conv1d_bn(x, 64, 3, name="third_layer")
+    x = tf.keras.layers.concatenate([x, x_skipping_01], axis=-1, name="skip_cnct01")
     x = tf.keras.layers.MaxPooling1D(3, strides=2, name="first_max_pool")(x)
     # 畳み込み開始02
-    x = _conv1d_bn(x, 80, 1, padding="valid", name="forth_layer")
-    x = _conv1d_bn(x, 192, 3, padding="valid", name="fifth_layer")
+    x_skipping_02 = _conv1d_bn(x, 80, 1, padding="same", name="forth_layer")
+    x = _conv1d_bn(x_skipping_02, 192, 3, padding="same", name="fifth_layer")
+    x = tf.keras.layers.concatenate([x, x_skipping_02], axis=-1, name="skip_cnct02")
     x = tf.keras.layers.MaxPooling1D(3, strides=2, name="second_max_pool")(x)
 
     if has_inception:
@@ -241,22 +243,22 @@ def edl_classifier_1d(
 
     # enn output1
     if has_dropout:
-        _x = tf.keras.layers.Dropout(0.2)
-    _x = tf.keras.layers.Dense(n_class ** 2)(x)
-    _x = tf.keras.layers.Activation("relu")(_x)
+        x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(n_class * 2)(x)
+    x = tf.keras.layers.Activation("relu")(x)
     if has_dropout:
-        x = tf.keras.layers.Dropout(0.2)
-    _x = tf.keras.layers.Dense(n_class)(_x)
-    _x = tf.keras.layers.Activation("relu")(_x)
+        x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(n_class)(x)
+    x = tf.keras.layers.Activation("relu")(x)
 
     # enn output2
     if has_mul_output:
-        __x = tf.keras.layers.Dense(288)(x)
-        __x = tf.keras.layers.Dense(n_class ** 2)(__x)
-        __x = tf.keras.layers.Dense(n_class)(__x)
-        return (_x, __x)
+        _x = tf.keras.layers.Dense(288)(x)
+        _x = tf.keras.layers.Dense(n_class ** 2)(x)
+        _x = tf.keras.layers.Dense(n_class)(x)
+        return (_x, _x)
     else:
-        return _x
+        return x
 
 
 # ================================================ #

@@ -398,9 +398,9 @@ class PreProcess:
                 sys.exit(1)
 
     # 各スペクトルの最大値で正規化
-    def max_norm(self, data):
+    def max_norm(self, data: list):
         for X in data:  # TODO : 全体の値で割るようなこともする
-            X /= X.max()
+            X /= abs(X).max()
 
     # NONEの睡眠段階をキャッチして入力データごと消去
     def catch_none(
@@ -411,8 +411,9 @@ class PreProcess:
         # 保存用のリストを確保
         _x_data = list()
         _y_data = list()
-        for num, ss in enumerate(y_data):
-            if not pd.isnull(ss):
+        for num, (spectrum, ss) in enumerate(zip(x_data, y_data)):
+            # 睡眠段階のnullチェックと入力の空チェック
+            if not pd.isnull(ss) and len(spectrum) != 0:
                 _x_data.append(x_data[num])
                 _y_data.append(y_data[num])
         if is_person_classification:

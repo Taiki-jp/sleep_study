@@ -121,12 +121,13 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
+        has_dropout=True
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
+            loss=EDLLoss(K=n_class, annealing=0.),
             metrics=["accuracy", "mse"],
         )
 
@@ -155,13 +156,13 @@ def main(
         x_train,
         y_train,
         batch_size=batch_size,
-        validation_data=(x_test, y_test),
+        validation_data=(x_test, y_test),   # FIXME: よくわからないけど、wandbのコールバックの検証データにはここに指定したものがわたるみたい
         epochs=epochs,
         callbacks=[
             tf_callback,
             WandbClassificationCallback(
-                validation_data=(x_test, y_test),
-                log_confusion_matrix=True,
+                validation_data=(x_train, y_train),
+                log_confusion_matrix=False,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
         ],
@@ -179,15 +180,16 @@ def main(
             graph_person_id=test_name,
             calling_graph="all",
             graph_date_id=date_id,
+            to_csv=True
         )
     # tensorboardのログ
     # if log_tf_projector:
     #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
 
-    if save_model:
-        path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-        print(PyColor().GREEN_FLASH, f"{path}にモデルを保存します ...", PyColor().END)
-        model.save(path)
+    # if save_model:
+    #     path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
+    #     print(PyColor().GREEN_FLASH, f"{path}にモデルを保存します ...", PyColor().END)
+    #     model.save(path)
     wandb.finish()
 
 
@@ -213,17 +215,17 @@ if __name__ == "__main__":
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
-    IS_MUL_LAYER = True
+    IS_MUL_LAYER = False
     HAS_NREM2_BIAS = False
-    BATCH_SIZE = 32
-    N_CLASS = 9
+    BATCH_SIZE = 256
+    N_CLASS = 69
     KERNEL_SIZE = 512
-    STRIDE = 1024
-    SAMPLE_SIZE = 500
+    STRIDE = 480
+    SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"

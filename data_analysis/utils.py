@@ -116,6 +116,7 @@ class Utils:
         graph_person_id: str,
         graph_date_id: str,
         calling_graph: Any,
+        to_csv: bool = False
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -125,6 +126,7 @@ class Utils:
                 train_or_test=train_or_test,
                 test_label=graph_person_id,
                 date_id=graph_date_id,
+                to_csv=to_csv
             )
             # 睡眠段階と正負の色分けで2パターン作成
             for is_separating in [True, False]:
@@ -511,6 +513,7 @@ class Utils:
         test_label,
         date_id,
         log_all_in_one: bool = False,
+        to_csv: bool = False
     ):
         alpha = evidence + 1
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)
@@ -526,6 +529,14 @@ class Utils:
         cm = self.make_confusion_matrix(
             y_true=y, y_pred=y_pred, n_class=n_class
         )
+        if to_csv:
+            filepath = os.path.join(os.environ["sleep"], "figures", "tmp", train_or_test)
+            if not os.path.exists(filepath):
+                os.makedirs(filepath)
+            filepath = os.path.join(filepath, "tmp.csv")
+            print(f"混合マトリクスを{filepath}に書き込みます")
+            cm.to_csv(filepath)
+
         # seabornを使ってグラフを作成し保存
         self.save_image2Wandb(
             image=cm,

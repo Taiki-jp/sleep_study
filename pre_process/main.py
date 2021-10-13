@@ -15,10 +15,10 @@ def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
     FIT_POS_LIST = ["middle"]
-    STRIDE_LIST = [1024]
+    STRIDE_LIST = [480]
     KERNEL_SIZE_LIST = [512]
     IS_NORMAL = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
