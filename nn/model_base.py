@@ -154,6 +154,7 @@ def edl_classifier_1d(
     is_mul_layer: bool = False,
     has_mul_output: bool = False,
     hidden_outputs: bool = False,
+    dropout_rate: float = 0
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -242,11 +243,11 @@ def edl_classifier_1d(
 
     # enn output1
     if has_dropout:
-        _x = tf.keras.layers.Dropout(0.2)
-    _x = tf.keras.layers.Dense(n_class ** 2)(x)
+        _x = tf.keras.layers.Dropout(dropout_rate)(x)
+    _x = tf.keras.layers.Dense(n_class ** 2)(_x)
     _x = tf.keras.layers.Activation("relu")(_x)
     if has_dropout:
-        x = tf.keras.layers.Dropout(0.2)
+        x = tf.keras.layers.Dropout(dropout_rate)(_x)
     _x = tf.keras.layers.Dense(n_class)(_x)
     _x = tf.keras.layers.Activation("relu")(_x)
 

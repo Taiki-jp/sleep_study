@@ -24,6 +24,8 @@ from data_analysis.utils import Utils
 
 
 def main(
+    dropout_rate: float,
+    has_dropout: bool,
     log_tf_projector: bool, 
     name: str,
     project: str,
@@ -106,6 +108,8 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
+        has_dropout=has_dropout,
+        dropout_rate=dropout_rate
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
@@ -167,6 +171,7 @@ def main(
             graph_person_id=test_name,
             calling_graph="all",
             graph_date_id=date_id,
+            is_each_unc=True
         )
     # tensorboardのログ
     # if log_tf_projector:
@@ -196,22 +201,25 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     EPOCHS = 100
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
+    HAS_DROPOUT = True
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
-    IS_MUL_LAYER = False
+    IS_MUL_LAYER = True
     HAS_NREM2_BIAS = True
+    HAS_REM_BIAS = False
+    DROPOUT_RATE = 0.3
     BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
-    STRIDE = 16
-    SAMPLE_SIZE = 200000
+    STRIDE = 480
+    SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -236,6 +244,8 @@ if __name__ == "__main__":
         stride=STRIDE,
         is_normal=IS_NORMAL,
         has_nrem2_bias=HAS_NREM2_BIAS,
+        has_rem_bias=HAS_REM_BIAS
+
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
@@ -257,7 +267,10 @@ if __name__ == "__main__":
             f"stride:{STRIDE}",
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
-            f"epoch:{EPOCHS}"
+            f"epoch:{EPOCHS}",
+            f"nrem2_bias:{HAS_NREM2_BIAS}",
+            f"rem_bias:{HAS_REM_BIAS}",
+            f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}"
         ]
 
         wandb_config = {
@@ -271,9 +284,11 @@ if __name__ == "__main__":
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
             "has_nrem2_bias": HAS_NREM2_BIAS,
+            "has_rem_bias": HAS_REM_BIAS,
             "model_type": ENN_TAG,
         }
         main(
+            has_dropout=True,
             log_tf_projector=True,
             name=test_name,
             project=WANDB_PROJECT,
@@ -281,7 +296,7 @@ if __name__ == "__main__":
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
+            save_model=False,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,
@@ -296,7 +311,8 @@ if __name__ == "__main__":
             wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
-            utils=Utils()
+            utils=Utils(),
+            dropout_rate=DROPOUT_RATE
         )
 
         # testの時は一人の被験者で止める

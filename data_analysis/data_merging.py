@@ -60,6 +60,9 @@ def main(
         is_positive=False,
         is_negative=False,
     )
+    # データがキャッチできていない場合はreturn
+    if model is None:
+        return
     # ポジティブクレンジングを行ったモデルを読み込む
     positive_model = load_model(
         loaded_name=test_name,
@@ -69,6 +72,9 @@ def main(
         is_positive=True,
         is_negative=False,
     )
+    # データがキャッチできていない場合はreturn
+    if positive_model is None:
+        return
 
     # テストデータのクレンジング
     (_x_test, _y_test) = separate_unc_data(
@@ -93,21 +99,22 @@ def main(
 
     # # クレンジング後のデータに対してグラフを作成
     # # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
-    # evidence_base = model.predict(x_test, batch_size=batch_size)
-    # evidence_positive = positive_model.predict(x_test)
-    # df_result = utils.u_threshold_and_acc2Wandb(
-    #     y=y_test,
-    #     evidence=evidence_base,
-    #     evidence_positive=evidence_positive,
-    #     train_or_test="train",
-    #     test_label=test_name,
-    #     date_id=saving_date_id,
-    #     log_all_in_one=log_all_in_one,
-    #     is_early_stop_and_return_data_frame=True,
-    # )
-    # # csv出力
-    # output_path = "20210911.csv"
-    # utils.to_csv(df_result, path=output_path, edit_mode="append")
+    evidence_base = model.predict(x_test, batch_size=batch_size)
+    evidence_positive = positive_model.predict(x_test)
+    df_result = utils.u_threshold_and_acc2Wandb(
+        y=y_test,
+        evidence=evidence_base,
+        evidence_positive=evidence_positive,
+        train_or_test="train",
+        test_label=test_name,
+        date_id=saving_date_id,
+        log_all_in_one=log_all_in_one,
+        is_early_stop_and_return_data_frame=True,
+        unc_threthold=unc_threthold
+    )
+    # csv出力
+    output_path = "20210911.csv"
+    utils.to_csv(df_result, path=output_path, edit_mode="append")
 
     # wandb終了
     wandb.finish()
@@ -123,11 +130,11 @@ if __name__ == "__main__":
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = True
-    WANDB_PROJECT = "test"
+    TEST_RUN = False
+    WANDB_PROJECT = "2021"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    BATCH_SIZE = 256
+    BATCH_SIZE = 128
     N_CLASS = 5
     STRIDE = 480
     SAMPLE_SIZE = 5000
