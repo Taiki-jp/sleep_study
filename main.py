@@ -45,6 +45,7 @@ def main(
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     utils: Utils = None,
+    has_dropout: bool = False,
 ):
 
     # データセットの作成
@@ -104,30 +105,15 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
+        has_dropout=has_dropout,
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
+            loss=EDLLoss(K=n_class, annealing=0.5),
             metrics=[
                 "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(),
             ],
         )
 
@@ -140,21 +126,6 @@ def main(
             ),
             metrics=[
                 "accuracy",
-                # CategoricalTruePositives(
-                #     target_class=0, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=1, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=2, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=3, data_size=sample_size * n_class, n_class=5
-                # ),
-                # CategoricalTruePositives(
-                #     target_class=4, data_size=sample_size * n_class, n_class=5
-                # ),
             ],
         )
 
@@ -237,10 +208,12 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = True
+    HAS_DROPOUT = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = False
     HAS_NREM2_BIAS = True
-    EPOCHS = 10
+    MODEL_SAVES = True
+    EPOCHS = 100
     BATCH_SIZE = 256
     N_CLASS = 5
     KERNEL_SIZE = 512
@@ -321,13 +294,13 @@ if __name__ == "__main__":
             "model_type": ENN_TAG,
         }
         main(
-            name=f"code_{ENN_TAG}",
+            name=f"{test_name}",
             project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
+            save_model=MODEL_SAVES,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,
@@ -343,20 +316,22 @@ if __name__ == "__main__":
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
             utils=Utils(),
+            has_dropout=HAS_DROPOUT,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
     # json に書き込み
-    JB.dump(
-        keys=[
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            "no_cleansing",
-        ],
-        value=date_id_saving_list,
-    )
+    if MODEL_SAVES:
+        JB.dump(
+            keys=[
+                ENN_TAG,
+                DATA_TYPE,
+                FIT_POS,
+                f"stride_{str(STRIDE)}",
+                f"kernel_{str(KERNEL_SIZE)}",
+                "no_cleansing",
+            ],
+            value=date_id_saving_list,
+        )

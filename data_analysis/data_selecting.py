@@ -21,6 +21,7 @@ from mywandb.utils import make_ss_dict4wandb
 
 # TODO: 使っていない引数の削除
 def main(
+    save_model: bool,
     name: str,
     project: str,
     train: list,
@@ -149,7 +150,7 @@ def main(
     _model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=EDLLoss(K=n_class, annealing=0.1),
-        metrics=["accuracy", "loss"],  # 追加部分
+        metrics=["accuracy", "mse"],  # 追加部分
     )
     log_dir = os.path.join(
         pre_process.my_env.project_dir, "my_edl", test_name, date_id["nothing"]
@@ -175,41 +176,33 @@ def main(
         verbose=2,
     )
 
-    evidence_train = _model(_x, training=False)
-    evidence_test = _model(_x_test, training=False)
-    evidence_positive_train = model(_x, training=False)
-    evidence_positive_test = model(_x_test, training=False)
+    # 混合行列・不確かさ・ヒストグラムの作成
+    tuple_x = (_x, _x_test)
+    tuple_y = (_y, _y_test)
+    # tuple_model = (model, _model)
 
-    # TODO: 諸々の計算を一つのメソッドにまとめてutils に移植
+    # for __model in tuple_model:
+    for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
+        evidence = _model.predict(__x)
+        utils.make_graphs(
+            y=__y,
+            evidence=evidence,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
+            graph_date_id=saving_date_id,
+            is_each_unc=True,
+        )
+    # tensorboardのログ
+    # if log_tf_projector:
+    #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
+    if save_model:
+        print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
+        path = os.path.join(
+            pre_process.my_env.models_dir, test_name, saving_date_id
+        )
+        _model.save(path)
 
-    # 混合行列をwandbに送信
-    utils.make_graphs(
-        y=_y.numpy(),
-        evidence=evidence_train,
-        evidence_positive=evidence_positive_train,
-        train_or_test="train",
-        graph_person_id=test_name,
-        calling_graph="all",
-        graph_date_id=saving_date_id,
-        unc_threthold=unc_threthold,
-    )
-    utils.make_graphs(
-        y=_y_test.numpy(),
-        evidence=evidence_test,
-        evidence_positive=evidence_positive_test,
-        train_or_test="test",
-        graph_person_id=test_name,
-        calling_graph="all",
-        graph_date_id=saving_date_id,
-        unc_threthold=unc_threthold,
-    )
-
-    # モデルの保存
-    # path = os.path.join(
-    #     pre_process.my_env.models_dir, test_name, saving_date_id
-    # )
-    # _model.save(path)
-    # wandb終了
     wandb.finish()
 
 
@@ -238,7 +231,7 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = True  # FIXME: always true so remove here
-    IS_MUL_LAYER = False
+    IS_MUL_LAYER = True
     CATCH_NREM2 = True
     EPOCHS = 100
     BATCH_SIZE = 256
@@ -246,7 +239,7 @@ if __name__ == "__main__":
     KERNEL_SIZE = 512
     STRIDE = 1024
     SAMPLE_SIZE = 5000
-    UNC_THRETHOLD = 0.2
+    UNC_THRETHOLD = 0.5
     DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     EXPERIMENT_TYPES = (
@@ -260,7 +253,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "data_selecting_test" if TEST_RUN else "data_selecting_0831"
-    WANDB_PROJECT = "test" if TEST_RUN else "enn_threthold"
+    WANDB_PROJECT = "test" if TEST_RUN else "positive_learning"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -331,7 +324,8 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
-            name=f"edl-{test_name}",
+            save_model=True,
+            name=f"{test_name}",
             project=WANDB_PROJECT,
             train=train,
             test=test,
@@ -362,14 +356,14 @@ if __name__ == "__main__":
 
     # モデルを保存しないのでコメントアウト
     # TODO: モデルの保存を行う変数に応じて場合分け
-    # JB.dump(
-    #     keys=[
-    #         ENN_TAG,
-    #         DATA_TYPE,
-    #         FIT_POS,
-    #         f"stride_{str(STRIDE)}",
-    #         f"kernel_{str(KERNEL_SIZE)}",
-    #         f"{EXPERIENT_TYPE}",
-    #     ],
-    #     value=date_id_saving_list,
-    # )
+    JB.dump(
+        keys=[
+            ENN_TAG,
+            DATA_TYPE,
+            FIT_POS,
+            f"stride_{str(STRIDE)}",
+            f"kernel_{str(KERNEL_SIZE)}",
+            f"{EXPERIENT_TYPE}",
+        ],
+        value=date_id_saving_list,
+    )

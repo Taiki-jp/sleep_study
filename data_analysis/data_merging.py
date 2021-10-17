@@ -26,6 +26,7 @@ def main(
     unc_threthold: float = 0,
     saving_date_id: str = "",
     log_all_in_one: bool = False,
+    model_type: str = "",
 ):
 
     # データセットの作成
@@ -70,7 +71,7 @@ def main(
         is_negative=False,
     )
 
-    # テストデータのクレンジング
+    # テストデータのクレンジング（不確かなデータセットのみを抽出するための機構）
     (_x_test, _y_test) = separate_unc_data(
         x=x_test,
         y=y_test,
@@ -83,13 +84,24 @@ def main(
     )
 
     # 各睡眠段階のF値を計算wandbに送信
-    Utils().calc_ss_acc(
-        x=_x_test,
-        y=_y_test,
-        model=model,
-        n_class=n_class,
-        batch_size=batch_size,
-    )
+    if model_type == "base":
+        Utils().calc_ss_acc(
+            x=_x_test,
+            y=_y_test,
+            model=model,
+            n_class=n_class,
+            batch_size=batch_size,
+        )
+    elif model_type == "sub":
+        Utils().calc_ss_acc(
+            x=_x_test,
+            y=_y_test,
+            model=positive_model,
+            n_class=n_class,
+            batch_size=batch_size,
+        )
+    else:
+        print(f"{model_type}は適切ではありません．適切なモデルを選択してください")
 
     # # クレンジング後のデータに対してグラフを作成
     # # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
@@ -99,15 +111,15 @@ def main(
     #     y=y_test,
     #     evidence=evidence_base,
     #     evidence_positive=evidence_positive,
-    #     train_or_test="train",
+    #     train_or_test="test",
     #     test_label=test_name,
     #     date_id=saving_date_id,
     #     log_all_in_one=log_all_in_one,
     #     is_early_stop_and_return_data_frame=True,
     # )
-    # # csv出力
-    # output_path = "20210911.csv"
-    # utils.to_csv(df_result, path=output_path, edit_mode="append")
+    # csv出力
+    # output_path = f"2021forprogress01_{test_name}.csv"
+    # utils.to_csv(df_result, path=output_path, edit_mode="")
 
     # wandb終了
     wandb.finish()
@@ -124,7 +136,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "test"
+    WANDB_PROJECT = "data_merging"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 256
@@ -132,6 +144,7 @@ if __name__ == "__main__":
     STRIDE = 1024
     SAMPLE_SIZE = 5000
     UNC_THRETHOLD = 0.5
+    MODEL_TYPE = "sub"
     EXPERIMENT_TYPES = (
         "no_cleansing",
         "positive_cleansing",
@@ -175,9 +188,7 @@ if __name__ == "__main__":
         # date_id_saving_list.append(saving_date_id)
 
         # tagの設定
-        my_tags = [
-            test_name,
-        ]
+        my_tags = [test_name, MODEL_TYPE]
         wandb_config = {
             "test name": test_name,
         }
@@ -199,6 +210,7 @@ if __name__ == "__main__":
             log_all_in_one=True,
             sample_size=SAMPLE_SIZE,  # これがないとtrainの分割のところでデータがなくてエラーが起きてしまう
             utils=utils,
+            model_type=MODEL_TYPE,
         )
 
         # testの時は一人の被験者で止める

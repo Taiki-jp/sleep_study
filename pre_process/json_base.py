@@ -64,7 +64,6 @@ class JsonBase(object):
             second_list,
             third_list,
         )
-
         return list(mapped)
 
 

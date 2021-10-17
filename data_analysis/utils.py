@@ -217,8 +217,9 @@ class Utils:
         if edit_mode == "append":
             df.to_csv(path, mode="a", header=True)
         else:
+            df.to_csv(path, header=True)
             print("勝手に実装してください")
-            sys.exit(1)
+            # sys.exit(1)
 
     # wandbにグラフのログを送る
     def save_graph2Wandb(self, path, name, train_or_test):

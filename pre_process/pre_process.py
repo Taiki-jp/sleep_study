@@ -232,6 +232,12 @@ class PreProcess:
             self.max_norm(x_train)
             self.max_norm(x_test)
 
+        # max正規化をするかどうか
+        if normalize is True:
+            print("- min正規化を行います")
+            # self.min_norm(x_train)
+            # self.min_norm(x_test)
+
         # 睡眠段階のラベルを0 -（クラス数-1）にする
         y_train = self.change_label(
             y_data=y_train, n_class=class_size, target_class=target_ss
@@ -321,10 +327,12 @@ class PreProcess:
         if pse_data:
             print("仮データのためスキップします")
             return (None, None)
-        test_records = records.pop(test_id)
+        test_records = records[test_id]
         train_records = list()
-        for record in records:
-            train_records.extend(record)
+        # test_id以外のデータを訓練データとして追加
+        for record_id, record in enumerate(records):
+            if test_id != record_id:
+                train_records.extend(record)
         return (train_records, test_records)
 
     # 訓練データのサイズをセットする
@@ -381,6 +389,11 @@ class PreProcess:
     def max_norm(self, data):
         for X in data:  # TODO : 全体の値で割るようなこともする
             X /= X.max()
+
+    # 各スペクトルの最大値で正規化
+    # def min_norm(self, data):
+    #     for X in data:  # TODO : 全体の値で割るようなこともする
+    #         X /= X.min()
 
     # NONEの睡眠段階をキャッチして入力データごと消去
     def catch_none(self, x_data, y_data):

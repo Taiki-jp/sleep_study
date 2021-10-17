@@ -241,13 +241,13 @@ def edl_classifier_1d(
 
     # enn output1
     if has_dropout:
-        _x = tf.keras.layers.Dropout(0.2)
-    _x = tf.keras.layers.Dense(n_class ** 2)(x)
-    _x = tf.keras.layers.Activation("relu")(_x)
+        x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(n_class ** 2)(x)
+    x = tf.keras.layers.Activation("relu")(x)
     if has_dropout:
-        x = tf.keras.layers.Dropout(0.2)
-    _x = tf.keras.layers.Dense(n_class)(_x)
-    _x = tf.keras.layers.Activation("relu")(_x)
+        x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(n_class)(x)
+    x = tf.keras.layers.Activation("relu")(x)
 
     # enn output2
     if has_mul_output:
@@ -256,7 +256,7 @@ def edl_classifier_1d(
         __x = tf.keras.layers.Dense(n_class)(__x)
         return (_x, __x)
     else:
-        return _x
+        return x
 
 
 # ================================================ #
