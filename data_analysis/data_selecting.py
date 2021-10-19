@@ -44,6 +44,7 @@ def main(
     epochs: int = 1,
     experiment_type: str = "",
     saving_date_id: str = "",
+    has_dropout: bool = False
 ):
 
     # データセットの作成
@@ -103,6 +104,7 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
+        has_dropout=has_dropout
     )
 
     model = load_model(
@@ -140,8 +142,11 @@ def main(
     wandb.log(make_ss_dict4wandb(_y_test, is_train=False), commit=False)
 
     # データが拾えなかった場合は終了
-    utils.stop_early(y=_y, mode="catching_assertion")
-    utils.stop_early(y=_y_test, mode="catching_assertion")
+    catching_flag_train = utils.stop_early(y=_y, mode="catching_assertion")
+    catching_flag_test = utils.stop_early(y=_y_test, mode="catching_assertion")
+    # 早期終了フラグが立った場合はそこで終了
+    if catching_flag_train or catching_flag_test:
+        return
     # if _x.shape[0] == 0 or _x_test.shape[0] == 0:
     #     return
 
@@ -177,35 +182,27 @@ def main(
         verbose=2,
     )
 
-    evidence_train = _model(_x, training=False)
-    evidence_test = _model(_x_test, training=False)
-
-    # TODO: 諸々の計算を一つのメソッドにまとめてutils に移植
-
+    # 混合行列・不確かさ・ヒストグラムの作成
+    tuple_x = (_x, _x_test)
+    tuple_y = (_y, _y_test)
     # 混合行列をwandbに送信
-    for train_or_test in ["train", "test"]:
+    for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
+        evidence = _model.predict(__x)
         utils.make_graphs(
-            y=_y.numpy(),
-            evidence=evidence_train,
+            y=__y.numpy(),
+            evidence=evidence,
             train_or_test=train_or_test,
             graph_person_id=test_name,
             calling_graph="all",
             graph_date_id=saving_date_id,
-        )
-        utils.make_graphs(
-            y=_y_test.numpy(),
-            evidence=evidence_test,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=saving_date_id,
+            is_each_unc=True,
         )
 
     # モデルの保存
-    # path = os.path.join(
-    #     pre_process.my_env.models_dir, test_name, saving_date_id
-    # )
-    # _model.save(path)
+    path = os.path.join(
+        pre_process.my_env.models_dir, test_name, saving_date_id
+    )
+    _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -237,8 +234,9 @@ if __name__ == "__main__":
     IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    EPOCHS = 200
-    BATCH_SIZE = 256
+    HAS_DROPOUT = True
+    EPOCHS = 100
+    BATCH_SIZE = 128
     N_CLASS = 5
     KERNEL_SIZE = 512
     STRIDE = 480
@@ -256,7 +254,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "enn4fixed_stride_fixed_sample"
+    WANDB_PROJECT = "test" if TEST_RUN else "positive_cleansing"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -290,10 +288,9 @@ if __name__ == "__main__":
 
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
+    subjects_id = [i for i in range(len(pre_process.name_list))]
 
-    for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list, model_date_list)
-    ):
+    for test_id, test_name, date_id in zip(subjects_id[47:], pre_process.name_list[47:], model_date_list[47:]):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
@@ -310,7 +307,8 @@ if __name__ == "__main__":
             f"stride:{STRIDE}",
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
-            f"{EXPERIENT_TYPE}"
+            f"{EXPERIENT_TYPE}",
+            f"u_th:{UNC_THRETHOLD}"
         ]
         wandb_config = {
             "test name": test_name,
@@ -326,7 +324,7 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
-            name=f"edl-{test_name}",
+            name=f"{test_name}",
             project=WANDB_PROJECT,
             train=train,
             test=test,
@@ -349,6 +347,7 @@ if __name__ == "__main__":
             experiment_type=EXPERIENT_TYPE,
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
+            has_dropout=HAS_DROPOUT
         )
 
         # testの時は一人の被験者で止める

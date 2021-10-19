@@ -44,7 +44,7 @@ def load_model(
         )
     if not os.path.exists(path):
         print(PyColor.RED_FLASH, f"{path}は存在しません", PyColor.END)
-        sys.exit(1)
+        return None
     model = tf.keras.models.load_model(
         path, custom_objects={"EDLLoss": EDLLoss(K=n_class, annealing=0.1)}
     )

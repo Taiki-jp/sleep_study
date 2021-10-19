@@ -25,6 +25,7 @@ class PreProcess:
         stride: int,
         is_normal: bool,
         has_nrem2_bias: bool = False,
+        has_rem_bias: bool = False,
     ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -45,6 +46,7 @@ class PreProcess:
             is_normal=self.is_normal,
         )
         self.has_nrem2_bias = has_nrem2_bias
+        self.has_rem_bias = has_rem_bias
         # LoadSleepData の参照を作成
         self.fr = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
@@ -344,14 +346,32 @@ class PreProcess:
         else:
             if class_size == 5:  # NR34, NR2, NR1, REM, WAKE
                 if self.has_nrem2_bias:
-                    return {
-                        1: each_data_size,
-                        2: each_data_size * 2,
-                        3: each_data_size,
-                        4: each_data_size,
-                        5: each_data_size,
-                    }
+                    if self.has_rem_bias:
+                        return {
+                            1: each_data_size,
+                            2: each_data_size * 2,
+                            3: each_data_size,
+                            4: each_data_size * 2,
+                            5: each_data_size,
+                        }
+                    else:
+                        return {
+                            1: each_data_size,
+                            2: each_data_size * 2,
+                            3: each_data_size,
+                            4: each_data_size,
+                            5: each_data_size,
+                        }
                 else:
+                    if self.has_rem_bias:
+                        return {
+                            1: each_data_size,
+                            2: each_data_size,
+                            3: each_data_size,
+                            4: each_data_size * 2,
+                            5: each_data_size,
+                        }
+
                     return {
                         1: each_data_size,
                         2: each_data_size,
