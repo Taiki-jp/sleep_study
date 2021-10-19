@@ -89,32 +89,28 @@ def main(
     )
 
     # 各睡眠段階のF値を計算wandbに送信
-    Utils().calc_ss_acc(
-        x=_x_test,
-        y=_y_test,
-        model=model,
-        n_class=n_class,
-        batch_size=batch_size,
-    )
+    # Utils().calc_ss_acc(
+    #     x=_x_test,
+    #     y=_y_test,
+    #     model=model,
+    #     n_class=n_class,
+    #     batch_size=batch_size,
+    # )
 
     # # クレンジング後のデータに対してグラフを作成
-    # # TODO: 不確かさの高い部分のみを置き換えるような実装に変更
-    evidence_base = model.predict(x_test, batch_size=batch_size)
-    evidence_positive = positive_model.predict(x_test)
-    df_result = utils.u_threshold_and_acc2Wandb(
-        y=y_test,
-        evidence=evidence_base,
-        evidence_positive=evidence_positive,
-        train_or_test="train",
-        test_label=test_name,
-        date_id=saving_date_id,
-        log_all_in_one=log_all_in_one,
-        is_early_stop_and_return_data_frame=True,
-        unc_threthold=unc_threthold
-    )
+    # 不確実性の高いデータのみで一致率を計算
+    evidence_base = model.predict(_x_test, batch_size=batch_size)
+    evidence_positive = positive_model.predict(_x_test)
+
+    # 睡眠段階の予測
+    _, _, _, y_pred_base = utils.calc_enn_output_from_evidence(evidence=evidence_base)
+    _, _, _, y_pred_pos = utils.calc_enn_output_from_evidence(evidence=evidence_positive)
+    # 一致率の計算
+    acc_base = utils.calc_acc_from_pred(y_true = _y_test.numpy(), y_pred=y_pred_base, log_label="base")
+    acc_sub = utils.calc_acc_from_pred(y_true = _y_test.numpy(), y_pred=y_pred_pos, log_label="sub")
     # csv出力
-    output_path = "20210911.csv"
-    utils.to_csv(df_result, path=output_path, edit_mode="append")
+    # output_path = "20211018_for_box_plot.csv"
+    # utils.to_csv(df_result, path=output_path, edit_mode="append")
 
     # wandb終了
     wandb.finish()
@@ -131,7 +127,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "2021"
+    WANDB_PROJECT = "2021_code00"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 128
