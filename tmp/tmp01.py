@@ -1,23 +1,11 @@
-from nn.wandb_classification_callback import WandbClassificationCallback
 import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
-
-tf.random.set_seed(100)
 from data_analysis.utils import Utils
-import sys
-import datetime
-import wandb
-from wandb.keras import WandbCallback
 from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
-from nn.losses import EDLLoss
-from pre_process.json_base import JsonBase
-from data_analysis.py_color import PyColor
-from collections import Counter
 from nn.utils import load_model, separate_unc_data
-from mywandb.utils import make_ss_dict4wandb
+
+# seedの固定
+tf.random.set_seed(100)
 # 環境設定
 CALC_DEVICE = "gpu"
 # CALC_DEVICE = "cpu"
@@ -70,9 +58,15 @@ CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
 
 # モデルの読み込み
 loaded_name = "140703_Li"
-date_id = {"nothing":"20211010-150603", "negative":"20211010-150603", "positive":"20211010-150603"}
+date_id = {
+    "nothing": "20211010-150603",
+    "negative": "20211010-150603",
+    "positive": "20211010-150603",
+}
 n_class = 5
-model = load_model(loaded_name=loaded_name, model_id=date_id, n_class=n_class, verbose=0)
+model = load_model(
+    loaded_name=loaded_name, model_id=date_id, n_class=n_class, verbose=0
+)
 # model.summary()
 
 # Recordオブジェクトの読み込み
@@ -84,7 +78,7 @@ pre_process = PreProcess(
     is_previous=IS_PREVIOUS,
     stride=STRIDE,
     is_normal=IS_NORMAL,
-    has_nrem2_bias=True
+    has_nrem2_bias=True,
 )
 datasets = pre_process.load_sleep_data.load_data(
     load_all=True, pse_data=PSE_DATA
