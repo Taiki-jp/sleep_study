@@ -3,6 +3,7 @@ import sys
 import os
 from tensorflow import keras
 
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 
@@ -21,6 +22,7 @@ from data_analysis.py_color import PyColor
 from pre_process.record import Record
 from collections import Counter
 from data_analysis.utils import Utils
+
 
 def main(
     dropout_rate: float,
