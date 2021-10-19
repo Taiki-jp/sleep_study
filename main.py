@@ -22,11 +22,10 @@ from pre_process.record import Record
 from collections import Counter
 from data_analysis.utils import Utils
 
-
 def main(
     dropout_rate: float,
     has_dropout: bool,
-    log_tf_projector: bool, 
+    log_tf_projector: bool,
     name: str,
     project: str,
     train: list,
@@ -48,7 +47,7 @@ def main(
     wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
-    utils:Utils = None,
+    utils: Utils = None,
 ):
 
     # データセットの作成
@@ -109,17 +108,14 @@ def main(
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
         has_dropout=has_dropout,
-        dropout_rate=dropout_rate
+        dropout_rate=dropout_rate,
     )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=[
-                "accuracy",
-                "mse"
-            ],
+            metrics=["accuracy", "mse"],
         )
 
     else:
@@ -171,7 +167,7 @@ def main(
             graph_person_id=test_name,
             calling_graph="all",
             graph_date_id=date_id,
-            is_each_unc=True
+            is_each_unc=True,
         )
     # tensorboardのログ
     # if log_tf_projector:
@@ -244,8 +240,7 @@ if __name__ == "__main__":
         stride=STRIDE,
         is_normal=IS_NORMAL,
         has_nrem2_bias=HAS_NREM2_BIAS,
-        has_rem_bias=HAS_REM_BIAS
-
+        has_rem_bias=HAS_REM_BIAS,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
@@ -270,7 +265,7 @@ if __name__ == "__main__":
             f"epoch:{EPOCHS}",
             f"nrem2_bias:{HAS_NREM2_BIAS}",
             f"rem_bias:{HAS_REM_BIAS}",
-            f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}"
+            f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
         ]
 
         wandb_config = {
@@ -312,7 +307,7 @@ if __name__ == "__main__":
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
             utils=Utils(),
-            dropout_rate=DROPOUT_RATE
+            dropout_rate=DROPOUT_RATE,
         )
 
         # testの時は一人の被験者で止める
