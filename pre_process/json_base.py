@@ -9,7 +9,7 @@ class JsonBase(object):
         self.json_file: str = os.path.join(
             os.environ["git"],
             "sleep_study",
-            "pre_process",
+            "env",
             json_filename,
         )
         self.json_dict: dict = {}
@@ -56,9 +56,9 @@ class JsonBase(object):
         second_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
         ]["positive_cleansing"]
-        third_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
-            args[4]
-        ]["negative_cleansing"]
+        # third_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
+        #     args[4]
+        # ]["negative_cleansing"]
 
         # マップ関数によって iterable に変換してる kigasuru
         # TODO: 最大のものに合わせてループを繰り返すようにする
@@ -71,12 +71,153 @@ class JsonBase(object):
 
         return list(mapped)
 
+    # per_processed_id.jsonのフォーマット作成
+    def make_pre_processed_id_format(self) -> None:
+        # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
+        dataset = ["normal_prev", "normal_follow", "sas_prev", "sav_normal"]
+        preprocess_type = ["spectrum", "spectrogram"]
+        ss_pos = ["bottom", "middle", "top"]
+        stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
+        kernel = ["kernel_" + str(i) for i in (512, 1024)]
+
+        # 辞書の初期値のみをループとは別に作成しておく
+        kernel_d = {_kernel: "" for _kernel in kernel}
+        list4loop = [stride, ss_pos, preprocess_type, dataset]
+        for _list4loop in list4loop:
+            merged_d = {__list4loop: kernel_d for __list4loop in _list4loop}
+            kernel_d = merged_d.copy()
+        # jsonの中身の書き換え
+        self.json_dict = merged_d
+        # jsonfileへの書き込み
+        try:
+            with open(self.json_file, "w") as f:
+                json.dump(self.json_dict, f, indent=4)
+        except Exception:
+            print("jsonへの書き込みに失敗しました")
+            sys.exit(1)
+
+    # model_id.jsonのフォーマット作成
+    def make_model_id_format(self) -> None:
+        # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
+        dataset = [
+            "normal_prev",
+            "normal_follow",
+            "sas_prev",
+            "sav_normal",
+            "unused_set",
+        ]
+        model_type = ["dnn", "enn"]
+        preprocess_type = ["spectrum", "spectrogram"]
+        ss_pos = ["bottom", "middle", "top"]
+        stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
+        kernel = ["kernel_" + str(i) for i in (512, 1024)]
+        cleansing_type = [
+            "no_cleansing",
+            "positive_cleansing",
+            "negative_cleansing",
+        ]
+
+        # 辞書の初期値のみをループとは別に作成しておく
+        cleansing_type_d = {
+            _cleansing_type: [] for _cleansing_type in cleansing_type
+        }
+        list4loop = [
+            kernel,
+            stride,
+            ss_pos,
+            preprocess_type,
+            model_type,
+            dataset,
+        ]
+        for _list4loop in list4loop:
+            merged_d = {
+                __list4loop: cleansing_type_d for __list4loop in _list4loop
+            }
+            cleansing_type_d = merged_d.copy()
+        # jsonの中身の書き換え
+        self.json_dict = merged_d
+        # jsonfileへの書き込み
+        try:
+            with open(self.json_file, "w") as f:
+                json.dump(self.json_dict, f, indent=4)
+        except Exception:
+            print("jsonへの書き込みに失敗しました")
+            sys.exit(1)
+
+    # main_param.jsonのフォーマット作成
+    # NOTE: 使わない
+    def make_main_param_format(self) -> None:
+        # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
+        dataset = [
+            "main",
+            "main_custom",
+            "pre_process_main",
+            "data_analysis_main",
+            "data_merging",
+            "data_selecting",
+        ]
+        params = [
+            "data_type",
+            "fit_pos",
+            "stride",
+            "test_run",
+            "epochs",
+            "has_attention",
+            "pse_data",
+            "has_inception",
+            "is_previous",
+            "is_normal",
+            "has_dropout",
+            "is_enn",
+            "is_mul_layer",
+            "has_nrem2_bias",
+            "has_rem_bias",
+            "dropout_rate",
+            "batch_size",
+            "n_class",
+            "kernel_size",
+            "stride",
+            "sample_size",
+        ]
+
+        # 辞書の初期値のみをループとは別に作成しておく
+        kernel_d = {_params: [] for _params in params}
+        list4loop = [dataset]
+        for _list4loop in list4loop:
+            merged_d = {__list4loop: kernel_d for __list4loop in _list4loop}
+            kernel_d = merged_d.copy()
+        # jsonの中身の書き換え
+        self.json_dict = merged_d
+        # jsonfileへの書き込み
+        try:
+            with open(self.json_file, "w") as f:
+                json.dump(self.json_dict, f, indent=4)
+        except Exception:
+            print("jsonへの書き込みに失敗しました")
+            sys.exit(1)
+
+    # フォーマット作成のメタメソッド
+    def make_format(self, json: str) -> None:
+        if json == "pre_processed_id":
+            self.make_pre_processed_id_format()
+        elif json == "model_id":
+            self.make_model_id_format()
+        else:
+            print("実装まだです．飛ばします")
+            return
+
 
 if __name__ == "__main__":
-    from data_analysis.py_color import PyColor
+    filenames = [
+        "pre_processed_id.json",
+        "model_id.json",
+        # "my_color.json",
+        # "ss.json",
+        # "subjects_list.json",
+    ]
+    for _filenames in filenames:
+        jb = JsonBase(_filenames)
+        jb.load()
 
-    jb = JsonBase("pre_processed_id.json")
-    jb.load()
-    for key, val in jb.__dict__.items():
-        print(PyColor.GREEN, "key, ", key, "val, ", val, PyColor.END)
-    jb.dump(keys=["spectrum", "middle", "stride_1"], value="")
+        # フォーマット作成のテスト
+        jb.make_format(json=_filenames.split(".")[0])
