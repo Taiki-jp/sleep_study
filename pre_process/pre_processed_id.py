@@ -1,4 +1,5 @@
 import json
+
 from pre_process.json_base import JsonBase
 
 
@@ -9,10 +10,10 @@ class PreProcessedId(JsonBase):
     def load(self) -> None:
         with open(self.json_file) as f:
             self.json_dict = json.load(f)
-        self.prev_datasets = self.json_dict["prev_datasets"]
+        self.prev_datasets = self.json_dict["normal_prev"]
         # NOTE : 下は使わないかも
-        self.spectrum = self.json_dict["spectrum"]
-        self.spectrogram = self.json_dict["spectrogram"]
+        # self.spectrum = self.json_dict["spectrum"]
+        # self.spectrogram = self.json_dict["spectrogram"]
 
 
 if __name__ == "__main__":
