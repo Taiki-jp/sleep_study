@@ -14,12 +14,12 @@ from pre_process.tanita_reader import TanitaReader
 
 def main():
     # ハイパーパラメータの読み込み
-    DATA_TYPE = "spectrum"
+    DATA_TYPE = "spectrogram"
     FIT_POS_LIST = ["middle"]
-    STRIDE_LIST = [16]
-    KERNEL_SIZE_LIST = [512]
+    STRIDE_LIST = [4]
+    KERNEL_SIZE_LIST = [256]
     IS_NORMAL = True
-    IS_PREVIOUS = False
+    IS_PREVIOUS = True
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -41,6 +41,7 @@ def main():
                 JB.load()
                 JB.dump(
                     keys=[
+                        "normal_prev",
                         DATA_TYPE,
                         FIT_POS,
                         f"stride_{str(STRIDE)}",
@@ -82,8 +83,8 @@ def main():
                             f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
                         )
                         sys.exit(1)
-
-                    records = CD.make_spectrum(
+                    preprocessing = CD.make_freq_transform(mode=DATA_TYPE)
+                    records = preprocessing(
                         tanita.df,
                         psg.df,
                         kernel_size=KERNEL_SIZE,
@@ -97,6 +98,7 @@ def main():
                 # jsonへの書き込み
                 JB.dump(
                     keys=[
+                        "normal_prev",
                         DATA_TYPE,
                         FIT_POS,
                         f"stride_{str(STRIDE)}",
