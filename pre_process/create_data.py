@@ -239,8 +239,6 @@ class CreateData(object):
         stride: int,
         fit_pos: str,
         kernel_size: int,
-        sampleLen: int = 1024,
-        timeLen: int = 128,
         ss_term: int = 30,
     ):
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
@@ -248,6 +246,7 @@ class CreateData(object):
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
         records = multipleRecords(record_len)
+        # stride(4) * ss_term(30)インデント毎に作成
         start_points_list = [
             i
             for i in range(0, stride * record_len * ss_term, stride * ss_term)
