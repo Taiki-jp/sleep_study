@@ -1,23 +1,27 @@
-from nn.wandb_classification_callback import WandbClassificationCallback
 import os
+from typing import Dict, Tuple
+
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
 
 tf.random.set_seed(0)
-from data_analysis.utils import Utils
-import sys
 import datetime
-import wandb
-from wandb.keras import WandbCallback
-from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
-from nn.losses import EDLLoss
-from pre_process.json_base import JsonBase
-from data_analysis.py_color import PyColor
+import sys
 from collections import Counter
-from nn.utils import load_model, separate_unc_data
+
+import wandb
+from data_analysis.py_color import PyColor
+from data_analysis.utils import Utils
 from mywandb.utils import make_ss_dict4wandb
+from nn.losses import EDLLoss
+from nn.model_base import EDLModelBase, edl_classifier_1d
+from nn.utils import load_model, separate_unc_data
+from pre_process.json_base import JsonBase
+from pre_process.pre_process import PreProcess
+from wandb.keras import WandbCallback
+
 
 # TODO: 使っていない引数の削除
 def main(
@@ -44,7 +48,7 @@ def main(
     epochs: int = 1,
     experiment_type: str = "",
     saving_date_id: str = "",
-    has_dropout: bool = False
+    has_dropout: bool = False,
 ):
 
     # データセットの作成
@@ -58,8 +62,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
+    ss_train_dict: Dict[int, int] = Counter(y_train)
+    ss_test_dict: Dict[int, int] = Counter(y_test)
 
     # config の追加
     added_config = {
@@ -89,10 +93,11 @@ def main(
     )
 
     # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
+    # TODO: mypyでshapeが違うとエラーになる
     if data_type == "spectrum":
-        shape = (int(kernel_size / 2), 1)
+        shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape = (128, 512, 1)
+        shape: Tuple[int, int, int] = (128, 512, 1)
     else:
         print("correct here based on your model")
         sys.exit(1)
@@ -104,7 +109,7 @@ def main(
         has_attention=has_attention,
         has_inception=has_inception,
         is_mul_layer=is_mul_layer,
-        has_dropout=has_dropout
+        has_dropout=has_dropout,
     )
 
     model = load_model(
@@ -268,7 +273,7 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
-        has_nrem2_bias=True
+        has_nrem2_bias=True,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA
@@ -290,7 +295,9 @@ if __name__ == "__main__":
     date_id_saving_list = list()
     subjects_id = [i for i in range(len(pre_process.name_list))]
 
-    for test_id, test_name, date_id in zip(subjects_id[47:], pre_process.name_list[47:], model_date_list[47:]):
+    for test_id, test_name, date_id in zip(
+        subjects_id[47:], pre_process.name_list[47:], model_date_list[47:]
+    ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
@@ -308,7 +315,7 @@ if __name__ == "__main__":
             f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
             f"{EXPERIENT_TYPE}",
-            f"u_th:{UNC_THRETHOLD}"
+            f"u_th:{UNC_THRETHOLD}",
         ]
         wandb_config = {
             "test name": test_name,
@@ -347,7 +354,7 @@ if __name__ == "__main__":
             experiment_type=EXPERIENT_TYPE,
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
-            has_dropout=HAS_DROPOUT
+            has_dropout=HAS_DROPOUT,
         )
 
         # testの時は一人の被験者で止める

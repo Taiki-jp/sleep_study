@@ -1,12 +1,15 @@
-from nn.utils import load_model, separate_unc_data
-from mywandb.utils import make_ss_dict4wandb
-import os
-import tensorflow as tf
-from data_analysis.utils import Utils
 import datetime
+import os
+from typing import List
+
+import tensorflow as tf
+
 import wandb
-from pre_process.pre_process import PreProcess
+from data_analysis.utils import Utils
+from mywandb.utils import make_ss_dict4wandb
+from nn.utils import load_model, separate_unc_data
 from pre_process.json_base import JsonBase
+from pre_process.pre_process import PreProcess
 
 
 def main(
@@ -103,11 +106,19 @@ def main(
     evidence_positive = positive_model.predict(_x_test)
 
     # 睡眠段階の予測
-    _, _, _, y_pred_base = utils.calc_enn_output_from_evidence(evidence=evidence_base)
-    _, _, _, y_pred_pos = utils.calc_enn_output_from_evidence(evidence=evidence_positive)
+    _, _, _, y_pred_base = utils.calc_enn_output_from_evidence(
+        evidence=evidence_base
+    )
+    _, _, _, y_pred_pos = utils.calc_enn_output_from_evidence(
+        evidence=evidence_positive
+    )
     # 一致率の計算
-    acc_base = utils.calc_acc_from_pred(y_true = _y_test.numpy(), y_pred=y_pred_base, log_label="base")
-    acc_sub = utils.calc_acc_from_pred(y_true = _y_test.numpy(), y_pred=y_pred_pos, log_label="sub")
+    # acc_base = utils.calc_acc_from_pred(
+    #     y_true=_y_test.numpy(), y_pred=y_pred_base, log_label="base"
+    # )
+    # acc_sub = utils.calc_acc_from_pred(
+    #     y_true=_y_test.numpy(), y_pred=y_pred_pos, log_label="sub"
+    # )
     # csv出力
     # output_path = "20211018_for_box_plot.csv"
     # utils.to_csv(df_result, path=output_path, edit_mode="append")
@@ -164,7 +175,7 @@ if __name__ == "__main__":
     )
 
     # モデルのidを記録するためのリスト
-    date_id_saving_list = list()
+    date_id_saving_list: List[str] = list()
 
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, model_date_list)

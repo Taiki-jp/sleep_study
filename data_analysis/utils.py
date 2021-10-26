@@ -1,40 +1,42 @@
-from typing import Any, Tuple
+import datetime
+import glob
+import os
+import pickle
+import sys
+from collections import Counter
+from typing import Any, Dict, List
+
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import tensorflow as tf
+
+# from imblearn.over_sampling import SMOTE
+from IPython.display import SVG
+from PIL import Image
+
+# from sklearn.datasets import make_classification
+from sklearn.metrics import confusion_matrix
+from tensorboard.plugins import projector
+
+# from tensorflow.keras.datasets import mnist
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
-from data_analysis.py_color import PyColor
-import pickle
-import datetime
-import os
+
 import wandb
+from data_analysis.my_color import MyColor
+from data_analysis.py_color import PyColor
+from nn.losses import EDLLoss
 from pre_process.file_reader import FileReader
-from random import shuffle, choices, random, seed
-import matplotlib
+from pre_process.load_sleep_data import LoadSleepData
+from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import pandas as pd
-from sklearn.metrics import confusion_matrix
-import numpy as np
-import seaborn as sns
-from tensorflow.keras.datasets import mnist
-from pre_process.load_sleep_data import LoadSleepData
-from sklearn.datasets import make_classification
-from imblearn.over_sampling import SMOTE
-from collections import Counter
-from IPython.display import SVG
-import numpy as np
-import sys
-import numpy
-import tensorflow as tf
-from data_analysis.my_color import MyColor
-from pre_process.my_env import MyEnv
-from PIL import Image
-import glob
-from tensorboard.plugins import projector
-from nn.losses import EDLLoss
-
 
 # 便利な関数をまとめたもの
 class Utils:
@@ -48,23 +50,36 @@ class Utils:
         self.catch_nrem2 = catch_nrem2
 
     # tensorboard のプロジェクタの作成
-    def make_tf_projector(self, x: Tensor, y: ndarray, batch_size: int, hidden_layer_id: str, log_dir: str, data_type: str, model_loads: bool = False, model: Model = None, date_id: str = "") -> None:
+    def make_tf_projector(
+        self,
+        x: Tensor,
+        y: ndarray,
+        batch_size: int,
+        hidden_layer_id: int,
+        log_dir: str,
+        data_type: str,
+        model: Model,
+        model_loads: bool = False,
+        date_id: str = "",
+    ) -> None:
         # モデルの読み込み（コンパイル済み）
         if model_loads and model is None:
             print(
                 PyColor().CYAN,
                 PyColor().RETURN,
-                f"*** {test_name}のモデルを読み込みます ***",
+                f"*** {data_type}のモデルを読み込みます ***",
                 PyColor().END,
             )
-            path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+            path = os.path.join(
+                os.environ["sleep"], "models", data_type, date_id
+            )
             model = tf.keras.models.load_model(
                 path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
             )
             print(
                 PyColor().CYAN,
                 PyColor().RETURN,
-                f"*** {test_name}のモデルを読み込みました ***",
+                f"*** {data_type}のモデルを読み込みました ***",
                 PyColor().END,
             )
         # 新しいモデルの作成
@@ -74,7 +89,9 @@ class Utils:
         hidden = new_model.predict(x, batch_size=batch_size)
         hidden = hidden.reshape(x.shape[0], -1)
         evidence = model.predict(x, batch_size=batch_size)
-        alpha, _, unc, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        alpha, _, unc, y_pred = self.calc_enn_output_from_evidence(
+            evidence=evidence
+        )
         # ディレクトリの作成
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
@@ -110,6 +127,7 @@ class Utils:
             raise Exception("知らないモードが指定されました")
 
     # graph_person_id => test_label(test_name), graph_date_id => date_id
+    # TODO: train_or_testがstr型で渡すべきなのか，bool型で渡すべきなのかを整理しておく
     def make_graphs(
         self,
         y: ndarray,
@@ -432,13 +450,13 @@ class Utils:
         target_array: list,
         dir2: str,
         file_name: str,
-        train_or_test: bool = False,
-        test_label: str = None,
-        date_id: str = None,
+        train_or_test: str,
+        test_label: str,
+        date_id: str = "",
         hist_label: list = None,
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
         color_obj: MyColor = MyColor(),
-    ):
+    ) -> None:
         plt.style.use("default")
         sns.set()
         sns.set_style("whitegrid")
@@ -474,9 +492,9 @@ class Utils:
         false_label_array: list = None,
         dir2: str = "histgram",
         file_name: str = "hist",
-        train_or_test: list = None,
-        test_label: str = None,
-        date_id: str = None,
+        train_or_test: str = "",
+        test_label: str = "",
+        date_id: str = "",
         hist_label: list = ["True", "False"],
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
         color_obj: MyColor = MyColor(),
@@ -524,7 +542,7 @@ class Utils:
         self,
         y: Tensor,
         evidence: Tensor,
-        train_or_test: bool,
+        train_or_test: str,
         test_label: str,
         date_id: str,
         log_all_in_one: bool = False,
@@ -573,8 +591,9 @@ class Utils:
                 date_id=date_id,
             )
         return
+
     # 不確かさのヒストグラムをwandbに送信
-    
+
     def u_hist2Wandb(
         self,
         y: Tensor,
@@ -589,10 +608,14 @@ class Utils:
         alpha: Tensor = None,
         y_pred: Tensor = None,
         log_all_in_one: bool = False,
-        n_class: int = 5
+        n_class: int = 5,
     ):
-        evidence, alpha, uncertainty, y_pred = self.calc_enn_output_from_evidence(
-            evidence=evidence)
+        (
+            evidence,
+            alpha,
+            uncertainty,
+            y_pred,
+        ) = self.calc_enn_output_from_evidence(evidence=evidence)
         uncertainty = np.array(uncertainty)
         # 計算済みの場合はそれを使うほうが良い
         # if has_caliculated:
@@ -735,12 +758,12 @@ class Utils:
         is_early_stop_and_return_data_frame: bool = False,
         unc_threthold: float = 0,
     ):
-        acc_list = list()
-        true_list = list()
-        existing_list = list()
-        _threshold_list = list()
-        acc_list_replaced = list()
-        _threshold_list_replaced = list()
+        acc_list: List[float] = list()
+        true_list: List[float] = list()
+        existing_list: List[bool] = list()
+        _threshold_list: List[float] = list()
+        acc_list_replaced: List[float] = list()
+        _threshold_list_replaced: List[float] = list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
 
@@ -1056,6 +1079,7 @@ class Utils:
         # 極座標のデータ
         if len(data_type) == 0 and type(data_type) == str:
             print(PyColor.RED_FLASH, "データタイプを指定してください", PyColor.END)
+            return None, None
         elif data_type == "type01":
             return self.polar_data(
                 row=row, col=col, x_bias=x_bias, y_bias=y_bias
@@ -1066,7 +1090,7 @@ class Utils:
             return self.archimedes_spiral(row, col, x_bias, y_bias, seed)
         else:
             print(PyColor.RED_FLASH, "データタイプの指定方法を確認してください", PyColor.END)
-            sys.exit(1)
+            return None, None
 
     # 各睡眠段階のF値の計算
     def calc_each_ss_f_m(
@@ -1088,12 +1112,12 @@ class Utils:
 
         # NOTE: Tensor型できたときのみこの処理にする
         if type(y) is not np.ndarray:
-            ss_dict = Counter(y.numpy())
+            ss_dict: Dict[int, int] = Counter(y.numpy())
         else:
             ss_dict = Counter(y)
 
         if confmatrix.shape[0] == 5:
-            rec_log_dict = {
+            rec_log_dict: Dict[str] = {
                 "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
                 if ss_dict[i] != 0
                 else np.nan

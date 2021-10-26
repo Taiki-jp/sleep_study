@@ -1,7 +1,10 @@
-import os, datetime
+import datetime
+import os
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers.core import Dense
+
 
 # =========================
 #  圧縮機
@@ -154,7 +157,7 @@ def edl_classifier_1d(
     is_mul_layer: bool = False,
     has_mul_output: bool = False,
     hidden_outputs: bool = False,
-    dropout_rate: float = 0
+    dropout_rate: float = 0,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):

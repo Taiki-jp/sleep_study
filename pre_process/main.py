@@ -1,14 +1,15 @@
-import random
-import sys
-from pre_process.file_reader import FileReader
-from data_analysis.utils import Utils
-from pre_process.tanita_reader import TanitaReader
-from pre_process.psg_reader import PsgReader
-from pre_process.create_data import CreateData
-from data_analysis.py_color import PyColor
 import datetime
 import os
+import random
+import sys
+
+from data_analysis.py_color import PyColor
+from data_analysis.utils import Utils
+from pre_process.create_data import CreateData
+from pre_process.file_reader import FileReader
 from pre_process.json_base import JsonBase
+from pre_process.psg_reader import PsgReader
+from pre_process.tanita_reader import TanitaReader
 
 
 def main():
@@ -46,7 +47,7 @@ def main():
                         f"kernel_{str(KERNEL_SIZE)}",
                     ],
                     value=date_id,
-                    is_pre_dump=True
+                    is_pre_dump=True,
                 )
                 utils = Utils()
 
