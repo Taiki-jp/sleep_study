@@ -1,15 +1,16 @@
 import datetime
-
-from pandas.core.frame import DataFrame
-from data_analysis.py_color import PyColor
+import sys
 from collections import Counter
-from pre_process.record import Record, multipleRecords
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from pandas.core.frame import DataFrame
 from scipy.signal import hamming
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import sys
-import pandas as pd
+
+from data_analysis.py_color import PyColor
+from pre_process.record import Record, multipleRecords
 
 
 class CreateData(object):
@@ -132,13 +133,17 @@ class CreateData(object):
 
         return records
 
-    def makeSpectrogram(
-        self, tanita_data, psg_data, sampleLen=1024, timeLen=128
+    def make_spectrogram(
+        self,
+        tanita_data: DataFrame,
+        psg_data: DataFrame,
+        sampleLen: int = 1024,
+        timeLen: int = 128,
+        ss_term: int = 30,
     ):
-        loopLen = int((len(tanita_data) - sampleLen) / 4)  # fft ができる回数
-        recordLen = int(
-            loopLen / timeLen
-        )  # record オブジェクトを作る回数（128回のfftに関して1回作る）
+        record_len = (
+            int((len(tanita_data) - kernel_size) / stride / ss_term) + 1
+        )
         records = multipleRecords(recordLen)
 
         def _make():
@@ -243,8 +248,8 @@ class CreateData(object):
 
 
 if __name__ == "__main__":
-    from pre_process.tanita_reader import TanitaReader
     from pre_process.psg_reader import PsgReader
+    from pre_process.tanita_reader import TanitaReader
 
     CD = CreateData()
     tanita = TanitaReader("H_Hayashi")
