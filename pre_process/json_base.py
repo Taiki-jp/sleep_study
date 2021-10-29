@@ -207,6 +207,20 @@ class JsonBase(object):
             print("実装まだです．飛ばします")
             return
 
+    # pre_processの第一キーを返す
+    def first_key_of_pre_process(self, is_normal: bool, is_prev: bool) -> str:
+        if is_normal:
+            if is_prev:
+                key_name = "normal_prev"
+            else:
+                key_name = "normal_follow"
+        else:
+            if is_prev:
+                key_name = "sas_prev"
+            else:
+                key_name = "sas_follow"
+        return key_name
+
 
 if __name__ == "__main__":
     filenames = [
