@@ -1,6 +1,7 @@
-import os
 import json
+import os
 import sys
+
 from data_analysis.py_color import PyColor
 
 
@@ -74,7 +75,7 @@ class JsonBase(object):
     # per_processed_id.jsonのフォーマット作成
     def make_pre_processed_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
-        dataset = ["normal_prev", "normal_follow", "sas_prev", "sav_normal"]
+        dataset = ["normal_prev", "normal_follow", "sas_prev", "sas_follow"]
         preprocess_type = ["spectrum", "spectrogram"]
         ss_pos = ["bottom", "middle", "top"]
         stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
