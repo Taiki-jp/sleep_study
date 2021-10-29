@@ -38,6 +38,7 @@
         },
         "stride_4": {
           "kernel_1024": "",
+          "kernel_256": "20211028-105954",
           "kernel_512": ""
         },
         "stride_480": {
@@ -177,7 +178,6 @@
         "stride_4": {
           "kernel_1024": "",
           "kernel_128": "20211027-031719",
-          "kernel_256": "20211027-035158",
           "kernel_512": ""
         },
         "stride_480": {
@@ -277,7 +277,7 @@
       }
     }
   },
-  "sas_prev": {
+  "sas_follow": {
     "spectrogram": {
       "bottom": {
         "stride_1": {
@@ -415,7 +415,7 @@
       }
     }
   },
-  "sav_normal": {
+  "sas_prev": {
     "spectrogram": {
       "bottom": {
         "stride_1": {
