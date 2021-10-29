@@ -243,8 +243,6 @@ class CreateData(object):
         stride: int,
         fit_pos: str,
         kernel_size: int,
-        sampleLen: int = 1024,
-        timeLen: int = 128,
         ss_term: int = 30,
     ):
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
