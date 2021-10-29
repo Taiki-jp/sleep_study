@@ -1,15 +1,18 @@
-from json import load
+import os
 import pickle
-from pre_process.subjects_list import SubjectsList
-from pre_process.file_reader import FileReader
-from pre_process.my_env import MyEnv
-from data_analysis.py_color import PyColor
 
 # 以前のrecordの復旧のために必要
-import sys, os
+import sys
+from json import load
+
+from data_analysis.py_color import PyColor
+from pre_process.file_reader import FileReader
+from pre_process.my_env import MyEnv
+from pre_process.subjects_list import SubjectsList
 
 sys.path.append(os.path.join(os.environ["git"], "sleep_study", "pre_process"))
 import record
+
 
 # 前処理後の睡眠データを読み込むためのメソッドを集めたクラス
 class LoadSleepData:
@@ -78,17 +81,18 @@ class LoadSleepData:
 
 
 if __name__ == "__main__":
-    from collections import Counter
-    import pandas as pd
     import os
+    from collections import Counter
+
+    import pandas as pd
 
     load_sleep_data = LoadSleepData(
-        data_type="spectrum",
+        data_type="spectrogram",
         verbose=0,
         fit_pos="middle",
-        kernel_size=512,
+        kernel_size=256,
         is_previous=False,
-        stride=16,
+        stride=4,
         is_normal=True,
     )
     data = load_sleep_data.load_data(
@@ -96,10 +100,10 @@ if __name__ == "__main__":
     )
     # 各被験者について睡眠段階の量をチェック
     _df = None
-    targets = load_sleep_data.sl.foll_names
+    targets = load_sleep_data.sl.prev_names
     for each_data, target in zip(data, targets):
         _, target = os.path.split(target)
-        ss = [record.ss for record in each_data]
+        ss = [_record.ss for _record in each_data]
         d = dict(Counter(ss))
         df = pd.DataFrame.from_dict(d, orient="index", columns=[target])
         if _df is not None:
