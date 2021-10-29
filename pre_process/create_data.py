@@ -121,6 +121,10 @@ class CreateData(object):
             spectrogram = np.delete(spectrogram, obj=0, axis=1)
             record.spectrogram = spectrogram
             record.time = tanita_data["time"].iloc[fit_index]
+            # NOTE: 付け焼刃なので後で吟味
+            # もしtanitaの長さを超えていたらFalseを返す
+            if len(tanita_data) < end_point:
+                return False, None
             _time_tanita = datetime.datetime.strptime(
                 tanita_data["time"].iloc[end_point], "%H:%M:%S"
             )
@@ -244,6 +248,7 @@ class CreateData(object):
         ss_term: int = 30,
     ):
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
+        # NOTE: スペクトログラムに関して畳み込みができる回数をしっかり調べる必要がある
         record_len = (
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
