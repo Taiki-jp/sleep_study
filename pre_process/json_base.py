@@ -140,7 +140,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
