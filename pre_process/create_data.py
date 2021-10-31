@@ -102,8 +102,9 @@ class CreateData(object):
             fft = np.fft.fft(amped) / (kernel_size / 2.0)
             fft = 20 * np.log10(np.abs(fft))
             # fft = fft[: int(kernel_size / 2)]
-            ifft = np.real(np.fft.ifft(fft)) / (kernel_size / 2.0)
-            ifft = 20 * np.log10(ifft)
+            ifft = np.fft.ifft(fft)
+            # ifft = np.real(np.fft.ifft(fft)) / (kernel_size / 2.0)
+            ifft = 20 * np.log10(np.abs(ifft))
             record.cepstrum = ifft[: int(kernel_size / 2)]
             fit_index = set_fit_pos_func(start_point, end_point)
             # NOTE: なぜ .iloc を使う必要があるのか
