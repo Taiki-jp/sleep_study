@@ -16,10 +16,10 @@ def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrogram"
     FIT_POS_LIST = ["middle"]
-    STRIDE_LIST = [4]
+    STRIDE_LIST = [16]
     KERNEL_SIZE_LIST = [256]
     IS_NORMAL = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -96,9 +96,15 @@ def main():
                     )
 
                 # jsonへの書き込み
+                # TODO: normal_prevに書き込むようになっているので、
+                # 1. 過去の被験者かどうか
+                # 2. SAS患者かどうか
+                # に応じて一つ目のキーに渡す文字列を変更する
                 JB.dump(
                     keys=[
-                        "normal_prev",
+                        JB.first_key_of_pre_process(
+                            is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+                        ),
                         DATA_TYPE,
                         FIT_POS,
                         f"stride_{str(STRIDE)}",
