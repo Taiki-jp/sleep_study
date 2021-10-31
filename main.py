@@ -1,27 +1,30 @@
-from nn.wandb_classification_callback import WandbClassificationCallback
-import sys
 import os
+import sys
+
 from tensorflow import keras
 
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 
 tf.random.set_seed(100)
 import datetime
+from collections import Counter
+
 from tensorflow.python.framework.ops import Tensor
+
 import wandb
-from wandb.keras import WandbCallback
-from pre_process.pre_process import PreProcess
-from nn.model_base import EDLModelBase, edl_classifier_1d
+from data_analysis.py_color import PyColor
+from data_analysis.utils import Utils
 from nn.losses import EDLLoss
+from nn.model_base import EDLModelBase, edl_classifier_1d
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
-from data_analysis.py_color import PyColor
+from pre_process.pre_process import PreProcess
 from pre_process.record import Record
-from collections import Counter
-from data_analysis.utils import Utils
+from wandb.keras import WandbCallback
 
 
 def main(
@@ -215,10 +218,10 @@ if __name__ == "__main__":
     DROPOUT_RATE = 0.3
     BATCH_SIZE = 256
     N_CLASS = 5
-    KERNEL_SIZE = 512
-    STRIDE = 480
+    KERNEL_SIZE = 256
+    STRIDE = 16
     SAMPLE_SIZE = 10000
-    DATA_TYPE = "spectrum"
+    DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
