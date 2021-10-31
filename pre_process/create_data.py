@@ -43,7 +43,7 @@ class CreateData(object):
     def _make(
         self,
         mode: str,
-        start_point: list,
+        start_point: int,
         record: Record,
         kernel_size: int,
         tanita_data: DataFrame,
@@ -86,6 +86,7 @@ class CreateData(object):
                 return False, None
             else:
                 return True, fit_index
+
         elif mode == "cepstrum":
             end_point = start_point + kernel_size - 1
             try:
@@ -102,7 +103,8 @@ class CreateData(object):
             fft = 20 * np.log10(np.abs(fft))
             # fft = fft[: int(kernel_size / 2)]
             ifft = np.real(np.fft.ifft(fft)) / (kernel_size / 2.0)
-            record.spectrum = ifft
+            ifft = 20 * np.log10(ifft)
+            record.cepstrum = ifft[: int(kernel_size / 2)]
             fit_index = set_fit_pos_func(start_point, end_point)
             # NOTE: なぜ .iloc を使う必要があるのか
             record.time = tanita_data["time"].iloc[fit_index]
@@ -120,6 +122,7 @@ class CreateData(object):
                 return False, None
             else:
                 return True, fit_index
+
         elif mode == "spectrogram":
             end_point = start_point + kernel_size * ss_term - 1
             fit_index = set_fit_pos_func(start_point, end_point)
