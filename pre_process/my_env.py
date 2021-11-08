@@ -50,13 +50,15 @@ class MyEnv:
         fit_pos: str = "",
         kernel_size: int = 0,
     ) -> str:
+        # TODO: sasデータ未対応
         if is_previous:
-            date_id = self.ppi.prev_datasets[data_type][fit_pos][
+            date_id = self.ppi.normal_prev_datasets[data_type][fit_pos][
                 f"stride_{stride}"
             ][f"kernel_{kernel_size}"]
             path = os.path.join(
                 self.pre_processed_dir,
-                "previous_dataset",
+                data_type,
+                fit_pos,
                 f"{subject}_{date_id}.sav",
             )
         else:

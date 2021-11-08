@@ -87,12 +87,12 @@ if __name__ == "__main__":
     import pandas as pd
 
     load_sleep_data = LoadSleepData(
-        data_type="spectrogram",
+        data_type="cepstrum",
         verbose=0,
         fit_pos="middle",
         kernel_size=256,
-        is_previous=False,
-        stride=4,
+        is_previous=True,
+        stride=16,
         is_normal=True,
     )
     data = load_sleep_data.load_data(

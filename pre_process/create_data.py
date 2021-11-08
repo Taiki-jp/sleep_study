@@ -103,8 +103,21 @@ class CreateData(object):
             fft = 20 * np.log10(np.abs(fft))
             # fft = fft[: int(kernel_size / 2)]
             ifft = np.fft.ifft(fft)
+            ifft = np.real(ifft)
             # ifft = np.real(np.fft.ifft(fft)) / (kernel_size / 2.0)
             ifft = 20 * np.log10(np.abs(ifft))
+
+            # スペクトル包絡にする
+            # fft = 20 * np.log10(np.abs(np.fft.fft(amped)))
+            # cps = np.real(np.fft.ifft(fft))
+            # cep_coef = 20
+            # # 高周波成分を除く
+            # cps_lif = np.array(cps)
+            # cps_lif[cep_coef : len(cps_lif) - cep_coef + 1] = 0
+            # ifft = np.real(np.fft.fft(cps_lif))
+            # 差分を取る
+            # _ifft = np.append(ifft[1:], ifft[-1])
+            # ifft -= _ifft
             record.cepstrum = ifft[: int(kernel_size / 2)]
             fit_index = set_fit_pos_func(start_point, end_point)
             # NOTE: なぜ .iloc を使う必要があるのか

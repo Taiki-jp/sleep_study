@@ -18,7 +18,7 @@ import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
-from nn.model_base import EDLModelBase, edl_classifier_1d
+from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
@@ -97,24 +97,35 @@ def main(
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
-    if data_type == "spectrum":
+    if data_type == "spectrum" or data_type == "cepstrum":
         shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape = (128, 512, 1)
+        shape = (128, 30, 1)
     else:
         print("correct here based on your model")
         sys.exit(1)
 
     inputs = tf.keras.Input(shape=shape)
-    outputs = edl_classifier_1d(
-        x=inputs,
-        n_class=n_class,
-        has_attention=has_attention,
-        has_inception=has_inception,
-        is_mul_layer=is_mul_layer,
-        has_dropout=has_dropout,
-        dropout_rate=dropout_rate,
-    )
+    if data_type == "spectrum" or data_type == "cepstrum":
+        outputs = edl_classifier_1d(
+            x=inputs,
+            n_class=n_class,
+            has_attention=has_attention,
+            has_inception=has_inception,
+            is_mul_layer=is_mul_layer,
+            has_dropout=has_dropout,
+            dropout_rate=dropout_rate,
+        )
+    elif data_type == "spectrogram":
+        outputs = edl_classifier_2d(
+            x=inputs,
+            n_class=n_class,
+            has_attention=has_attention,
+            has_inception=has_inception,
+            is_mul_layer=is_mul_layer,
+            has_dropout=has_dropout,
+            dropout_rate=dropout_rate,
+        )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs)
         model.compile(
@@ -203,11 +214,11 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 100
+    EPOCHS = 20
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
-    IS_PREVIOUS = False
+    IS_PREVIOUS = True
     IS_NORMAL = True
     HAS_DROPOUT = True
     IS_ENN = True
@@ -216,24 +227,26 @@ if __name__ == "__main__":
     HAS_NREM2_BIAS = True
     HAS_REM_BIAS = False
     DROPOUT_RATE = 0.3
-    BATCH_SIZE = 256
+    BATCH_SIZE = 64
     N_CLASS = 5
-    KERNEL_SIZE = 256
-    STRIDE = 16
-    SAMPLE_SIZE = 10000
-    DATA_TYPE = "spectrogram"
+    KERNEL_SIZE = 512
+    # KERNEL_SIZE = 256
+    STRIDE = 16 * 30
+    # STRIDE = 16
+    SAMPLE_SIZE = 2000
+    DATA_TYPE = "spectrum"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test" if TEST_RUN else "base_learning"
+    WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211101"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
     # 記録用のjsonファイルを読み込む
-    JB = JsonBase("../nn/model_id.json")
+    JB = JsonBase("model_id.json")
     JB.load()
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -286,6 +299,7 @@ if __name__ == "__main__":
             "has_nrem2_bias": HAS_NREM2_BIAS,
             "has_rem_bias": HAS_REM_BIAS,
             "model_type": ENN_TAG,
+            "data_type": DATA_TYPE,
         }
         main(
             has_dropout=True,
@@ -296,7 +310,7 @@ if __name__ == "__main__":
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=False,
+            save_model=True,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,
@@ -321,6 +335,9 @@ if __name__ == "__main__":
     # json に書き込み
     JB.dump(
         keys=[
+            JB.first_key_of_pre_process(
+                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+            ),
             ENN_TAG,
             DATA_TYPE,
             FIT_POS,

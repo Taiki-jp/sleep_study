@@ -1,14 +1,16 @@
 import datetime
-import sys
 import os
-import numpy as np
-from imblearn.over_sampling import SMOTE
+import sys
 from collections import Counter
-from random import shuffle, choices, seed
+from random import choices, seed, shuffle
+
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
+from imblearn.over_sampling import SMOTE
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 from pre_process.load_sleep_data import LoadSleepData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
@@ -218,8 +220,11 @@ class PreProcess:
         elif self.data_type == "spectrogram":
             x_train = self.list2Spectrogram(train)
             x_test = self.list2Spectrogram(test)
+        elif self.data_type == "cepstrum":
+            x_train = self.list2Cepstrum(train)
+            x_test = self.list2Cepstrum(test)
         else:
-            print("spectrum or spectrogramを指定してください")
+            print("spectrum or spectrogram or cepstrumを指定してください")
             sys.exit(1)
 
         # Noneの処理をするかどうか
@@ -233,6 +238,8 @@ class PreProcess:
             print("- max正規化を行います")
             self.max_norm(x_train)
             self.max_norm(x_test)
+            # self.min_norm(x_train)
+            # self.min_norm(x_test)
 
         # 睡眠段階のラベルを0 -（クラス数-1）にする
         y_train = self.change_label(
@@ -243,7 +250,7 @@ class PreProcess:
         )
 
         # inset_channel_axis based on data type
-        if self.data_type == "spectrum":
+        if self.data_type == "spectrum" or self.data_type == "cepstrum":
             if insert_channel_axis:
                 print("- チャンネル方向に軸を追加します")
                 x_train = x_train[:, :, np.newaxis]  # .astype('float32')
@@ -279,6 +286,10 @@ class PreProcess:
     # recordからスペクトログラムの作成
     def list2Spectrogram(self, list_data):
         return np.array([data.spectrogram for data in list_data])
+
+    # make cepstrum from list
+    def list2Cepstrum(self, list_data):
+        return np.array([data.cepstrum for data in list_data])
 
     # 訓練データとテストデータをスプリット（ホールドアウト検証）
     def split_train_test_data(
@@ -402,6 +413,11 @@ class PreProcess:
     def max_norm(self, data):
         for X in data:  # TODO : 全体の値で割るようなこともする
             X /= X.max()
+
+    # 各スペクトルの最小値で正規化
+    def min_norm(self, data):
+        for X in data:  # TODO : 全体の値で割るようなこともする
+            X /= X.min()
 
     # NONEの睡眠段階をキャッチして入力データごと消去
     def catch_none(self, x_data, y_data):

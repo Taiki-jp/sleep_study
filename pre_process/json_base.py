@@ -28,8 +28,8 @@ class JsonBase(object):
             print(PyColor().RED_FLASH, "jsonに出力できるか確認します", PyColor().END)
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
-        if key_len > 6:
-            print(PyColor().RED_FLASH, "キーは4までの長さまでしか実装されていません", PyColor().END)
+        if key_len > 7:
+            print(PyColor().RED_FLASH, "キーは7までの長さまでしか実装されていません", PyColor().END)
             sys.exit(1)
         # TODO : もっと賢い書き方無いかな？
         if key_len == 1:
@@ -46,8 +46,12 @@ class JsonBase(object):
             self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
                 keys[5]
             ] = value
+        elif key_len == 7:
+            self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
+                keys[5]
+            ][keys[6]] = value
         with open(self.json_file, "w") as f:
-            json.dump(self.json_dict, f, indent=4)
+            json.dump(self.json_dict, f, indent=2)
 
     # 複数リスト => 要素を辞書にまとめたリストを作成するメソッド
     def make_list_of_dict_from_mul_list(self, *args) -> list:
@@ -76,7 +80,7 @@ class JsonBase(object):
     def make_pre_processed_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
         dataset = ["normal_prev", "normal_follow", "sas_prev", "sas_follow"]
-        preprocess_type = ["spectrum", "spectrogram"]
+        preprocess_type = ["spectrum", "spectrogram", "cepstrum"]
         ss_pos = ["bottom", "middle", "top"]
         stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
         kernel = ["kernel_" + str(i) for i in (512, 1024)]
@@ -92,7 +96,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
@@ -192,7 +196,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
@@ -225,7 +229,7 @@ class JsonBase(object):
 if __name__ == "__main__":
     filenames = [
         "pre_processed_id.json",
-        "model_id.json",
+        # "model_id.json",
         # "my_color.json",
         # "ss.json",
         # "subjects_list.json",

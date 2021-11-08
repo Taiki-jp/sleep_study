@@ -19,7 +19,7 @@ def main():
     STRIDE_LIST = [16]
     KERNEL_SIZE_LIST = [256]
     IS_NORMAL = True
-    IS_PREVIOUS = False
+    IS_PREVIOUS = True
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -41,13 +41,15 @@ def main():
                 JB.load()
                 JB.dump(
                     keys=[
-                        "normal_prev",
+                        JB.first_key_of_pre_process(
+                            is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+                        ),
                         DATA_TYPE,
                         FIT_POS,
                         f"stride_{str(STRIDE)}",
                         f"kernel_{str(KERNEL_SIZE)}",
                     ],
-                    value=date_id,
+                    value="demo",
                     is_pre_dump=True,
                 )
                 utils = Utils()
