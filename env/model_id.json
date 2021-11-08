@@ -9,6 +9,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -17,6 +22,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -33,6 +43,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -45,6 +60,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -53,6 +73,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -71,6 +96,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -79,6 +109,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -95,6 +130,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -107,6 +147,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -115,6 +160,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -133,6 +183,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -141,6 +196,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -157,6 +217,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -169,6 +234,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -177,6 +247,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -197,6 +272,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -205,6 +285,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -221,6 +306,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -233,6 +323,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -241,6 +336,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -259,6 +359,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -267,6 +372,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -283,6 +393,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -295,6 +410,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -303,6 +423,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -321,6 +446,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -329,6 +459,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -345,6 +480,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -357,6 +497,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -365,6 +510,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -387,6 +537,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -395,6 +550,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -411,6 +571,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -423,6 +588,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -431,6 +601,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -449,6 +624,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -457,6 +637,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -473,6 +658,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -485,6 +675,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -493,6 +688,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -511,6 +711,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -519,6 +724,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -535,6 +745,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -547,6 +762,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -555,6 +775,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -575,6 +800,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -583,6 +813,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -599,6 +834,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -611,6 +851,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -619,6 +864,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -637,6 +887,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -645,6 +900,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -661,6 +921,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -673,6 +938,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -681,6 +951,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -699,6 +974,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -707,6 +987,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -723,6 +1008,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -735,6 +1025,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -743,6 +1038,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -767,24 +1067,24 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
-              "no_cleansing": [
-                "20210608-144244",
-                "20210608-151256",
-                "20210608-154059",
-                "20210608-160954",
-                "20210608-163811",
-                "20210608-170631",
-                "20210608-173335",
-                "20210608-180219",
-                "20210608-183218"
-              ],
+              "no_cleansing": [],
               "positive_cleansing": []
             }
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -801,6 +1101,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -813,6 +1118,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -821,6 +1131,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -839,6 +1154,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -847,6 +1167,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -863,6 +1188,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -875,6 +1205,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -883,6 +1218,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -901,6 +1241,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -909,6 +1254,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -925,6 +1275,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -937,6 +1292,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -945,6 +1305,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -965,23 +1330,24 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
-              "no_cleansing": [
-                "20210601-051642",
-                "20210601-053406",
-                "20210602-120441",
-                "20210601-060739",
-                "20210601-062423",
-                "20210601-064055",
-                "20210601-065654",
-                "20210602-165042"
-              ],
+              "no_cleansing": [],
               "positive_cleansing": []
             }
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -998,6 +1364,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1010,6 +1381,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1018,6 +1394,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1036,6 +1417,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1044,6 +1430,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1060,6 +1451,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1072,6 +1468,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1080,6 +1481,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1098,6 +1504,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1106,6 +1517,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1122,6 +1538,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1134,6 +1555,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1142,6 +1568,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1164,6 +1595,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1172,6 +1608,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1188,6 +1629,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1200,6 +1646,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1208,6 +1659,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1226,6 +1682,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1234,6 +1695,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1250,6 +1716,21 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [
+                "20211108-155036",
+                "20211108-155206",
+                "20211108-155331",
+                "20211108-155456",
+                "20211108-155623",
+                "20211108-155749",
+                "20211108-155914",
+                "20211108-160039",
+                "20211108-160206"
+              ],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1262,6 +1743,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1270,6 +1756,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1288,6 +1779,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1296,6 +1792,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1312,6 +1813,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1324,6 +1830,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1332,6 +1843,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1352,6 +1868,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1360,6 +1881,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1376,6 +1902,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1388,6 +1919,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1396,6 +1932,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1414,6 +1955,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1422,6 +1968,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1438,6 +1989,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1446,6 +2002,11 @@
           },
           "stride_4": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1462,19 +2023,14 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
-              "no_cleansing": [
-                "20211101-100109",
-                "20211101-100247",
-                "20211101-100419",
-                "20211101-100551",
-                "20211101-100725",
-                "20211101-100858",
-                "20211101-101029",
-                "20211101-101202",
-                "20211101-101337"
-              ],
+              "no_cleansing": [],
               "positive_cleansing": []
             }
           }
@@ -1486,6 +2042,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1494,6 +2055,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1510,6 +2076,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1522,6 +2093,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1530,6 +2106,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1554,6 +2135,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1562,6 +2148,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1578,6 +2169,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1590,6 +2186,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1598,6 +2199,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1616,6 +2222,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1624,6 +2235,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1640,6 +2256,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1652,6 +2273,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1660,6 +2286,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1678,6 +2309,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1686,6 +2322,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1702,6 +2343,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1714,6 +2360,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1722,6 +2373,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1742,6 +2398,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1750,6 +2411,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1766,6 +2432,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1778,6 +2449,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1786,6 +2462,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1804,6 +2485,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1812,6 +2498,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1828,6 +2519,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1840,6 +2536,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1848,6 +2549,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1866,6 +2572,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1874,6 +2585,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1890,6 +2606,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1902,6 +2623,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1910,6 +2636,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1932,6 +2663,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1940,6 +2676,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1956,6 +2697,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1968,6 +2714,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -1976,6 +2727,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -1994,6 +2750,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2002,6 +2763,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2018,6 +2784,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2030,6 +2801,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2038,6 +2814,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2056,6 +2837,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2064,6 +2850,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2080,6 +2871,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2092,6 +2888,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2100,6 +2901,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2120,6 +2926,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2128,6 +2939,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2144,6 +2960,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2156,6 +2977,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2164,6 +2990,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2182,6 +3013,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2190,6 +3026,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2206,6 +3047,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2218,6 +3064,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2226,6 +3077,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2244,6 +3100,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2252,6 +3113,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2268,6 +3134,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2280,6 +3151,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2288,6 +3164,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2312,6 +3193,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2320,6 +3206,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2336,6 +3227,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2348,6 +3244,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2356,6 +3257,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2374,6 +3280,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2382,6 +3293,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2398,6 +3314,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2410,6 +3331,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2418,6 +3344,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2436,6 +3367,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2444,6 +3380,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2460,6 +3401,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2472,6 +3418,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2480,6 +3431,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2500,6 +3456,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2508,6 +3469,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2524,6 +3490,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2536,6 +3507,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2544,6 +3520,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2562,6 +3543,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2570,6 +3556,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2586,6 +3577,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2598,6 +3594,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2606,6 +3607,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2624,6 +3630,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2632,6 +3643,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2648,6 +3664,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2660,6 +3681,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2668,6 +3694,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2690,6 +3721,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2698,6 +3734,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2714,6 +3755,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2726,6 +3772,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2734,6 +3785,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2752,6 +3808,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2760,6 +3821,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2776,6 +3842,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2788,6 +3859,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2796,6 +3872,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2814,6 +3895,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2822,6 +3908,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2838,6 +3929,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2850,6 +3946,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2858,6 +3959,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2878,6 +3984,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2886,6 +3997,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2902,6 +4018,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2914,6 +4035,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2922,6 +4048,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2940,6 +4071,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2948,6 +4084,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -2964,6 +4105,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2976,6 +4122,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -2984,6 +4135,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3002,6 +4158,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3010,6 +4171,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3026,6 +4192,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3038,6 +4209,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3046,6 +4222,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3070,6 +4251,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3078,6 +4264,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3094,6 +4285,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3106,6 +4302,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3114,6 +4315,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3132,6 +4338,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3140,6 +4351,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3156,6 +4372,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3168,6 +4389,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3176,6 +4402,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3194,6 +4425,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3202,6 +4438,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3218,6 +4459,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3230,6 +4476,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3238,6 +4489,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3258,6 +4514,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3266,6 +4527,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3282,6 +4548,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3294,6 +4565,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3302,6 +4578,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3320,6 +4601,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3328,6 +4614,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3344,6 +4635,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3356,6 +4652,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3364,6 +4665,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3382,6 +4688,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3390,6 +4701,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3406,6 +4722,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3418,6 +4739,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3426,6 +4752,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3448,6 +4779,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3456,6 +4792,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3472,6 +4813,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3484,6 +4830,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3492,6 +4843,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3510,6 +4866,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3518,6 +4879,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3534,6 +4900,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3546,6 +4917,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3554,6 +4930,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3572,6 +4953,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3580,6 +4966,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3596,6 +4987,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3608,6 +5004,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3616,6 +5017,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3636,6 +5042,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3644,6 +5055,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3660,6 +5076,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3672,6 +5093,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3680,6 +5106,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3698,6 +5129,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3706,6 +5142,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3722,6 +5163,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3734,6 +5180,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3742,6 +5193,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3760,6 +5216,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3768,6 +5229,11 @@
           },
           "stride_1024": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
@@ -3784,6 +5250,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3796,6 +5267,11 @@
               "no_cleansing": [],
               "positive_cleansing": []
             },
+            "kernel_256": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
             "kernel_512": {
               "negative_cleansing": [],
               "no_cleansing": [],
@@ -3804,6 +5280,11 @@
           },
           "stride_480": {
             "kernel_1024": {
+              "negative_cleansing": [],
+              "no_cleansing": [],
+              "positive_cleansing": []
+            },
+            "kernel_256": {
               "negative_cleansing": [],
               "no_cleansing": [],
               "positive_cleansing": []
