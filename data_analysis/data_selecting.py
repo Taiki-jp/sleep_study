@@ -1,15 +1,10 @@
-import os
-from typing import Dict, Tuple
-
-from nn.wandb_classification_callback import WandbClassificationCallback
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-import tensorflow as tf
-
-tf.random.set_seed(0)
 import datetime
+import os
 import sys
 from collections import Counter
+from typing import Dict, Tuple
+
+import tensorflow as tf
 
 import wandb
 from data_analysis.py_color import PyColor
@@ -18,6 +13,7 @@ from mywandb.utils import make_ss_dict4wandb
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d
 from nn.utils import load_model, separate_unc_data
+from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 from wandb.keras import WandbCallback
