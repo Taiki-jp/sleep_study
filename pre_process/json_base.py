@@ -57,10 +57,10 @@ class JsonBase(object):
     def make_list_of_dict_from_mul_list(self, *args) -> list:
         first_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
-        ]["no_cleansing"]
+        ][args[5]]["no_cleansing"]
         second_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
-        ]["positive_cleansing"]
+        ][args[5]]["positive_cleansing"]
         # third_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
         #     args[4]
         # ]["negative_cleansing"]
@@ -115,7 +115,7 @@ class JsonBase(object):
         preprocess_type = ["spectrum", "spectrogram"]
         ss_pos = ["bottom", "middle", "top"]
         stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        kernel = ["kernel_" + str(i) for i in (512, 1024)]
+        kernel = ["kernel_" + str(i) for i in (256, 512, 1024)]
         cleansing_type = [
             "no_cleansing",
             "positive_cleansing",
@@ -228,8 +228,8 @@ class JsonBase(object):
 
 if __name__ == "__main__":
     filenames = [
-        "pre_processed_id.json",
-        # "model_id.json",
+        # "pre_processed_id.json",
+        "model_id.json",
         # "my_color.json",
         # "ss.json",
         # "subjects_list.json",
