@@ -135,7 +135,7 @@ class Utils:
         train_or_test: str,
         graph_person_id: str,
         graph_date_id: str,
-        calling_graph: Any,
+        calling_graph: str,
         evidence_positive: Tensor = None,
         unc_threthold: float = 0,
         is_each_unc: bool = False,
@@ -170,6 +170,8 @@ class Utils:
                 unc_threthold=unc_threthold,
                 evidence_positive=evidence_positive,
             )
+        else:
+            print("全てのグラフを作成する引数'all'を指定してください")
 
     def dump_with_pickle(self, data, file_name, data_type, fit_pos):
 
@@ -568,6 +570,11 @@ class Utils:
                 )
                 # cmが空であればグラフを書かずにループに戻る
                 if cm.size == 0:
+                    print(
+                        PyColor.RED_FLASH,
+                        f"{train_or_test}：空のcmが渡されました．プログラムを継続します",
+                        PyColor.END,
+                    )
                     continue
                 # seabornを使ってグラフを作成し保存
                 self.save_image2Wandb(
@@ -1181,13 +1188,21 @@ class Utils:
         model: Model,
         n_class: int = 5,
         batch_size: int = 32,
+        base_or_positive: str = "",
     ):
+        if len(base_or_positive) == 0:
+            print(
+                PyColor.RED_FLASH,
+                "baseモデル or positiveモデルを識別する引数base_or_positiveが指定されていません．問題なければここの部分で返さないように指定してください",
+                PyColor.END,
+            )
+            raise Exception("exception has occured")
         # 一致率の計算
         y_pred = self.my_argmax(
             model.predict(x, batch_size=batch_size), axis=1
         )
         acc = sum(y_pred == y.numpy()) / len(y)
-        wandb.log({"accuracy": acc}, commit=False)
+        wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
 
 
 if __name__ == "__main__":
