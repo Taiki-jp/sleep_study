@@ -214,34 +214,34 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 20
+    EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = True
+    HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
-    DROPOUT_RATE = 0.3
+    DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 5
-    KERNEL_SIZE = 512
-    # KERNEL_SIZE = 256
-    STRIDE = 16 * 30
+    # KERNEL_SIZE = 512
+    KERNEL_SIZE = 256
+    STRIDE = 16
     # STRIDE = 16
-    SAMPLE_SIZE = 2000
-    DATA_TYPE = "spectrum"
+    SAMPLE_SIZE = 10000
+    DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211101"
+    WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
