@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "test_data_merging"
+    WANDB_PROJECT = "data_merging"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     BATCH_SIZE = 64
@@ -162,6 +162,7 @@ if __name__ == "__main__":
     )
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
+    IS_PREVIOUS = False
 
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -169,7 +170,7 @@ if __name__ == "__main__":
         fit_pos=FIT_POS,
         verbose=0,
         kernel_size=KERNEL_SIZE,
-        is_previous=True,
+        is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=True,
     )
@@ -182,7 +183,7 @@ if __name__ == "__main__":
     JB = JsonBase("model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "normal_prev",
+        "normal_prev" if IS_PREVIOUS else "normal_follow",
         "enn",
         DATA_TYPE,
         "middle",
