@@ -4,6 +4,7 @@ import sys
 from collections import Counter
 from typing import Dict, Tuple
 
+import numpy as np
 import tensorflow as tf
 
 import wandb
@@ -21,6 +22,7 @@ from wandb.keras import WandbCallback
 
 # TODO: 使っていない引数の削除
 def main(
+    save_model: bool,
     name: str,
     project: str,
     train: list,
@@ -124,6 +126,7 @@ def main(
     model = load_model(
         loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=0
     )
+
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
     x, y = (x_train, y_train)
@@ -165,6 +168,11 @@ def main(
     #     return
 
     _model = EDLModelBase(inputs=inputs, outputs=outputs)
+    # =================================================
+    # _model.summary()
+    # print(_model.layers[1].get_weights())
+    # sys.exit(1)
+    # =================================================
     _model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=EDLLoss(K=n_class, annealing=0.1),
@@ -212,11 +220,13 @@ def main(
             is_each_unc=True,
         )
 
-    # モデルの保存
-    path = os.path.join(
-        pre_process.my_env.models_dir, test_name, saving_date_id
-    )
-    _model.save(path)
+    if save_model:
+        # モデルの保存
+        path = os.path.join(
+            pre_process.my_env.models_dir, test_name, saving_date_id
+        )
+        print("モデルを保存します")
+        _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -227,6 +237,8 @@ if __name__ == "__main__":
     # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
+    os.environ["TF_DETERMINISTIC_OPS"] = "1"
+    os.environ["TF_CUDNN_DEEETERMINISTIC"] = "1"
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
@@ -237,6 +249,19 @@ if __name__ == "__main__":
         # なんか下のやつ使えなくなっている、、
         # tf.config.run_functions_eagerly(True)
 
+    def set_seed(seed=200):
+        import random
+
+        tf.random.set_seed(seed)
+        # optional
+        # for numpy.random
+        np.random.seed(seed)
+        # for built-in random
+        random.seed(seed)
+        # for hash seed
+        os.environ["PYTHONHASHSEED"] = str(seed)
+
+    set_seed(0)
     # ハイパーパラメータの設定
     # TODO: jsonに移植
     TEST_RUN = False
@@ -244,7 +269,7 @@ if __name__ == "__main__":
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
     IS_NORMAL = True
     IS_ENN = True  # FIXME: always true so remove here
     IS_MUL_LAYER = False
@@ -256,6 +281,7 @@ if __name__ == "__main__":
     STRIDE = 16
     SAMPLE_SIZE = 2000
     UNC_THRETHOLD = 0.3
+    DROPOUT_RATE = 0.3
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     EXPERIMENT_TYPES = (
@@ -293,10 +319,10 @@ if __name__ == "__main__":
     JB = JsonBase("model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "normal_prev",
-        "enn",
+        "normal_prev" if IS_PREVIOUS else "normal_follow",
+        ENN_TAG,
         DATA_TYPE,
-        "middle",
+        FIT_POS,
         f"stride_{STRIDE}",
         f"kernel_{KERNEL_SIZE}",
     )
@@ -345,6 +371,7 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
+            save_model=True,
             name=f"{test_name}",
             project=WANDB_PROJECT,
             train=train,
@@ -369,10 +396,12 @@ if __name__ == "__main__":
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
             has_dropout=HAS_DROPOUT,
+            dropout_rate=DROPOUT_RATE,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
+            print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
 
     # モデルを保存しないのでコメントアウト
