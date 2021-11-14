@@ -1,23 +1,20 @@
-import os
-from typing import Dict, Tuple
-
-from nn.wandb_classification_callback import WandbClassificationCallback
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
-import tensorflow as tf
-
-tf.random.set_seed(0)
 import datetime
+import os
 import sys
 from collections import Counter
+from typing import Dict, Tuple
+
+import numpy as np
+import tensorflow as tf
 
 import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from mywandb.utils import make_ss_dict4wandb
 from nn.losses import EDLLoss
-from nn.model_base import EDLModelBase, edl_classifier_1d
+from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
 from nn.utils import load_model, separate_unc_data
+from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 from wandb.keras import WandbCallback
@@ -25,6 +22,7 @@ from wandb.keras import WandbCallback
 
 # TODO: 使っていない引数の削除
 def main(
+    save_model: bool,
     name: str,
     project: str,
     train: list,
@@ -49,6 +47,7 @@ def main(
     experiment_type: str = "",
     saving_date_id: str = "",
     has_dropout: bool = False,
+    dropout_rate: float = 0,
 ):
 
     # データセットの作成
@@ -94,27 +93,40 @@ def main(
 
     # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
     # TODO: mypyでshapeが違うとエラーになる
-    if data_type == "spectrum":
+    if data_type == "spectrum" or data_type == "cepstrum":
         shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape: Tuple[int, int, int] = (128, 512, 1)
+        shape: Tuple[int, int, int] = (128, 30, 1)
     else:
-        print("correct here based on your model")
+        print("correct data_type based on your model")
         sys.exit(1)
 
     inputs = tf.keras.Input(shape=shape)
-    outputs = edl_classifier_1d(
-        x=inputs,
-        n_class=n_class,
-        has_attention=has_attention,
-        has_inception=has_inception,
-        is_mul_layer=is_mul_layer,
-        has_dropout=has_dropout,
-    )
+    if data_type == "spectrum" or data_type == "cepstrum":
+        outputs = edl_classifier_1d(
+            x=inputs,
+            n_class=n_class,
+            has_attention=has_attention,
+            has_inception=has_inception,
+            is_mul_layer=is_mul_layer,
+            has_dropout=has_dropout,
+            dropout_rate=dropout_rate,
+        )
+    elif data_type == "spectrogram":
+        outputs = edl_classifier_2d(
+            x=inputs,
+            n_class=n_class,
+            has_attention=has_attention,
+            has_inception=has_inception,
+            is_mul_layer=is_mul_layer,
+            has_dropout=has_dropout,
+            dropout_rate=dropout_rate,
+        )
 
     model = load_model(
         loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=0
     )
+
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
     x, y = (x_train, y_train)
@@ -156,6 +168,11 @@ def main(
     #     return
 
     _model = EDLModelBase(inputs=inputs, outputs=outputs)
+    # =================================================
+    # _model.summary()
+    # print(_model.layers[1].get_weights())
+    # sys.exit(1)
+    # =================================================
     _model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=EDLLoss(K=n_class, annealing=0.1),
@@ -203,11 +220,13 @@ def main(
             is_each_unc=True,
         )
 
-    # モデルの保存
-    path = os.path.join(
-        pre_process.my_env.models_dir, test_name, saving_date_id
-    )
-    _model.save(path)
+    if save_model:
+        # モデルの保存
+        path = os.path.join(
+            pre_process.my_env.models_dir, test_name, saving_date_id
+        )
+        print("モデルを保存します")
+        _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -218,6 +237,8 @@ if __name__ == "__main__":
     # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
+    os.environ["TF_DETERMINISTIC_OPS"] = "1"
+    os.environ["TF_CUDNN_DEEETERMINISTIC"] = "1"
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
@@ -228,9 +249,23 @@ if __name__ == "__main__":
         # なんか下のやつ使えなくなっている、、
         # tf.config.run_functions_eagerly(True)
 
+    def set_seed(seed=200):
+        import random
+
+        tf.random.set_seed(seed)
+        # optional
+        # for numpy.random
+        np.random.seed(seed)
+        # for built-in random
+        random.seed(seed)
+        # for hash seed
+        os.environ["PYTHONHASHSEED"] = str(seed)
+
+    set_seed(0)
     # ハイパーパラメータの設定
     # TODO: jsonに移植
     TEST_RUN = False
+    EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -240,14 +275,14 @@ if __name__ == "__main__":
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     HAS_DROPOUT = True
-    EPOCHS = 100
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
     N_CLASS = 5
-    KERNEL_SIZE = 512
-    STRIDE = 480
-    SAMPLE_SIZE = 10000
-    UNC_THRETHOLD = 0.5
-    DATA_TYPE = "spectrum"
+    KERNEL_SIZE = 256
+    STRIDE = 16
+    SAMPLE_SIZE = 2000
+    UNC_THRETHOLD = 0.3
+    DROPOUT_RATE = 0.3
+    DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     EXPERIMENT_TYPES = (
         "no_cleansing",
@@ -281,10 +316,15 @@ if __name__ == "__main__":
     utils = Utils(catch_nrem2=CATCH_NREM2)
 
     # 読み込むモデルの日付リストを返す
-    JB = JsonBase("../nn/model_id.json")
+    JB = JsonBase("model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "enn", "spectrum", "middle", "stride_480", "kernel_512"
+        "normal_prev" if IS_PREVIOUS else "normal_follow",
+        ENN_TAG,
+        DATA_TYPE,
+        FIT_POS,
+        f"stride_{STRIDE}",
+        f"kernel_{KERNEL_SIZE}",
     )
     try:
         assert len(model_date_list) != 0
@@ -296,7 +336,7 @@ if __name__ == "__main__":
     subjects_id = [i for i in range(len(pre_process.name_list))]
 
     for test_id, test_name, date_id in zip(
-        subjects_id[47:], pre_process.name_list[47:], model_date_list[47:]
+        subjects_id, pre_process.name_list, model_date_list
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
@@ -331,6 +371,7 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
+            save_model=True,
             name=f"{test_name}",
             project=WANDB_PROJECT,
             train=train,
@@ -355,16 +396,21 @@ if __name__ == "__main__":
             epochs=EPOCHS,
             saving_date_id=saving_date_id,
             has_dropout=HAS_DROPOUT,
+            dropout_rate=DROPOUT_RATE,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
+            print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
 
     # モデルを保存しないのでコメントアウト
     # TODO: モデルの保存を行う変数に応じて場合分け
     JB.dump(
         keys=[
+            JB.first_key_of_pre_process(
+                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+            ),
             ENN_TAG,
             DATA_TYPE,
             FIT_POS,

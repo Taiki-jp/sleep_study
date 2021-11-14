@@ -3,8 +3,10 @@ import os
 from typing import List
 
 import tensorflow as tf
+from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 
 import wandb
+from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from mywandb.utils import make_ss_dict4wandb
 from nn.utils import load_model, separate_unc_data
@@ -65,6 +67,7 @@ def main(
     )
     # データがキャッチできていない場合はreturn
     if model is None:
+        print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
         return
     # ポジティブクレンジングを行ったモデルを読み込む
     positive_model = load_model(
@@ -77,6 +80,7 @@ def main(
     )
     # データがキャッチできていない場合はreturn
     if positive_model is None:
+        print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
         return
 
     # テストデータのクレンジング
@@ -91,14 +95,18 @@ def main(
         verbose=0,
     )
 
-    # 各睡眠段階のF値を計算wandbに送信
-    # Utils().calc_ss_acc(
-    #     x=_x_test,
-    #     y=_y_test,
-    #     model=model,
-    #     n_class=n_class,
-    #     batch_size=batch_size,
-    # )
+    # ベースモデルの不確実なデータセットに対する一致率を計算しwandbに送信
+    for base_or_positive, _model in zip(
+        ("base", "positive"), (model, positive_model)
+    ):
+        Utils().calc_ss_acc(
+            x=_x_test,
+            y=_y_test,
+            model=_model,
+            n_class=n_class,
+            batch_size=batch_size,
+            base_or_positive=base_or_positive,
+        )
 
     # # クレンジング後のデータに対してグラフを作成
     # 不確実性の高いデータのみで一致率を計算
@@ -119,7 +127,7 @@ def main(
     # acc_sub = utils.calc_acc_from_pred(
     #     y_true=_y_test.numpy(), y_pred=y_pred_pos, log_label="sub"
     # )
-    # csv出力
+    # # csv出力
     # output_path = "20211018_for_box_plot.csv"
     # utils.to_csv(df_result, path=output_path, edit_mode="append")
 
@@ -138,27 +146,31 @@ if __name__ == "__main__":
 
     # ANCHOR: ハイパーパラメータの設定
     TEST_RUN = False
-    WANDB_PROJECT = "2021_code00"
+    WANDB_PROJECT = "data_merging"
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    BATCH_SIZE = 128
+    BATCH_SIZE = 64
     N_CLASS = 5
-    STRIDE = 480
-    SAMPLE_SIZE = 5000
-    UNC_THRETHOLD = 0.5
+    STRIDE = 16
+    KERNEL_SIZE = 256
+    SAMPLE_SIZE = 2000
+    UNC_THRETHOLD = 0.3
     EXPERIMENT_TYPES = (
         "no_cleansing",
         "positive_cleansing",
         "negative_cleansing",
     )
+    DATA_TYPE = "spectrogram"
+    FIT_POS = "middle"
+    IS_PREVIOUS = False
 
     # オブジェクトの作成
     pre_process = PreProcess(
-        data_type="spectrum",
-        fit_pos="middle",
+        data_type=DATA_TYPE,
+        fit_pos=FIT_POS,
         verbose=0,
-        kernel_size=512,
-        is_previous=False,
+        kernel_size=KERNEL_SIZE,
+        is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=True,
     )
@@ -168,10 +180,15 @@ if __name__ == "__main__":
     utils = Utils(catch_nrem2=CATCH_NREM2)
 
     # 読み込むモデルの日付リストを返す
-    JB = JsonBase("../nn/model_id.json")
+    JB = JsonBase("model_id.json")
     JB.load()
     model_date_list = JB.make_list_of_dict_from_mul_list(
-        "enn", "spectrum", "middle", f"stride_{STRIDE}", "kernel_512"
+        "normal_prev" if IS_PREVIOUS else "normal_follow",
+        "enn",
+        DATA_TYPE,
+        "middle",
+        f"stride_{STRIDE}",
+        f"kernel_{KERNEL_SIZE}",
     )
 
     # モデルのidを記録するためのリスト

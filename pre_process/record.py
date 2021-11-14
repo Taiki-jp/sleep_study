@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 import numpy as np
 
 
@@ -7,6 +8,7 @@ class Record(object):
     time: str = ""
     spectrum_raw: np.ndarray = np.array([])
     spectrum: np.ndarray = np.array([])
+    cepstrum: np.ndarray = np.array([])
     spectrogram_raw: np.ndarray = np.array([])
     spectrogram: np.ndarray = np.array([])
     wavelet_raw: np.ndarray = np.array([])

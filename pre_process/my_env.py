@@ -1,8 +1,9 @@
-import sys
-import os
 import glob
-from pre_process.pre_processed_id import PreProcessedId
+import os
+import sys
+
 from data_analysis.py_color import PyColor
+from pre_process.pre_processed_id import PreProcessedId
 
 
 class MyEnv:
@@ -49,15 +50,19 @@ class MyEnv:
         fit_pos: str = "",
         kernel_size: int = 0,
     ) -> str:
+        # TODO: sasデータ未対応
         if is_previous:
-            date_id = self.ppi.prev_datasets[data_type]["id"]
+            date_id = self.ppi.normal_prev_datasets[data_type][fit_pos][
+                f"stride_{stride}"
+            ][f"kernel_{kernel_size}"]
             path = os.path.join(
                 self.pre_processed_dir,
-                "previous_dataset",
+                data_type,
+                fit_pos,
                 f"{subject}_{date_id}.sav",
             )
         else:
-            date_id = self.ppi.json_dict[data_type][fit_pos][
+            date_id = self.ppi.normal_follow_datasets[data_type][fit_pos][
                 f"stride_{stride}"
             ][f"kernel_{kernel_size}"]
             path = os.path.join(

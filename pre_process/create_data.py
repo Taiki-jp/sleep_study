@@ -43,7 +43,7 @@ class CreateData(object):
     def _make(
         self,
         mode: str,
-        start_point: list,
+        start_point: int,
         record: Record,
         kernel_size: int,
         tanita_data: DataFrame,
@@ -86,6 +86,57 @@ class CreateData(object):
                 return False, None
             else:
                 return True, fit_index
+
+        elif mode == "cepstrum":
+            end_point = start_point + kernel_size - 1
+            try:
+                amped = (
+                    hamming(
+                        len(tanita_data["ss"][start_point : end_point + 1])
+                    )
+                    * tanita_data["ss"][start_point : end_point + 1]
+                )
+            except IndexError:
+                print(f"{end_point+1}は tanita の長さを超えてます")
+            # ケプストラムの計算
+            fft = np.fft.fft(amped) / (kernel_size / 2.0)
+            fft = 20 * np.log10(np.abs(fft))
+            # fft = fft[: int(kernel_size / 2)]
+            ifft = np.fft.ifft(fft)
+            ifft = np.real(ifft)
+            # ifft = np.real(np.fft.ifft(fft)) / (kernel_size / 2.0)
+            ifft = 20 * np.log10(np.abs(ifft))
+
+            # スペクトル包絡にする
+            # fft = 20 * np.log10(np.abs(np.fft.fft(amped)))
+            # cps = np.real(np.fft.ifft(fft))
+            # cep_coef = 20
+            # # 高周波成分を除く
+            # cps_lif = np.array(cps)
+            # cps_lif[cep_coef : len(cps_lif) - cep_coef + 1] = 0
+            # ifft = np.real(np.fft.fft(cps_lif))
+            # 差分を取る
+            # _ifft = np.append(ifft[1:], ifft[-1])
+            # ifft -= _ifft
+            record.cepstrum = ifft[: int(kernel_size / 2)]
+            fit_index = set_fit_pos_func(start_point, end_point)
+            # NOTE: なぜ .iloc を使う必要があるのか
+            record.time = tanita_data["time"].iloc[fit_index]
+            _time_tanita = datetime.datetime.strptime(
+                tanita_data["time"].iloc[end_point], "%H:%M:%S"
+            )
+            _time_delta = time_psg - _time_tanita
+            # 時刻がオーバー（負）、かつ経過秒数が22時間以上であれば終了したとみなす
+            # （日付がデータに入っていればもっと正確にできる） tanitaのけつの時間と比較する
+            if _time_delta.days < 0 and _time_delta.seconds / 60 / 60 > 22:
+                return False, None
+            # psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
+            elif psg_len <= fit_index // 16:
+                print(PyColor.RED_FLASH, "実装上あまりここには来てほしくない", PyColor.END)
+                return False, None
+            else:
+                return True, fit_index
+
         elif mode == "spectrogram":
             end_point = start_point + kernel_size * ss_term - 1
             fit_index = set_fit_pos_func(start_point, end_point)
@@ -121,6 +172,10 @@ class CreateData(object):
             spectrogram = np.delete(spectrogram, obj=0, axis=1)
             record.spectrogram = spectrogram
             record.time = tanita_data["time"].iloc[fit_index]
+            # NOTE: 付け焼刃なので後で吟味
+            # もしtanitaの長さを超えていたらFalseを返す
+            if len(tanita_data) < end_point:
+                return False, None
             _time_tanita = datetime.datetime.strptime(
                 tanita_data["time"].iloc[end_point], "%H:%M:%S"
             )
@@ -175,9 +230,64 @@ class CreateData(object):
             return self.make_spectrum
         elif mode == "spectrogram":
             return self.make_spectrogram
+        elif mode == "cepstrum":
+            return self.make_cepstrum
         else:
             print("実装まだです")
             sys.exit(1)
+
+    # ケプストラムの作成
+    def make_cepstrum(
+        self,
+        tanita_data: DataFrame,
+        psg_data: DataFrame,
+        kernel_size: int,
+        stride: int,
+        fit_pos: str = "middle",
+    ) -> list:
+        # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
+        # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
+        record_len = int((len(tanita_data) - kernel_size) / stride) + 1
+        print(f"make {record_len} spectrum datas")
+        records = multipleRecords(record_len)
+        # スタートポイントはストライドのサイズでずらして、
+        # データを作成する回数分のリストを確保する
+        start_points_list = [i for i in range(0, stride * record_len, stride)]
+        # psgのデータ数を保持
+        psg_len, _ = psg_data.shape
+        # psgの最後の時間を保存しておく（_match用）
+        _time_psg = datetime.datetime.strptime(
+            psg_data["time"].iloc[-1], "%H:%M:%S"
+        )
+
+        # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
+        _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
+
+        for start_point, record in tqdm(zip(start_points_list, records)):
+            (can_make, _fit_index) = self._make(
+                mode="cepstrum",
+                start_point=start_point,
+                record=record,
+                kernel_size=kernel_size,
+                tanita_data=tanita_data,
+                psg_data=psg_data,
+                set_fit_pos_func=_set_fit_pos_func,
+                time_psg=_time_psg,
+                psg_len=psg_len,
+            )
+            if not can_make:
+                break
+            self._match(
+                start_point=start_point,
+                record=record,
+                fit_index=int(_fit_index / 16),
+                psg_data=psg_data,
+            )
+
+        data = [record.ss for record in records]
+        print(f"睡眠段階：{Counter(data)}")
+
+        return records
 
     # スペクトルの作成
     def make_spectrum(
@@ -242,6 +352,7 @@ class CreateData(object):
         ss_term: int = 30,
     ):
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
+        # NOTE: スペクトログラムに関して畳み込みができる回数をしっかり調べる必要がある
         record_len = (
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )

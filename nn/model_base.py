@@ -269,7 +269,17 @@ def edl_classifier_1d(
 # ================================================ #
 
 
-def edl_classifier_2d(x, n_class, has_attention=True, has_inception=True):
+def edl_classifier_2d(
+    x,
+    n_class: int,
+    has_attention: bool = True,
+    has_inception: bool = True,
+    has_dropout: bool = False,
+    is_mul_layer: bool = False,
+    has_mul_output: bool = False,
+    hidden_outputs: bool = False,
+    dropout_rate: float = 0,
+):
     # convolution AND batch normalization
     def _conv2d_bn(
         x, filters, num_row, num_col, padding="same", strides=(1, 1), name=None
@@ -293,16 +303,16 @@ def edl_classifier_2d(x, n_class, has_attention=True, has_inception=True):
         return x
 
     # shapeが合うように調整
-    x = tf.keras.layers.Conv2D(3, (1, 4), (1, 4))(x)
-    x = tf.keras.layers.Activation("relu")(x)
+    # x = tf.keras.layers.Conv2D(3, (1, 4), (1, 4))(x)
+    # x = tf.keras.layers.Activation("relu")(x)
     # 畳み込み開始01
-    x = _conv2d_bn(x, 32, 3, 3, strides=(2, 2), padding="valid")
-    x = _conv2d_bn(x, 32, 3, 3, padding="valid")
+    x = _conv2d_bn(x, 32, 3, 3, strides=(2, 2), padding="same")
+    x = _conv2d_bn(x, 32, 3, 3, padding="same")
     x = _conv2d_bn(x, 64, 3, 3)
     x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
     # 畳み込み開始02
-    x = _conv2d_bn(x, 80, 1, 1, padding="valid")
-    x = _conv2d_bn(x, 192, 3, 3, padding="valid")
+    x = _conv2d_bn(x, 80, 1, 1, padding="same")
+    x = _conv2d_bn(x, 192, 3, 3, padding="same")
     x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
 
     if has_inception:

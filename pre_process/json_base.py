@@ -1,6 +1,7 @@
-import os
 import json
+import os
 import sys
+
 from data_analysis.py_color import PyColor
 
 
@@ -27,8 +28,8 @@ class JsonBase(object):
             print(PyColor().RED_FLASH, "jsonに出力できるか確認します", PyColor().END)
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
-        if key_len > 6:
-            print(PyColor().RED_FLASH, "キーは4までの長さまでしか実装されていません", PyColor().END)
+        if key_len > 7:
+            print(PyColor().RED_FLASH, "キーは7までの長さまでしか実装されていません", PyColor().END)
             sys.exit(1)
         # TODO : もっと賢い書き方無いかな？
         if key_len == 1:
@@ -45,17 +46,21 @@ class JsonBase(object):
             self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
                 keys[5]
             ] = value
+        elif key_len == 7:
+            self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
+                keys[5]
+            ][keys[6]] = value
         with open(self.json_file, "w") as f:
-            json.dump(self.json_dict, f, indent=4)
+            json.dump(self.json_dict, f, indent=2)
 
     # 複数リスト => 要素を辞書にまとめたリストを作成するメソッド
     def make_list_of_dict_from_mul_list(self, *args) -> list:
         first_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
-        ]["no_cleansing"]
+        ][args[5]]["no_cleansing"]
         second_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
-        ]["positive_cleansing"]
+        ][args[5]]["positive_cleansing"]
         # third_list = self.json_dict[args[0]][args[1]][args[2]][args[3]][
         #     args[4]
         # ]["negative_cleansing"]
@@ -74,8 +79,8 @@ class JsonBase(object):
     # per_processed_id.jsonのフォーマット作成
     def make_pre_processed_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
-        dataset = ["normal_prev", "normal_follow", "sas_prev", "sav_normal"]
-        preprocess_type = ["spectrum", "spectrogram"]
+        dataset = ["normal_prev", "normal_follow", "sas_prev", "sas_follow"]
+        preprocess_type = ["spectrum", "spectrogram", "cepstrum"]
         ss_pos = ["bottom", "middle", "top"]
         stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
         kernel = ["kernel_" + str(i) for i in (512, 1024)]
@@ -91,7 +96,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
@@ -110,7 +115,7 @@ class JsonBase(object):
         preprocess_type = ["spectrum", "spectrogram"]
         ss_pos = ["bottom", "middle", "top"]
         stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        kernel = ["kernel_" + str(i) for i in (512, 1024)]
+        kernel = ["kernel_" + str(i) for i in (256, 512, 1024)]
         cleansing_type = [
             "no_cleansing",
             "positive_cleansing",
@@ -139,7 +144,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
@@ -191,7 +196,7 @@ class JsonBase(object):
         # jsonfileへの書き込み
         try:
             with open(self.json_file, "w") as f:
-                json.dump(self.json_dict, f, indent=4)
+                json.dump(self.json_dict, f, indent=2)
         except Exception:
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
@@ -206,10 +211,24 @@ class JsonBase(object):
             print("実装まだです．飛ばします")
             return
 
+    # pre_processの第一キーを返す
+    def first_key_of_pre_process(self, is_normal: bool, is_prev: bool) -> str:
+        if is_normal:
+            if is_prev:
+                key_name = "normal_prev"
+            else:
+                key_name = "normal_follow"
+        else:
+            if is_prev:
+                key_name = "sas_prev"
+            else:
+                key_name = "sas_follow"
+        return key_name
+
 
 if __name__ == "__main__":
     filenames = [
-        "pre_processed_id.json",
+        # "pre_processed_id.json",
         "model_id.json",
         # "my_color.json",
         # "ss.json",
