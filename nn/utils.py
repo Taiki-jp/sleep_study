@@ -1,10 +1,15 @@
-import tensorflow as tf
-from data_analysis.py_color import PyColor
 import os
+import random
 import sys
-from tensorflow.python.keras.engine.training import Model
-from nn.losses import EDLLoss
+
+import numpy as np
+import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.keras.engine.training import Model
+
+from data_analysis.py_color import PyColor
+from nn.losses import EDLLoss
+
 
 # モデルの読み込み用関数
 def load_model(
@@ -81,3 +86,14 @@ def separate_unc_data(
         tf.boolean_mask(x, mask.numpy().reshape(x.shape[0])),
         tf.boolean_mask(y, mask.numpy().reshape(x.shape[0])),
     )
+
+
+def set_seed(seed=200):
+    tf.random.set_seed(seed)
+    # optional
+    # for numpy.random
+    np.random.seed(seed)
+    # for built-in random
+    random.seed(seed)
+    # for hash seed
+    os.environ["PYTHONHASHSEED"] = str(seed)

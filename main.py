@@ -1,30 +1,19 @@
+import datetime
 import os
 import sys
-
-from tensorflow import keras
-
-from nn.wandb_classification_callback import WandbClassificationCallback
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-
-tf.random.set_seed(100)
-import datetime
 from collections import Counter
 
-from tensorflow.python.framework.ops import Tensor
+import tensorflow as tf
 
 import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-
-# from nn.metrics import CategoricalTruePositives
+from nn.utils import set_seed
+from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
-from pre_process.record import Record
-from wandb.keras import WandbCallback
 
 
 def main(
@@ -63,11 +52,15 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        class_size=n_class,
+        target_ss=["wake"],
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train)
     ss_test_dict = Counter(y_test)
+    print(PyColor.GREEN_FLASH, "train:", ss_train_dict, PyColor.END)
+    print(PyColor.GREEN_FLASH, "test:", ss_test_dict, PyColor.END)
 
     # config の追加
     added_config = {
@@ -127,15 +120,15 @@ def main(
             dropout_rate=dropout_rate,
         )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
+        model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=2)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
+            loss=EDLLoss(K=n_class, annealing=0),
             metrics=["accuracy", "mse"],
         )
 
     else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, n_class=2)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=tf.keras.losses.SparseCategoricalCrossentropy(
@@ -209,18 +202,17 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
-        # なんか下のやつ使えなくなっている、、
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    HAS_DROPOUT = True
+    HAS_DROPOUT = False
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
@@ -228,7 +220,7 @@ if __name__ == "__main__":
     HAS_REM_BIAS = False
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
-    N_CLASS = 5
+    N_CLASS = 2
     # KERNEL_SIZE = 512
     KERNEL_SIZE = 256
     STRIDE = 16
@@ -244,6 +236,9 @@ if __name__ == "__main__":
     WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
+
+    # シードの固定
+    set_seed(0)
 
     # 記録用のjsonファイルを読み込む
     JB = JsonBase("model_id.json")

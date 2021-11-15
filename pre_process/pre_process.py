@@ -113,20 +113,18 @@ class PreProcess:
             def _storchastic_sampling(data, target_records, is_test):
                 tmp = list()
 
+                # TODO: 5クラス分類（data.keys()が1,2,3,4,5の時にしか対応していないので、修正）
                 def _splitEachSleepStage():
                     each_stage_list = list()
+                    target_ss_categorical = self.ss2int(target_ss)
 
                     for ss in data.keys():
-                        # record は順番通りにソートされていない
-                        # 多分train自体がソートされたものではないから
-                        # data.keys()の順番が5, 2, 4, 3, 1になっているから？
-                        # でもその順番に追加されているわけではないから違いそう
-                        # なんか最初に4が選択されていた（辞書なので順番がないからそういうものと思う）
+                        # 5クラス分類の時は下のものでよい
                         each_stage_list.append(
                             [
                                 record
                                 for record in target_records
-                                if record.ss == ss
+                                if record.ss in target_ss_categorical
                             ]
                         )
                     return each_stage_list
@@ -242,6 +240,7 @@ class PreProcess:
             # self.min_norm(x_test)
 
         # 睡眠段階のラベルを0 -（クラス数-1）にする
+        # クラスサイズに合わせて処理を変更する
         y_train = self.change_label(
             y_data=y_train, n_class=class_size, target_class=target_ss
         )
@@ -274,6 +273,12 @@ class PreProcess:
             y_test = tf.one_hot(y_test, class_size)
 
         return (x_train, y_train), (x_test, y_test)
+
+    # 文字列から睡眠段階の数字に変更するメソッド
+    def ss2int(self, target_ss: list) -> list:
+        print("todo:実装してください")
+        sys.exit(1)
+        return [0, 1, 2, 3, 4, 5]
 
     # recordからスペクトラムの作成
     def list2Spectrum(self, list_data):
@@ -435,7 +440,9 @@ class PreProcess:
         return np.array(_x_data), np.array(_y_data).astype(np.int32)
 
     # ラベルをクラス数に合わせて変更
-    def change_label(self, y_data, n_class, target_class=None):
+    def change_label(
+        self, y_data: list, n_class: int, target_class: list = []
+    ):
         nr4_label_from = 0
         nr3_label_from = 1
         nr2_label_from = 2
@@ -468,13 +475,13 @@ class PreProcess:
             wake_label_to = 2
         # 2クラス分類とき（0:non_target, 1:target）
         elif n_class == 2:
-            assert target_class is not None
-            nr4_label_to = 0 if target_class != "nr4" else 1
-            nr3_label_to = 0 if target_class != "nr3" else 1
-            nr2_label_to = 0 if target_class != "nr2" else 1
-            nr1_label_to = 0 if target_class != "nr1" else 1
-            rem_label_to = 0 if target_class != "rem" else 1
-            wake_label_to = 0 if target_class != "wake" else 1
+            assert len(target_class) != 0
+            nr4_label_to = 1 if "nr4" in target_class else 0
+            nr3_label_to = 1 if "nr3" in target_class else 0
+            nr2_label_to = 1 if "nr2" in target_class else 0
+            nr1_label_to = 1 if "nr1" in target_class else 0
+            rem_label_to = 1 if "rem" in target_class else 0
+            wake_label_to = 1 if "wake" in target_class else 0
         else:
             print("正しいクラス数を指定してください")
             sys.exit(1)
