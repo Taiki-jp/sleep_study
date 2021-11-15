@@ -11,6 +11,7 @@ from imblearn.over_sampling import SMOTE
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+from data_analysis.py_color import PyColor
 from pre_process.load_sleep_data import LoadSleepData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
@@ -133,6 +134,7 @@ class PreProcess:
 
                 # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
                 ss_list = _splitEachSleepStage()
+                # 各睡眠段階ごとに処理を行う
                 for records in ss_list:
                     if len(records) == 0:
                         print("睡眠段階が存在しないため飛ばします")
@@ -143,9 +145,14 @@ class PreProcess:
                         def _sample(target_records):
                             # 睡眠段階のラベルを知るために必要
                             if is_test:
-                                ss = target_records[0].ss
-                                _selected_list = choices(
-                                    target_records, k=data[ss]
+                                # ss = target_records[0].ss
+                                # _selected_list = choices(
+                                #     target_records, k=data[ss]
+                                # )
+                                print(
+                                    PyColor.RED_FLASH,
+                                    f"廃止しました。テスト時は{sys._getframe().f_code.co_name}を使用しないようにしてください",
+                                    PyColor.END,
                                 )
                             else:
                                 ss = target_records[0].ss
@@ -199,9 +206,9 @@ class PreProcess:
             train = _storchastic_sampling(
                 data=ss_dict_train, target_records=train, is_test=False
             )
-            test = _storchastic_sampling(
-                data=ss_dict_test, target_records=test, is_test=True
-            )
+            # test = _storchastic_sampling(
+            #     data=ss_dict_test, target_records=test, is_test=True
+            # )
 
             if is_shuffle:
                 print("- 訓練データをシャッフルします")
