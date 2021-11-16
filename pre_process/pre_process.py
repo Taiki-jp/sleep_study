@@ -1,8 +1,9 @@
 import datetime
+import itertools
 import os
 import sys
 from collections import Counter
-from random import choices, seed, shuffle
+from random import choice, choices, seed, shuffle
 
 import numpy as np
 import tensorflow as tf
@@ -11,6 +12,7 @@ from imblearn.over_sampling import SMOTE
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+from data_analysis.py_color import PyColor
 from pre_process.load_sleep_data import LoadSleepData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
@@ -77,6 +79,7 @@ class PreProcess:
         insert_channel_axis=True,
         to_one_hot_vector=True,
         pse_data=False,
+        n_class_converted: int = 5,
     ):
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
@@ -88,126 +91,78 @@ class PreProcess:
                 to_one_hot_vector=to_one_hot_vector,
             )
 
-        if is_set_data_size:
+        if is_set_data_size is False and self.verbose == 0:
+            print("データサイズをそろえずにデータセットを作成します")
 
-            if self.verbose == 0:
-                print("- 訓練データのサイズを揃えます")
+        if self.verbose == 0:
+            print("- 訓練データのサイズを揃えます")
 
-            # 各睡眠段階のサイズを決定する
-            ss_dict_train = self.set_datasize(
-                train,
-                target_ss=target_ss,
-                isStorchastic=is_storchastic,
-                each_data_size=each_data_size,
-                class_size=class_size,
+        # 各睡眠段階のサイズを決定する
+        ss_dict_train = self.set_datasize(
+            train,
+            target_ss=target_ss,
+            isStorchastic=is_storchastic,
+            each_data_size=each_data_size,
+            class_size=class_size,
+        )
+        ss_dict_test = Counter([record.ss for record in test])
+
+        # 補正前の各睡眠段階のクラス数の表示
+        if self.verbose == 0:
+            print(
+                "訓練データの各睡眠段階（補正前）",
+                Counter([record.ss for record in train]),
             )
-            ss_dict_test = Counter([record.ss for record in test])
+            print("訓練データの各睡眠段階（補正後）", ss_dict_train)
 
-            if self.verbose == 0:
-                print(
-                    "訓練データの各睡眠段階（補正前）",
-                    Counter([record.ss for record in train]),
-                )
-                print("訓練データの各睡眠段階（補正後）", ss_dict_train)
+        # 確率的なサンプリングの実行部分
+        def _storchastic_sampling(data, target_records):
+            # TODO: 5クラス分類（data.keys()が1,2,3,4,5の時にしか対応していないので、修正）
+            def _splitEachSleepStage():
+                each_stage_list = list()
+                for ss in data.keys():
+                    # 5クラス分類の時は下のものでよい
+                    each_stage_list.append(
+                        [
+                            record
+                            for record in target_records
+                            if record.ss == ss
+                        ]
+                    )
+                return each_stage_list
 
-            def _storchastic_sampling(data, target_records, is_test):
-                tmp = list()
+            # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
+            ss_list = _splitEachSleepStage()
+            # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
+            def _sample(target_records):
+                # 睡眠段階のラベルを知るために必要
+                # （target_recordsに入っているのは全て同じ睡眠段階なので代表として最初の睡眠段階を取得）
+                ss = target_records[0].ss
+                # 2クラス分類かつtarget_ssと睡眠段階が一致するときは他のクラスの4倍のデータを作成する
+                if ss in self.ss2int(target_ss):
+                    _selected_list = choices(target_records, k=data[ss] * 4)
+                else:
+                    if is_multiply or mul_num is not None:
+                        raise Exception("Unknown value is specified")
+                    _selected_list = choices(
+                        target_records,
+                        k=data[ss],
+                    )
+                return _selected_list
 
-                # TODO: 5クラス分類（data.keys()が1,2,3,4,5の時にしか対応していないので、修正）
-                def _splitEachSleepStage():
-                    each_stage_list = list()
-                    target_ss_categorical = self.ss2int(target_ss)
+            return list(itertools.chain.from_iterable(map(_sample, ss_list)))
 
-                    for ss in data.keys():
-                        # 5クラス分類の時は下のものでよい
-                        each_stage_list.append(
-                            [
-                                record
-                                for record in target_records
-                                if record.ss in target_ss_categorical
-                            ]
-                        )
-                    return each_stage_list
-
-                # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
-                ss_list = _splitEachSleepStage()
-                for records in ss_list:
-                    if len(records) == 0:
-                        print("睡眠段階が存在しないため飛ばします")
-                        continue
-                    # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
-                    else:
-
-                        def _sample(target_records):
-                            # 睡眠段階のラベルを知るために必要
-                            if is_test:
-                                ss = target_records[0].ss
-                                _selected_list = choices(
-                                    target_records, k=data[ss]
-                                )
-                            else:
-                                ss = target_records[0].ss
-                                if ss != target_ss:
-                                    try:
-                                        # target_recordsからdata[ss]個取ってくる感じ
-                                        # >>> len(target_records)
-                                        # >>> 1019（各睡眠段階のrecordオブジェクトが入っている
-                                        # >>> data[4]
-                                        # >>> 睡眠段階が4のもの（REM）の数を返す
-                                        # （正確にはCounterの辞書の4に対応するvalueのこと）
-                                        if is_multiply:
-                                            _selected_list = choices(
-                                                target_records, k=400
-                                            )
-                                        else:
-                                            if mul_num is not None:
-                                                _selected_list = choices(
-                                                    target_records,
-                                                    k=data[ss] * mul_num,
-                                                )
-                                            else:
-                                                _selected_list = choices(
-                                                    target_records, k=data[ss]
-                                                )
-                                    except Exception:
-                                        if is_multiply:
-                                            # print("データを複製する必要があるので、random.choices()を用います")
-                                            _selected_list = choices(
-                                                target_records, k=400
-                                            )
-                                        else:
-                                            if mul_num is not None:
-                                                _selected_list = choices(
-                                                    target_records,
-                                                    k=data[ss] * mul_num,
-                                                )
-                                            else:
-                                                _selected_list = choices(
-                                                    target_records, k=data[ss]
-                                                )
-                                elif ss == target_ss:
-                                    _selected_list = choices(
-                                        target_records, k=data[ss]
-                                    )
-                            return _selected_list
-
-                    tmp.extend(_sample(target_records=records))
-                return tmp
-
-            train = _storchastic_sampling(
-                data=ss_dict_train, target_records=train, is_test=False
-            )
-            test = _storchastic_sampling(
-                data=ss_dict_test, target_records=test, is_test=True
+        train = _storchastic_sampling(data=ss_dict_train, target_records=train)
+        # 補正後の各睡眠段階のクラス数の表示
+        if self.verbose == 0:
+            print(
+                "訓練データの各睡眠段階（補正後）",
+                Counter([record.ss for record in train]),
             )
 
-            if is_shuffle:
-                print("- 訓練データをシャッフルします")
-                shuffle(train)
-
-        else:
-            if self.verbose == 0:
-                print("データサイズをそろえずにデータセットを作成します")
+        if is_shuffle:
+            print("- 訓練データをシャッフルします")
+            shuffle(train)
 
         # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
         y_train = self.list2SS(train)
@@ -242,10 +197,16 @@ class PreProcess:
         # 睡眠段階のラベルを0 -（クラス数-1）にする
         # クラスサイズに合わせて処理を変更する
         y_train = self.change_label(
-            y_data=y_train, n_class=class_size, target_class=target_ss
+            y_data=y_train,
+            n_class=class_size,
+            target_class=target_ss,
+            n_class_converted=n_class_converted,
         )
         y_test = self.change_label(
-            y_data=y_test, n_class=class_size, target_class=target_ss
+            y_data=y_test,
+            n_class=class_size,
+            target_class=target_ss,
+            n_class_converted=n_class_converted,
         )
 
         # inset_channel_axis based on data type
@@ -276,9 +237,28 @@ class PreProcess:
 
     # 文字列から睡眠段階の数字に変更するメソッド
     def ss2int(self, target_ss: list) -> list:
-        print("todo:実装してください")
-        sys.exit(1)
-        return [0, 1, 2, 3, 4, 5]
+        __tmp = list()
+        for _target_ss in target_ss:
+            if _target_ss == "nr4":
+                __tmp.append(0)
+            elif _target_ss == "nr3":
+                __tmp.append(1)
+            elif _target_ss == "nr2":
+                __tmp.append(2)
+            elif _target_ss == "nr1":
+                __tmp.append(3)
+            elif _target_ss == "rem":
+                __tmp.append(4)
+            elif _target_ss == "wake":
+                __tmp.append(5)
+            else:
+                print(
+                    PyColor.RED_FLASH,
+                    f"Unkown sleep stage name {_target_ss} given",
+                    PyColor.END,
+                )
+                sys.exit(1)
+        return __tmp
 
     # recordからスペクトラムの作成
     def list2Spectrum(self, list_data):
@@ -441,7 +421,11 @@ class PreProcess:
 
     # ラベルをクラス数に合わせて変更
     def change_label(
-        self, y_data: list, n_class: int, target_class: list = []
+        self,
+        y_data: list,
+        n_class: int,
+        target_class: list = [],
+        n_class_converted: int = 5,
     ):
         nr4_label_from = 0
         nr3_label_from = 1
@@ -450,7 +434,7 @@ class PreProcess:
         rem_label_from = 4
         wake_label_from = 5
         # 5クラス分類の時（0:nr34, 1:nr2, 2:nr1, 3:rem, 4:wake）
-        if n_class == 5:
+        if n_class_converted == 5:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 1
@@ -458,7 +442,7 @@ class PreProcess:
             rem_label_to = 3
             wake_label_to = 4
         # 4クラス分類の時（0:nr34, 1:nr12, 2:rem, 3:wake）
-        elif n_class == 4:
+        elif n_class_converted == 4:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 1
@@ -466,7 +450,7 @@ class PreProcess:
             rem_label_to = 2
             wake_label_to = 3
         # 3クラス分類の時（0:nrem, 1:rem, 2:wake）
-        elif n_class == 3:
+        elif n_class_converted == 3:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 0
@@ -474,7 +458,7 @@ class PreProcess:
             rem_label_to = 1
             wake_label_to = 2
         # 2クラス分類とき（0:non_target, 1:target）
-        elif n_class == 2:
+        elif n_class_converted == 2:
             assert len(target_class) != 0
             nr4_label_to = 1 if "nr4" in target_class else 0
             nr3_label_to = 1 if "nr3" in target_class else 0
