@@ -42,6 +42,7 @@ def main(
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     utils: Utils = None,
+    target_ss: str = "",
 ):
 
     # データセットの作成
@@ -52,8 +53,9 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
-        class_size=n_class,
-        target_ss=["wake"],
+        class_size=5,  # ここは予測するラベル数ではなく，睡眠段階の数を指定している
+        n_class_converted=n_class,
+        target_ss=[target_ss],
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
@@ -120,10 +122,10 @@ def main(
             dropout_rate=dropout_rate,
         )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=2)
+        model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0),
+            loss=EDLLoss(K=n_class, annealing=0.1),
             metrics=["accuracy", "mse"],
         )
 
@@ -159,7 +161,9 @@ def main(
             WandbClassificationCallback(
                 validation_data=(x_test, y_test),
                 log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"],
+                labels=["nr34", "nr2", "nr1", "rem", "wake"]
+                if n_class == 5
+                else ["non_target", "target"],
             ),
         ],
         verbose=2,
@@ -177,6 +181,7 @@ def main(
             calling_graph="all",
             graph_date_id=date_id,
             is_each_unc=True,
+            n_class=n_class,
         )
     # tensorboardのログ
     # if log_tf_projector:
@@ -205,27 +210,28 @@ if __name__ == "__main__":
         tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
-    EPOCHS = 50
+    TEST_RUN = False
+    EPOCHS = 10
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    HAS_DROPOUT = False
+    HAS_DROPOUT = True
     IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
+    SAVE_MODEL = True
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 2
     # KERNEL_SIZE = 512
     KERNEL_SIZE = 256
     STRIDE = 16
-    # STRIDE = 16
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 5000
+    TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
@@ -262,83 +268,107 @@ if __name__ == "__main__":
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list):
-        date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        date_id_saving_list.append(date_id)
-        (train, test) = pre_process.split_train_test_from_records(
-            datasets, test_id=test_id, pse_data=PSE_DATA
-        )
-        # tagの設定
-        my_tags = [
-            test_name,
-            f"kernel:{KERNEL_SIZE}",
-            f"stride:{STRIDE}",
-            f"sample:{SAMPLE_SIZE}",
-            f"model:{ENN_TAG}",
-            f"epoch:{EPOCHS}",
-            f"nrem2_bias:{HAS_NREM2_BIAS}",
-            f"rem_bias:{HAS_REM_BIAS}",
-            f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
-        ]
+    for target_ss in TARGET_SS:
+        date_id_saving_list = list()
+        for test_id, test_name in enumerate(pre_process.name_list):
+            date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            date_id_saving_list.append(date_id)
+            (train, test) = pre_process.split_train_test_from_records(
+                datasets, test_id=test_id, pse_data=PSE_DATA
+            )
+            # tagの設定
+            my_tags = [
+                test_name,
+                f"kernel:{KERNEL_SIZE}",
+                f"stride:{STRIDE}",
+                f"sample:{SAMPLE_SIZE}",
+                f"model:{ENN_TAG}",
+                f"epoch:{EPOCHS}",
+                f"nrem2_bias:{HAS_NREM2_BIAS}",
+                f"rem_bias:{HAS_REM_BIAS}",
+                f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
+                target_ss,
+            ]
 
-        wandb_config = {
-            "test name": test_name,
-            "date id": date_id,
-            "sample_size": SAMPLE_SIZE,
-            "epochs": EPOCHS,
-            "kernel": KERNEL_SIZE,
-            "stride": STRIDE,
-            "fit_pos": FIT_POS,
-            "batch_size": BATCH_SIZE,
-            "n_class": N_CLASS,
-            "has_nrem2_bias": HAS_NREM2_BIAS,
-            "has_rem_bias": HAS_REM_BIAS,
-            "model_type": ENN_TAG,
-            "data_type": DATA_TYPE,
-        }
-        main(
-            has_dropout=True,
-            log_tf_projector=True,
-            name=test_name,
-            project=WANDB_PROJECT,
-            pre_process=pre_process,
-            train=train,
-            test=test,
-            epochs=EPOCHS,
-            save_model=True,
-            has_attention=HAS_ATTENTION,
-            my_tags=my_tags,
-            date_id=date_id,
-            pse_data=PSE_DATA,
-            test_name=test_name,
-            has_inception=HAS_INCEPTION,
-            batch_size=BATCH_SIZE,
-            n_class=N_CLASS,
-            data_type=DATA_TYPE,
-            sample_size=SAMPLE_SIZE,
-            is_enn=IS_ENN,
-            wandb_config=wandb_config,
-            kernel_size=KERNEL_SIZE,
-            is_mul_layer=IS_MUL_LAYER,
-            utils=Utils(),
-            dropout_rate=DROPOUT_RATE,
-        )
-
+            wandb_config = {
+                "test name": test_name,
+                "date id": date_id,
+                "sample_size": SAMPLE_SIZE,
+                "epochs": EPOCHS,
+                "kernel": KERNEL_SIZE,
+                "stride": STRIDE,
+                "fit_pos": FIT_POS,
+                "batch_size": BATCH_SIZE,
+                "n_class": N_CLASS,
+                "has_nrem2_bias": HAS_NREM2_BIAS,
+                "has_rem_bias": HAS_REM_BIAS,
+                "model_type": ENN_TAG,
+                "data_type": DATA_TYPE,
+                "target_ss": target_ss,
+            }
+            main(
+                has_dropout=True,
+                log_tf_projector=True,
+                name=test_name,
+                project=WANDB_PROJECT,
+                pre_process=pre_process,
+                train=train,
+                test=test,
+                epochs=EPOCHS,
+                save_model=SAVE_MODEL,
+                has_attention=HAS_ATTENTION,
+                my_tags=my_tags,
+                date_id=date_id,
+                pse_data=PSE_DATA,
+                test_name=test_name,
+                has_inception=HAS_INCEPTION,
+                batch_size=BATCH_SIZE,
+                n_class=N_CLASS,
+                data_type=DATA_TYPE,
+                sample_size=SAMPLE_SIZE,
+                is_enn=IS_ENN,
+                wandb_config=wandb_config,
+                kernel_size=KERNEL_SIZE,
+                is_mul_layer=IS_MUL_LAYER,
+                utils=Utils(),
+                dropout_rate=DROPOUT_RATE,
+                target_ss=target_ss,
+            )
+        if SAVE_MODEL:
+            # json に書き込み
+            JB.dump(
+                keys=[
+                    JB.first_key_of_pre_process(
+                        is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+                    ),
+                    ENN_TAG,
+                    DATA_TYPE,
+                    FIT_POS,
+                    f"stride_{str(STRIDE)}",
+                    f"kernel_{str(KERNEL_SIZE)}",
+                    "no_cleansing",
+                    f"{target_ss}",
+                ],
+                value=date_id_saving_list,
+            )
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
-    # json に書き込み
-    JB.dump(
-        keys=[
-            JB.first_key_of_pre_process(
-                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-            ),
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            "no_cleansing",
-        ],
-        value=date_id_saving_list,
-    )
+
+    # if SAVE_MODEL:
+    #     # json に書き込み
+    #     JB.dump(
+    #         keys=[
+    #             JB.first_key_of_pre_process(
+    #                 is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
+    #             ),
+    #             ENN_TAG,
+    #             DATA_TYPE,
+    #             FIT_POS,
+    #             f"stride_{str(STRIDE)}",
+    #             f"kernel_{str(KERNEL_SIZE)}",
+    #             "no_cleansing",
+    #             f"{target_ss}",
+    #         ],
+    #         value=date_id_saving_list,
+    #     )
