@@ -139,6 +139,7 @@ class Utils:
         evidence_positive: Tensor = None,
         unc_threthold: float = 0,
         is_each_unc: bool = False,
+        n_class: int = 5,
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -149,6 +150,7 @@ class Utils:
                 test_label=graph_person_id,
                 date_id=graph_date_id,
                 is_each_unc=is_each_unc,
+                n_class=n_class,
             )
             for is_separating in [True, False]:
                 # 不確かさと正負の関係をヒストグラムにログる
@@ -159,6 +161,7 @@ class Utils:
                     test_label=graph_person_id,
                     date_id=graph_date_id,
                     separate_each_ss=is_separating,
+                    n_class=n_class,
                 )
             # 不確かさによる閾値を設けて一致率を計算
             self.u_threshold_and_acc2Wandb(
@@ -519,10 +522,11 @@ class Utils:
         array_max = np.argmax(array, axis=axis)
         array_min = np.argmin(array, axis=axis)
         fixed_array = []
+        nrem2_index = 1
         # 最大値と最小値が一致する場合はNREM2(1)を返す
         for _max, _min in zip(array_max, array_min):
             if _max == _min:
-                fixed_array.append(1)
+                fixed_array.append(nrem2_index)
             else:
                 fixed_array.append(_max)
         return np.array(fixed_array)
@@ -624,42 +628,6 @@ class Utils:
             y_pred,
         ) = self.calc_enn_output_from_evidence(evidence=evidence)
         uncertainty = np.array(uncertainty)
-        # 計算済みの場合はそれを使うほうが良い
-        # if has_caliculated:
-        #     try:
-        #         assert (
-        #             evidence is not None
-        #             and unc is not None
-        #             and alpha is not None
-        #             and y_pred is not None
-        #         )
-        #     except AssertionError:
-        #         print(
-        #             PyColor.RED_FLASH,
-        #             "計算済みの場合，evidence, unc, alpha, y_pred を渡してください",
-        #             PyColor.END,
-        #         )
-        #         sys.exit(1)
-
-        # else:
-        #     )
-        #     # 各睡眠段階に分けて表示するかどうか
-        #     alpha = evidence + 1
-        #     S = tf.reduce_sum(alpha, axis=1, keepdims=True)
-        #     y_pred = alpha / S
-        #     _, n_class = y_pred.shape
-        #     # 今は5クラス分類以外ありえない
-        #     # カテゴリカルに変換
-        #     y_pred = (
-        #         np.argmax(y_pred, axis=1)
-        #         if not self.catch_nrem2
-        #         else self.my_argmax(y_pred, axis=1)
-        #     )
-        # # unc だけを渡す場合
-        # if unc is not None:
-        #     uncertainty = unc
-        # else:
-        #     uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
 
         if not separate_each_ss:
             # true_label, false_labelに分類する
