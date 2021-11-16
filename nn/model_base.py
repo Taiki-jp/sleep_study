@@ -343,7 +343,7 @@ def edl_classifier_2d(
             x *= attention
 
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(n_class ** 2)(x)
+    x = tf.keras.layers.Dense(n_class ** 6)(x)
     x = tf.keras.layers.Activation("relu")(x)
     x = tf.keras.layers.Dense(n_class)(x)
     x = tf.keras.layers.Activation("relu")(x)
