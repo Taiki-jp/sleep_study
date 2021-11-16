@@ -28,7 +28,7 @@ class JsonBase(object):
             print(PyColor().RED_FLASH, "jsonに出力できるか確認します", PyColor().END)
         # 辞書であり，keysが入っている間はキーを入れる
         key_len = len(keys)
-        if key_len > 7:
+        if key_len > 8:
             print(PyColor().RED_FLASH, "キーは7までの長さまでしか実装されていません", PyColor().END)
             sys.exit(1)
         # TODO : もっと賢い書き方無いかな？
@@ -50,6 +50,11 @@ class JsonBase(object):
             self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
                 keys[5]
             ][keys[6]] = value
+        elif key_len == 8:
+            self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]][
+                keys[5]
+            ][keys[6]][keys[7]] = value
+
         with open(self.json_file, "w") as f:
             json.dump(self.json_dict, f, indent=2)
 
@@ -121,12 +126,15 @@ class JsonBase(object):
             "positive_cleansing",
             "negative_cleansing",
         ]
+        sleep_stage = ["wake", "rem", "nr1", "nr2", "nr3"]
 
         # 辞書の初期値のみをループとは別に作成しておく
-        cleansing_type_d = {
-            _cleansing_type: [] for _cleansing_type in cleansing_type
-        }
+        # cleansing_type_d = {
+        #     _cleansing_type: [] for _cleansing_type in cleansing_type
+        # }
+        sleep_stage_d = {_sleep_stage: [] for _sleep_stage in sleep_stage}
         list4loop = [
+            cleansing_type,
             kernel,
             stride,
             ss_pos,
@@ -136,9 +144,9 @@ class JsonBase(object):
         ]
         for _list4loop in list4loop:
             merged_d = {
-                __list4loop: cleansing_type_d for __list4loop in _list4loop
+                __list4loop: sleep_stage_d for __list4loop in _list4loop
             }
-            cleansing_type_d = merged_d.copy()
+            sleep_stage_d = merged_d.copy()
         # jsonの中身の書き換え
         self.json_dict = merged_d
         # jsonfileへの書き込み
