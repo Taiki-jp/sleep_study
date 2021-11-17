@@ -4,6 +4,14 @@ import sys
 from collections import Counter
 
 import tensorflow as tf
+from tensorflow.keras.metrics import (
+    FalseNegatives,
+    FalsePositives,
+    Precision,
+    Recall,
+    TrueNegatives,
+    TruePositives,
+)
 
 import wandb
 from data_analysis.py_color import PyColor
@@ -126,11 +134,20 @@ def main(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy", "mse"],
+            metrics=[
+                "accuracy",
+                "mse",
+                Precision(name="precision"),
+                Recall(name="recall"),
+                TruePositives(name="tp"),
+                FalseNegatives(name="fn"),
+                TrueNegatives(name="tn"),
+                FalsePositives(name="fp"),
+            ],
         )
 
     else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs, n_class=2)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, n_class=n_class)
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=tf.keras.losses.SparseCategoricalCrossentropy(
@@ -211,7 +228,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 10
+    EPOCHS = 20
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -230,7 +247,7 @@ if __name__ == "__main__":
     # KERNEL_SIZE = 512
     KERNEL_SIZE = 256
     STRIDE = 16
-    SAMPLE_SIZE = 5000
+    SAMPLE_SIZE = 1000
     TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
@@ -239,7 +256,7 @@ if __name__ == "__main__":
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     # WANDB_PROJECT = "test" if TEST_RUN else "master"
-    WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
+    WANDB_PROJECT = "test" if TEST_RUN else "bin_classification"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -354,21 +371,3 @@ if __name__ == "__main__":
         # testの時は一人の被験者で止める
         if TEST_RUN:
             break
-
-    # if SAVE_MODEL:
-    #     # json に書き込み
-    #     JB.dump(
-    #         keys=[
-    #             JB.first_key_of_pre_process(
-    #                 is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-    #             ),
-    #             ENN_TAG,
-    #             DATA_TYPE,
-    #             FIT_POS,
-    #             f"stride_{str(STRIDE)}",
-    #             f"kernel_{str(KERNEL_SIZE)}",
-    #             "no_cleansing",
-    #             f"{target_ss}",
-    #         ],
-    #         value=date_id_saving_list,
-    #     )
