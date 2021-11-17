@@ -113,7 +113,7 @@ class JsonBase(object):
             "normal_prev",
             "normal_follow",
             "sas_prev",
-            "sav_normal",
+            "sas_normal",
             "unused_set",
         ]
         model_type = ["dnn", "enn"]
