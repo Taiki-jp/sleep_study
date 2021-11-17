@@ -501,6 +501,9 @@ class EDLModelBase(tf.keras.Model):
         # Step with optimizer
         self.optimizer.apply_gradients(zip(gradients, training_vars))
         # accuracyのメトリクスにはy_predを入れる
+        # categoricalに変換して入れてみる
+        y = tf.argmax(y, axis=1, output_type=tf.int32)
+        y_pred = tf.argmax(y_pred, axis=1, output_type=tf.int32)
         self.compiled_metrics.update_state(y, y_pred)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         return {m.name: m.result() for m in self.metrics}
@@ -517,6 +520,8 @@ class EDLModelBase(tf.keras.Model):
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
+        y = tf.argmax(y, axis=1, output_type=tf.int32)
+        y_pred = tf.argmax(y_pred, axis=1, output_type=tf.int32)
         # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
         # Update the metrics.
         self.compiled_metrics.update_state(y, y_pred)
