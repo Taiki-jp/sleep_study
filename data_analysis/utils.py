@@ -140,6 +140,8 @@ class Utils:
         unc_threthold: float = 0,
         is_each_unc: bool = False,
         n_class: int = 5,
+        norm_cm: bool = False,
+        is_joinplot: bool = False,
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -151,6 +153,7 @@ class Utils:
                 date_id=graph_date_id,
                 is_each_unc=is_each_unc,
                 n_class=n_class,
+                norm_cm=norm_cm,
             )
             for is_separating in [True, False]:
                 # 不確かさと正負の関係をヒストグラムにログる
@@ -162,6 +165,7 @@ class Utils:
                     date_id=graph_date_id,
                     separate_each_ss=is_separating,
                     n_class=n_class,
+                    is_joinplot=is_joinplot,
                 )
             # 不確かさによる閾値を設けて一致率を計算
             self.u_threshold_and_acc2Wandb(
@@ -260,8 +264,12 @@ class Utils:
         train_or_test=None,
         test_label=None,
         date_id=None,
+        norm_cm: bool = False,
     ):
-        sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
+        if norm_cm:
+            sns.heatmap(image, annot=True, cmap="Blues", fmt="f")
+        else:
+            sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
         plt.xlabel("pred")
         plt.ylabel("actual")
         # 保存するフォルダ名を取得
@@ -289,6 +297,16 @@ class Utils:
             )
         plt.close()
         return
+
+    def write_bin_class_result(
+        self,
+        filepath: str,
+        alpha: ndarray,
+        env_list: ndarray,
+        unc_list: ndarray,
+        y_pred_list: ndarray,
+    ):
+        pd.DataFrame()
 
     # DataFrameをcsv出力する
     def to_csv(self, df: pd.DataFrame, path: str, edit_mode: str):
@@ -389,41 +407,44 @@ class Utils:
             self.check_path(file_path)
 
     # 混合行列を作成
-    def make_confusion_matrix(self, y_true, y_pred, n_class=5):
+    def make_confusion_matrix(
+        self, y_true, y_pred, n_class=5, norm_cm: bool = False
+    ):
         # カテゴリカルのデータ(y_true, y_pred)であることを想定
         try:
-            assert np.ndim(y_true) == 1
-        except:
-            print("正解データはlogitsで入力してください（one-hotじゃない形で！）")
+            assert np.ndim(y_true) == 1 and np.ndim(y_pred) == 1
+        except Exception():
+            print("正解データ or 予測ラベル はlogitsで入力してください（one-hotじゃない形で！）")
             sys.exit(1)
-        try:
-            assert np.ndim(y_pred) == 1
-        except:
-            print("予測ラベルはlogitsで入力してください（one-hotじゃない形で！）")
-
-        # 混合行列を作成
-        cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
         # 予測ラベルのクラス数に応じてラベル名を変更する
+        # if n_class == 5:
+        #     labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+        #     # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
+        #     if (
+        #         len(Counter(y_true)) == 4
+        #         and len(Counter(y_pred)) == 4
+        #         and min(y_true) == 1
+        #         and min(y_pred) == 1
+        #     ):
+        #         # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
+        #         labels.pop(0)
 
-        if n_class == 5:
-            labels = ["nr34", "nr2", "nr1", "rem", "wake"]
-            # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
-            if (
-                len(Counter(y_true)) == 4
-                and len(Counter(y_pred)) == 4
-                and min(y_true) == 1
-                and min(y_pred) == 1
-            ):
-                # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
-                labels.pop(0)
+        # elif n_class == 4:
+        #     labels = ["nr34", "nr12", "rem", "wake"]
+        # elif n_class == 3:
+        #     labels = ["nrem", "rem", "wake"]
+        # elif n_class == 2:
+        #     labels = ["non-target", "target"]
 
-        elif n_class == 4:
-            labels = ["nr34", "nr12", "rem", "wake"]
-        elif n_class == 3:
-            labels = ["nrem", "rem", "wake"]
-        elif n_class == 2:
-            labels = ["non-target", "target"]
+        # 混合行列を作成
+        if norm_cm:
+            cm = confusion_matrix(
+                y_true=y_true, y_pred=y_pred, normalize="all"
+            )
+        else:
+            cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
+
         df = pd.DataFrame(cm)
         return df
 
@@ -503,7 +524,7 @@ class Utils:
         hist_label: list = ["True", "False"],
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
         color_obj: MyColor = MyColor(),
-    ):
+    ) -> None:
 
         self._make_histgram(
             target_array=[true_label_array, false_label_array],
@@ -554,9 +575,10 @@ class Utils:
         log_all_in_one: bool = False,
         is_each_unc: bool = False,
         n_class: int = 5,
+        norm_cm: bool = False,
     ):
         # TODO: calc_enn_outputで計算するようにまとめる
-        evidence, alpha, unc, y_pred = self.calc_enn_output_from_evidence(
+        evidence, _, unc, y_pred = self.calc_enn_output_from_evidence(
             evidence=evidence
         )
         # 不確かさによる閾値に応じて混合マトリクスを作成する
@@ -571,6 +593,7 @@ class Utils:
                     y_true=y_true_separated,
                     y_pred=y_pred_separated,
                     n_class=n_class,
+                    norm_cm=norm_cm,
                 )
                 # cmが空であればグラフを書かずにループに戻る
                 if cm.size == 0:
@@ -591,7 +614,7 @@ class Utils:
         else:
             # ラベル付き混合行列を返す
             cm = self.make_confusion_matrix(
-                y_true=y, y_pred=y_pred, n_class=n_class
+                y_true=y, y_pred=y_pred, n_class=n_class, norm_cm=norm_cm
             )
             # seabornを使ってグラフを作成し保存
             self.save_image2Wandb(
@@ -600,8 +623,43 @@ class Utils:
                 train_or_test=train_or_test,
                 test_label=test_label,
                 date_id=date_id,
+                norm_cm=norm_cm,
             )
         return
+
+    #
+
+    # joinplotを用いて不確実性と睡眠段階の関係が分かるようにする
+    def make_joinplot(
+        self,
+        y: ndarray,
+        unc: ndarray,
+        train_or_test: bool,
+        date_id: str,
+        dir2: str,
+        test_label: str,
+        file_name: str,
+    ):
+        sns.set_theme(style="ticks")
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        hexplot = sns.jointplot(unc, y, kind="hex", color=MyColor.WHITE_BLUE)
+        plt.subplots_adjust(
+            left=0.2, right=0.8, top=0.8, bottom=0.2
+        )  # shrink fig so cbar is visible
+        # make new ax object for the cbar
+        cbar_ax = hexplot.fig.add_axes(
+            [0.85, 0.25, 0.05, 0.4]
+        )  # x, y, width, height
+        plt.colorbar(cax=cbar_ax)
+        # 保存するフォルダ名を取得
+        path = os.path.join(
+            self.env.figure_dir, dir2, test_label, train_or_test
+        )
+        if not os.path.exists(path):
+            os.makedirs(path)
+        # 保存
+        plt.savefig(os.path.join(path, file_name + "_" + date_id + ".png"))
 
     # 不確かさのヒストグラムをwandbに送信
 
@@ -613,6 +671,7 @@ class Utils:
         test_label: str,
         date_id: str,
         dir2: str = "histgram",
+        file_name: str = "hist",
         separate_each_ss: bool = False,
         unc: Tensor = None,
         has_caliculated: bool = False,
@@ -620,7 +679,8 @@ class Utils:
         y_pred: Tensor = None,
         log_all_in_one: bool = False,
         n_class: int = 5,
-    ):
+        is_joinplot: bool = False,
+    ) -> None:
         (
             evidence,
             alpha,
@@ -629,7 +689,18 @@ class Utils:
         ) = self.calc_enn_output_from_evidence(evidence=evidence)
         uncertainty = np.array(uncertainty)
 
-        if not separate_each_ss:
+        if is_joinplot:
+            self.make_joinplot(
+                y=y,
+                unc=uncertainty,
+                train_or_test=train_or_test,
+                date_id=date_id,
+                dir2=dir2,
+                test_label=test_label,
+                file_name=file_name,
+            )
+
+        elif not is_joinplot and not separate_each_ss:
             # true_label, false_labelに分類する
             true_label_array = uncertainty[y == y_pred]
             false_label_array = uncertainty[y != y_pred]
@@ -1174,14 +1245,27 @@ class Utils:
 
 
 if __name__ == "__main__":
+    import sys
+
     utils = Utils()
-    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
-        100, 2, 0, 0
-    )
-    x_train = x_train.numpy()
-    plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
-    plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
-    plt.savefig("hoge.png")
+    filepath = os.path.join(os.environ["sleep"], "tmp", "joinplot.png")
+    filedir, _ = os.path.split(filepath)
+    if not filedir:
+        print(f"filedir:{filedir}がありません")
+        sys.exit(1)
+    else:
+        utils.make_joinplot(filepath)
+
+    # ===========================
+    #  archimedes_spiral の実験用
+    # ===========================
+    # (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
+    #     100, 2, 0, 0
+    # )
+    # x_train = x_train.numpy()
+    # plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
+    # plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
+    # plt.savefig("hoge.png")
 
     # ===============
     # make graph test
