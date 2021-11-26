@@ -184,6 +184,9 @@ def main(
             calling_graph="all",
             graph_date_id=date_id,
             is_each_unc=True,
+            n_class=n_class,
+            norm_cm=False,
+            is_joinplot=True,
         )
     # tensorboardのログ
     # if log_tf_projector:
@@ -213,8 +216,8 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
-    EPOCHS = 50
+    TEST_RUN = True
+    EPOCHS = 100
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
