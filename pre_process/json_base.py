@@ -81,6 +81,27 @@ class JsonBase(object):
 
         return list(mapped)
 
+    # 2クラス分類時の形式用のjson読み込みメソッド
+    def make_model_id_list4bin_format(self, *args) -> list:
+        ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
+        mapper = lambda ss: self.json_dict[args[0]][args[1]][args[2]][args[3]][
+            args[4]
+        ][args[5]][ss]
+        nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
+            mapper, ss_list
+        )
+        mapped = map(
+            lambda nr1, nr2, nr3, rem, wake: dict(
+                nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
+            ),
+            nr1_list,
+            nr2_list,
+            nr3_list,
+            rem_list,
+            wake_list,
+        )
+        return list(mapped)
+
     # per_processed_id.jsonのフォーマット作成
     def make_pre_processed_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る

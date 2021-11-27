@@ -5,6 +5,7 @@ from collections import Counter
 
 import tensorflow as tf
 from tensorflow.keras.metrics import (
+    BinaryAccuracy,
     FalseNegatives,
     FalsePositives,
     Precision,
@@ -18,13 +19,30 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.utils import set_seed
+
+# from nn.utils import set_seed
 from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 
 
+def set_seed(seed=200):
+    import random
+
+    import numpy as np
+
+    tf.random.set_seed(seed)
+    # optional
+    # for numpy.random
+    np.random.seed(seed)
+    # for built-in random
+    random.seed(seed)
+    # for hash seed
+    os.environ["PYTHONHASHSEED"] = str(seed)
+
+
 def main(
+    test_run: bool,
     dropout_rate: float,
     has_dropout: bool,
     log_tf_projector: bool,
@@ -135,14 +153,14 @@ def main(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
             metrics=[
-                "accuracy",
-                "mse",
+                BinaryAccuracy(name="bn"),
                 Precision(name="precision"),
                 Recall(name="recall"),
                 TruePositives(name="tp"),
                 FalseNegatives(name="fn"),
                 TrueNegatives(name="tn"),
                 FalsePositives(name="fp"),
+                "mse",
             ],
         )
 
@@ -197,14 +215,24 @@ def main(
             graph_person_id=test_name,
             calling_graph="all",
             graph_date_id=date_id,
-            is_each_unc=True,
+            is_each_unc=False,
             n_class=n_class,
+            norm_cm=True,
+            is_joinplot=True,
         )
     # tensorboardのログ
-    # if log_tf_projector:
-    #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
+    if log_tf_projector:
+        utils.make_tf_projector(
+            x=x_test,
+            y=y_test,
+            batch_size=batch_size,
+            hidden_layer_id=-7,
+            log_dir=log_dir,
+            data_type=data_type,
+            model=model,
+        )
 
-    if save_model:
+    if save_model is True and test_run is False:
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
         model.save(path)
@@ -214,7 +242,6 @@ def main(
 if __name__ == "__main__":
     # 環境設定
     CALC_DEVICE = "gpu"
-    # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
@@ -227,7 +254,7 @@ if __name__ == "__main__":
         tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     EPOCHS = 20
     HAS_ATTENTION = True
     PSE_DATA = False
@@ -240,7 +267,7 @@ if __name__ == "__main__":
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
-    SAVE_MODEL = True
+    SAVE_MODEL = False
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 2
@@ -288,6 +315,7 @@ if __name__ == "__main__":
     for target_ss in TARGET_SS:
         date_id_saving_list = list()
         for test_id, test_name in enumerate(pre_process.name_list):
+            test_name = test_name[7:] + "_" + test_name[:6]
             date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             date_id_saving_list.append(date_id)
             (train, test) = pre_process.split_train_test_from_records(
@@ -324,8 +352,9 @@ if __name__ == "__main__":
                 "target_ss": target_ss,
             }
             main(
+                test_run=TEST_RUN,
                 has_dropout=True,
-                log_tf_projector=True,
+                log_tf_projector=False,
                 name=test_name,
                 project=WANDB_PROJECT,
                 pre_process=pre_process,
@@ -351,7 +380,14 @@ if __name__ == "__main__":
                 dropout_rate=DROPOUT_RATE,
                 target_ss=target_ss,
             )
-        if SAVE_MODEL:
+            # testの時は一人の被験者で止める
+            if TEST_RUN:
+                print(PyColor.RED_FLASH, "テストランのため終了します01", PyColor.END)
+                break
+        if TEST_RUN:
+            print(PyColor.RED_FLASH, "テストランのため終了します02", PyColor.END)
+            break
+        if SAVE_MODEL and TEST_RUN == False:
             # json に書き込み
             JB.dump(
                 keys=[
@@ -368,6 +404,3 @@ if __name__ == "__main__":
                 ],
                 value=date_id_saving_list,
             )
-        # testの時は一人の被験者で止める
-        if TEST_RUN:
-            break

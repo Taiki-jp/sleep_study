@@ -9,6 +9,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
 from imblearn.over_sampling import SMOTE
+from numpy.lib.shape_base import vsplit
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
@@ -62,6 +63,61 @@ class PreProcess:
 
     # データセットの作成（この中で出来るだけ正規化なども含めて終わらせる）
     # TODO: データ選択方法の見直し
+    def make_test_data(
+        self,
+        test: list,
+        normalize: bool,
+        catch_none: bool,
+        insert_channel_axis: bool,
+        to_one_hot_vector: bool,
+        class_size: int,
+        n_class_converted: int,
+    ):
+        y_test = self.list2SS(test)
+        if self.data_type == "spectrum":
+            x_test = self.list2Spectrum(test)
+        elif self.data_type == "spectrogram":
+            x_test = self.list2Spectrogram(test)
+        elif self.data_type == "cepstrum":
+            x_test = self.list2Cepstrum(test)
+        else:
+            print("spectrum or spectrogram or cepstrumを指定してください")
+            sys.exit(1)
+        # Noneの処理をするかどうか
+        if catch_none is True:
+            print("- noneの処理を行います")
+            x_test, y_test = self.catch_none(x_test, y_test)
+
+        # max正規化をするかどうか
+        if normalize is True:
+            print("- max正規化を行います")
+            self.max_norm(x_test)
+
+        # 睡眠段階のラベルを0 -（クラス数-1）にする
+        # クラスサイズに合わせて処理を変更する
+        y_test = self.change_label(
+            y_data=y_test,
+            n_class=class_size,
+            n_class_converted=n_class_converted,
+        )
+
+        # inset_channel_axis based on data type
+        if self.data_type == "spectrum" or self.data_type == "cepstrum":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_test = x_test[:, :, np.newaxis]  # .astype('float32')
+        elif self.data_type == "spectrogram":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_test = x_test[:, :, :, np.newaxis]  # .astype('float32')
+
+        # convert to one-hot vector
+        if to_one_hot_vector:
+            print("- one-hotベクトルを出力します")
+            y_test = tf.one_hot(y_test, class_size)
+
+        return (x_test, y_test)
+
     def make_dataset(
         self,
         train=None,
@@ -97,7 +153,7 @@ class PreProcess:
         if self.verbose == 0:
             print("- 訓練データのサイズを揃えます")
 
-        # 各睡眠段階のサイズを決定する
+        # 各睡眠段階のサイズを訓練データのために決定する
         ss_dict_train = self.set_datasize(
             train,
             target_ss=target_ss,
@@ -105,7 +161,6 @@ class PreProcess:
             each_data_size=each_data_size,
             class_size=class_size,
         )
-        ss_dict_test = Counter([record.ss for record in test])
 
         # 補正前の各睡眠段階のクラス数の表示
         if self.verbose == 0:

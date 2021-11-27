@@ -298,16 +298,6 @@ class Utils:
         plt.close()
         return
 
-    def write_bin_class_result(
-        self,
-        filepath: str,
-        alpha: ndarray,
-        env_list: ndarray,
-        unc_list: ndarray,
-        y_pred_list: ndarray,
-    ):
-        pd.DataFrame()
-
     # DataFrameをcsv出力する
     def to_csv(self, df: pd.DataFrame, path: str, edit_mode: str):
         if edit_mode == "append":

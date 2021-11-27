@@ -4,11 +4,50 @@ import sys
 
 import numpy as np
 import tensorflow as tf
+from numpy.lib.function_base import kaiser
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
+
+# 2クラス分類のモデル読み込み用関数
+
+
+def load_bin_model(
+    loaded_name: str,
+    verbose: int,
+    is_all: bool,
+    ss_id: str,
+    ss: str = "",
+) -> list:
+    # 表示するかどうか
+    if verbose != 0:
+        print(PyColor.GREEN, f"*** {loaded_name}のモデルを読み込みます ***", PyColor.END)
+
+    # モデルの読み込みメソッド
+    def _load_model(ss):
+        filepath = os.path.join(
+            os.environ["sleep"], "models", loaded_name, ss_id[ss]
+        )
+        if not os.path.exists(filepath):
+            print(PyColor.RED_FLASH, f"{filepath}は存在しません", PyColor.END)
+            sys.exit(1)
+        model = tf.keras.models.load_model(
+            filepath, custom_objects={"EDLLoss": EDLLoss(K=2, annealing=0.1)}
+        )
+        return model
+
+    if is_all:
+        tmp = list()
+        print(PyColor.GREEN, "全ての睡眠段階のモデルを読み込みます", PyColor.END)
+        for ss in ["nr1", "nr2", "nr3", "rem", "wake"]:
+            tmp.append(_load_model(ss=ss))
+    else:
+        tmp = list()
+        print(PyColor.GREEN, f"{ss}の睡眠段階のモデルを読み込みます", PyColor.END)
+        tmp.append(_load_model(ss))
+    return tmp
 
 
 # モデルの読み込み用関数
