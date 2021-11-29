@@ -19,26 +19,10 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-
-# from nn.utils import set_seed
+from nn.utils import set_seed
 from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
-
-
-def set_seed(seed=200):
-    import random
-
-    import numpy as np
-
-    tf.random.set_seed(seed)
-    # optional
-    # for numpy.random
-    np.random.seed(seed)
-    # for built-in random
-    random.seed(seed)
-    # for hash seed
-    os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 def main(
