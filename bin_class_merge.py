@@ -1,7 +1,9 @@
 import datetime
 import os
+import sys
 from typing import List
 
+import pandas as pd
 import tensorflow as tf
 from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 
@@ -44,60 +46,84 @@ def main(
     model = load_bin_model(
         loaded_name=test_name, verbose=0, is_all=True, ss_id=date_id
     )
-    # データがキャッチできていない場合はreturn
+    # モデルが一つでもない場合はreturn
     if any(model) is None:
         print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
         return
 
     # 5つのモデルでevidenceを出力
     evd_list = list()
+    alp_list = list()
+    unc_list = list()
+    y_pred_list = list()
     for _model in model:
-        evd_list.append(_model.predict(x_test, batch_size=batch_size))
-    # evidence各クラス分類の結果に変換
-    (
-        alp_list,
-        env_list,
-        unc_list,
-        y_pred_list,
-    ) = utils.calc_enn_output_from_evidence(evidence=evd_list)
-    # csv出力
-    # utils.write_bin_class_result(filepath=filepath, alp_list, env_list, unc_list, y_pred_list)
-
-    # ベースモデルの不確実なデータセットに対する一致率を計算しwandbに送信
-    for base_or_positive, _model in zip(
-        ("base", "positive"), (model, positive_model)
-    ):
-        Utils().calc_ss_acc(
-            x=_x_test,
-            y=_y_test,
-            model=_model,
-            n_class=n_class,
-            batch_size=batch_size,
-            base_or_positive=base_or_positive,
+        _evd = _model.predict(x_test, batch_size=batch_size)
+        evd_list.append(_evd)
+        _alp, _, _unc, _y_pred = utils.calc_enn_output_from_evidence(
+            evidence=_evd
         )
+        alp_list.append(_alp)
+        unc_list.append(_unc)
+        y_pred_list.append(_y_pred)
 
-    # # クレンジング後のデータに対してグラフを作成
-    # 不確実性の高いデータのみで一致率を計算
-    evidence_base = model.predict(_x_test, batch_size=batch_size)
-    evidence_positive = positive_model.predict(_x_test)
+    # y_test, y_pred, uncの順に結合する
+    y_pred_list.extend(unc_list)
+    y_pred_list.append(list(y_test))
+    # 行列方向を入れ替える
+    output_df = pd.DataFrame(y_pred_list).T
+    # csv出力
+    # test_nameのNone check
+    try:
+        assert test_name is not None
+    except AssertionError("testname is none"):
+        sys.exit(1)
+    filepath = os.path.join(
+        os.environ["sleep"], "log", "bin_merge", f"output_{test_name}.csv"
+    )
+    # path check
+    filedir, _ = os.path.split(filepath)
+    if not os.path.exists(filedir):
+        print(PyColor.RED_FLASH, f"filedir:{filedir}を作成します", PyColor.END)
+        os.makedirs(filedir)
+    # show filename
+    print(PyColor.RED_FLASH, f"saving {filepath} ...", PyColor.END)
+    output_df.to_csv(filepath)
 
-    # 睡眠段階の予測
-    _, _, _, y_pred_base = utils.calc_enn_output_from_evidence(
-        evidence=evidence_base
-    )
-    _, _, _, y_pred_pos = utils.calc_enn_output_from_evidence(
-        evidence=evidence_positive
-    )
-    # 一致率の計算
-    # acc_base = utils.calc_acc_from_pred(
-    #     y_true=_y_test.numpy(), y_pred=y_pred_base, log_label="base"
+    # # ベースモデルの不確実なデータセットに対する一致率を計算しwandbに送信
+    # for base_or_positive, _model in zip(
+    #     ("base", "positive"), (model, positive_model)
+    # ):
+    #     Utils().calc_ss_acc(
+    #         x=_x_test,
+    #         y=_y_test,
+    #         model=_model,
+    #         n_class=n_class,
+    #         batch_size=batch_size,
+    #         base_or_positive=base_or_positive,
+    #     )
+
+    # # # クレンジング後のデータに対してグラフを作成
+    # # 不確実性の高いデータのみで一致率を計算
+    # evidence_base = model.predict(_x_test, batch_size=batch_size)
+    # evidence_positive = positive_model.predict(_x_test)
+
+    # # 睡眠段階の予測
+    # _, _, _, y_pred_base = utils.calc_enn_output_from_evidence(
+    #     evidence=evidence_base
     # )
-    # acc_sub = utils.calc_acc_from_pred(
-    #     y_true=_y_test.numpy(), y_pred=y_pred_pos, log_label="sub"
+    # _, _, _, y_pred_pos = utils.calc_enn_output_from_evidence(
+    #     evidence=evidence_positive
     # )
-    # # csv出力
-    # output_path = "20211018_for_box_plot.csv"
-    # utils.to_csv(df_result, path=output_path, edit_mode="append")
+    # # 一致率の計算
+    # # acc_base = utils.calc_acc_from_pred(
+    # #     y_true=_y_test.numpy(), y_pred=y_pred_base, log_label="base"
+    # # )
+    # # acc_sub = utils.calc_acc_from_pred(
+    # #     y_true=_y_test.numpy(), y_pred=y_pred_pos, log_label="sub"
+    # # )
+    # # # csv出力
+    # # output_path = "20211018_for_box_plot.csv"
+    # # utils.to_csv(df_result, path=output_path, edit_mode="append")
 
 
 if __name__ == "__main__":
@@ -162,6 +188,7 @@ if __name__ == "__main__":
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, model_date_list)
     ):
+        # 2クラス分類の時はこれで作ってしまっているのでこれに合わせるしかない
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id
         )
