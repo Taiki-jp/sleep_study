@@ -315,7 +315,6 @@ if __name__ == "__main__":
     for target_ss in TARGET_SS:
         date_id_saving_list = list()
         for test_id, test_name in enumerate(pre_process.name_list):
-            test_name = test_name[7:] + "_" + test_name[:6]
             date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             date_id_saving_list.append(date_id)
             (train, test) = pre_process.split_train_test_from_records(
