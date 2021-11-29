@@ -86,7 +86,16 @@ class JsonBase(object):
         ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
         mapper = lambda ss: self.json_dict[args[0]][args[1]][args[2]][args[3]][
             args[4]
-        ][args[5]][ss]
+        ][args[5]][args[6]][ss]
+
+        # これでもlambda関数と同じことが起こる
+        # def _mapper(ss) -> list:
+        #     return self.json_dict[args[0]][args[1]][args[2]][args[3]][args[4]][
+        #         args[5]r
+        #     ][ss]
+
+        # nr1_list = _mapper(ss_list[0])
+
         nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
             mapper, ss_list
         )
