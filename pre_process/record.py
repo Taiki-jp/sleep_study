@@ -16,11 +16,12 @@ class Record(object):
     ss: int = None
 
 
-def multipleRecords(num):
-    tmp = []
-    for _ in range(num):
-        tmp.append(Record())
-    return tmp
+# 複数レコードの作成
+make_mul_records = lambda num: [Record() for _ in range(num)]
+
+# TODO: 削除予定（上のラムダ式に移行して問題がなければ削除）
+# def multipleRecords(num):
+#     return [Record() for _ in range(num)]
 
 
 if __name__ == "__main__":
@@ -28,5 +29,6 @@ if __name__ == "__main__":
     from data_analysis.py_color import PyColor
 
     record = Record()
+    records = make_mul_records(10)
     for key, val in record.__dict__.items():
         print(PyColor.GREEN, f"key : {key}, ", f"val : {val}", PyColor.END)
