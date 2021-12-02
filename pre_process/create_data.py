@@ -357,6 +357,7 @@ class CreateData(object):
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
         records = multipleRecords(record_len)
+        # stride(4) * ss_term(30)インデント毎に作成
         start_points_list = [
             i
             for i in range(0, stride * record_len * ss_term, stride * ss_term)
