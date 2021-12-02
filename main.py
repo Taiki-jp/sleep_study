@@ -11,10 +11,12 @@ import tensorflow as tf
 tf.random.set_seed(100)
 import datetime
 from collections import Counter
-
-from tensorflow.python.framework.ops import Tensor
+from typing import Any, Dict, List, Tuple, Union
 
 import wandb
+from tensorflow.python.framework.ops import Tensor
+from wandb.keras import WandbCallback
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -24,7 +26,6 @@ from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 from pre_process.record import Record
-from wandb.keras import WandbCallback
 
 
 def main(
@@ -33,12 +34,12 @@ def main(
     log_tf_projector: bool,
     name: str,
     project: str,
-    train: list,
-    test: list,
+    train: List[Record],
+    test: List[Record],
     pre_process: PreProcess,
     epochs: int = 1,
     save_model: bool = False,
-    my_tags: list = None,
+    my_tags: List[str] = None,
     batch_size: int = 32,
     n_class: int = 5,
     pse_data: bool = False,
@@ -49,7 +50,7 @@ def main(
     data_type: str = None,
     sample_size: int = 0,
     is_enn: bool = True,
-    wandb_config: dict = dict(),
+    wandb_config: Dict[str, Any] = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     utils: Utils = None,
@@ -213,7 +214,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
