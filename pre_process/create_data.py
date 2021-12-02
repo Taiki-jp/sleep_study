@@ -11,7 +11,7 @@ from scipy.signal import hamming
 from tqdm import tqdm
 
 from data_analysis.py_color import PyColor
-from pre_process.record import Record, multipleRecords
+from pre_process.record import Record, make_mul_records
 
 
 class CreateData(object):
@@ -249,7 +249,7 @@ class CreateData(object):
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
         print(f"make {record_len} spectrum datas")
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
         # スタートポイントはストライドのサイズでずらして、
         # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
@@ -302,7 +302,7 @@ class CreateData(object):
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
         print(f"make {record_len} spectrum datas")
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
         # スタートポイントはストライドのサイズでずらして、
         # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
@@ -356,7 +356,7 @@ class CreateData(object):
         record_len = (
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
         # stride(4) * ss_term(30)インデント毎に作成
         start_points_list = [
             i
@@ -406,7 +406,7 @@ class CreateData(object):
         recordLen = int(
             loopLen / timeLen
         )  # record オブジェクトを作る回数（128回のfftに関して1回作る）
-        records = multipleRecords(recordLen)
+        records = make_mul_records(recordLen)
 
         def _make():
             for i, record in enumerate(tqdm(records)):
