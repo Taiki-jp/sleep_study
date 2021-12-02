@@ -202,19 +202,19 @@ def main(
             is_each_unc=False,
             n_class=n_class,
             norm_cm=True,
-            is_joinplot=True,
+            is_joinplot=False,
         )
     # tensorboardのログ
-    if log_tf_projector:
-        utils.make_tf_projector(
-            x=x_test,
-            y=y_test,
-            batch_size=batch_size,
-            hidden_layer_id=-7,
-            log_dir=log_dir,
-            data_type=data_type,
-            model=model,
-        )
+    # if log_tf_projector:
+    #     utils.make_tf_projector(
+    #         x=x_test,
+    #         y=y_test,
+    #         batch_size=batch_size,
+    #         hidden_layer_id=-7,
+    #         log_dir=log_dir,
+    #         data_type=data_type,
+    #         model=model,
+    #     )
 
     if save_model is True and test_run is False:
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
@@ -238,8 +238,8 @@ if __name__ == "__main__":
         tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
-    EPOCHS = 20
+    TEST_RUN = False
+    EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -251,14 +251,14 @@ if __name__ == "__main__":
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
-    SAVE_MODEL = False
+    SAVE_MODEL = True
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 2
     # KERNEL_SIZE = 512
     KERNEL_SIZE = 256
     STRIDE = 16
-    SAMPLE_SIZE = 1000
+    SAMPLE_SIZE = 6000
     TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"

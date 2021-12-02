@@ -136,7 +136,7 @@ class PreProcess:
         to_one_hot_vector=True,
         pse_data=False,
         n_class_converted: int = 5,
-    ):
+    ) -> tuple:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
@@ -195,7 +195,7 @@ class PreProcess:
                 ss = target_records[0].ss
                 # 2クラス分類かつtarget_ssと睡眠段階が一致するときは他のクラスの4倍のデータを作成する
                 if ss in self.ss2int(target_ss):
-                    _selected_list = choices(target_records, k=data[ss] * 4)
+                    _selected_list = choices(target_records, k=data[ss] * 2)
                 else:
                     if is_multiply or mul_num is not None:
                         raise Exception("Unknown value is specified")
@@ -392,8 +392,18 @@ class PreProcess:
     ):
 
         if isStorchastic:
-            print("確率的サンプリングを実装し直しましょう")
-            sys.exit(1)
+            print(
+                PyColor.GREEN_FLASH,
+                "確率的サンプリング（2クラス分類時に他クラスのラベルを増やすために実装下部分です",
+                PyColor.END,
+            )
+            return {
+                1: each_data_size,
+                2: each_data_size,
+                3: each_data_size,
+                4: each_data_size,
+                5: each_data_size,
+            }
         else:
             if class_size == 5:  # NR34, NR2, NR1, REM, WAKE
                 if self.has_nrem2_bias:
