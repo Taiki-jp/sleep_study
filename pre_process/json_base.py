@@ -79,6 +79,7 @@ class JsonBase(object):
     # per_processed_id.jsonのフォーマット作成
     def make_pre_processed_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
+        os_version = ["win_249", "spica-2nd"]
         dataset = ["normal_prev", "normal_follow", "sas_prev", "sas_follow"]
         preprocess_type = ["spectrum", "spectrogram", "cepstrum"]
         ss_pos = ["bottom", "middle", "top"]
@@ -87,7 +88,8 @@ class JsonBase(object):
 
         # 辞書の初期値のみをループとは別に作成しておく
         kernel_d = {_kernel: "" for _kernel in kernel}
-        list4loop = [stride, ss_pos, preprocess_type, dataset]
+        # リストの後ろにあるものほど、後にループ処理がかかるのでJsonの浅い場所のキーとなる
+        list4loop = [stride, ss_pos, preprocess_type, dataset, os_version]
         for _list4loop in list4loop:
             merged_d = {__list4loop: kernel_d for __list4loop in _list4loop}
             kernel_d = merged_d.copy()
@@ -104,6 +106,7 @@ class JsonBase(object):
     # model_id.jsonのフォーマット作成
     def make_model_id_format(self) -> None:
         # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
+        os_version = ["win_249", "spica-2nd"]
         dataset = [
             "normal_prev",
             "normal_follow",
@@ -133,6 +136,7 @@ class JsonBase(object):
             preprocess_type,
             model_type,
             dataset,
+            os_version,
         ]
         for _list4loop in list4loop:
             merged_d = {
@@ -228,7 +232,7 @@ class JsonBase(object):
 
 if __name__ == "__main__":
     filenames = [
-        # "pre_processed_id.json",
+        "pre_processed_id.json",
         "model_id.json",
         # "my_color.json",
         # "ss.json",
