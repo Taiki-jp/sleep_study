@@ -78,7 +78,11 @@ def main(
     except AssertionError("testname is none"):
         sys.exit(1)
     filepath = os.path.join(
-        os.environ["sleep"], "log", "bin_merge", f"output_{test_name}.csv"
+        os.environ["sleep"],
+        "log",
+        "bin_merge",
+        "1_1",
+        f"output_{test_name}.csv",
     )
     # path check
     filedir, _ = os.path.split(filepath)
@@ -188,6 +192,7 @@ if __name__ == "__main__":
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, model_date_list)
     ):
+        test_name = test_name[7:] + "_" + test_name[:6]
         # 2クラス分類の時はこれで作ってしまっているのでこれに合わせるしかない
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id
