@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -158,6 +159,7 @@ def edl_classifier_1d(
     has_mul_output: bool = False,
     hidden_outputs: bool = False,
     dropout_rate: float = 0,
+    is_simple_rnn: bool = False,
 ):
     # convolution AND batch normalization
     def _conv1d_bn(x, filters, num_col, padding="same", strides=1, name=None):
@@ -230,6 +232,9 @@ def edl_classifier_1d(
                 axis=-1,
                 name="mixed2",
             )
+        if is_simple_rnn:
+            print("TODO: 実装まだです")
+            sys.exit(1)
 
         if has_attention:
             # (13, 13, 1)
@@ -279,6 +284,7 @@ def edl_classifier_2d(
     has_mul_output: bool = False,
     hidden_outputs: bool = False,
     dropout_rate: float = 0,
+    is_simple_rnn: bool = False,
 ):
     # convolution AND batch normalization
     def _conv2d_bn(
@@ -341,6 +347,10 @@ def edl_classifier_2d(
             attention = tf.keras.layers.Activation("sigmoid")(attention)
 
             x *= attention
+
+    # use simple rnn
+    if is_simple_rnn:
+        x = tf.keras.layers.SimpleRNN(128)
 
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(n_class ** 6)(x)

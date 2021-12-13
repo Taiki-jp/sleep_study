@@ -26,6 +26,7 @@ from pre_process.pre_process import PreProcess
 
 
 def main(
+    is_simple_rnn: bool,
     test_run: bool,
     dropout_rate: float,
     has_dropout: bool,
@@ -60,6 +61,7 @@ def main(
         train=train,
         test=test,
         is_storchastic=False,
+        is_shuffle=False,
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
@@ -120,6 +122,7 @@ def main(
             is_mul_layer=is_mul_layer,
             has_dropout=has_dropout,
             dropout_rate=dropout_rate,
+            is_simple_rnn=is_simple_rnn,
         )
     elif data_type == "spectrogram":
         outputs = edl_classifier_2d(
@@ -130,6 +133,7 @@ def main(
             is_mul_layer=is_mul_layer,
             has_dropout=has_dropout,
             dropout_rate=dropout_rate,
+            is_simple_rnn=is_simple_rnn,
         )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
@@ -165,9 +169,9 @@ def main(
     log_dir = os.path.join(
         pre_process.my_env.project_dir, "my_edl", test_name, date_id
     )
-    tf_callback = tf.keras.callbacks.TensorBoard(
-        log_dir=log_dir, histogram_freq=1
-    )
+    # tf_callback = tf.keras.callbacks.TensorBoard(
+    #     log_dir=log_dir, histogram_freq=1
+    # )
 
     model.fit(
         x_train,
@@ -176,7 +180,7 @@ def main(
         validation_data=(x_test, y_test),
         epochs=epochs,
         callbacks=[
-            tf_callback,
+            # tf_callback,
             WandbClassificationCallback(
                 validation_data=(x_test, y_test),
                 log_confusion_matrix=True,
@@ -239,7 +243,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 50
+    EPOCHS = 0
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -251,16 +255,18 @@ if __name__ == "__main__":
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
-    SAVE_MODEL = True
+    SAVE_MODEL = False
+    IS_TIME_SERIES = False
+    IS_SIMPLE_RNN = False
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 2
-    # KERNEL_SIZE = 512
-    KERNEL_SIZE = 256
-    STRIDE = 16
-    SAMPLE_SIZE = 6000
+    SAMPLE_SIZE = 1000
+    # TARGET_SS = ["nr2"]
     TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]
     DATA_TYPE = "spectrogram"
+    STRIDE = 16 if DATA_TYPE == "spectrogram" else 480
+    KERNEL_SIZE = 256 if DATA_TYPE == "spectrogram" else 512
     FIT_POS = "middle"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
@@ -288,6 +294,7 @@ if __name__ == "__main__":
         is_normal=IS_NORMAL,
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
+        is_time_series=IS_TIME_SERIES,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
@@ -362,6 +369,7 @@ if __name__ == "__main__":
                 utils=Utils(),
                 dropout_rate=DROPOUT_RATE,
                 target_ss=target_ss,
+                is_simple_rnn=IS_SIMPLE_RNN,
             )
             # testの時は一人の被験者で止める
             if TEST_RUN:
@@ -370,7 +378,8 @@ if __name__ == "__main__":
         if TEST_RUN:
             print(PyColor.RED_FLASH, "テストランのため終了します02", PyColor.END)
             break
-        if SAVE_MODEL and TEST_RUN == False:
+
+        if SAVE_MODEL == True and TEST_RUN == False:
             # json に書き込み
             JB.dump(
                 keys=[

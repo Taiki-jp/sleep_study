@@ -4,6 +4,7 @@ import os
 import sys
 from collections import Counter
 from random import choice, choices, seed, shuffle
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -15,6 +16,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from data_analysis.py_color import PyColor
 from pre_process.load_sleep_data import LoadSleepData
+from pre_process.record import Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -31,6 +33,7 @@ class PreProcess:
         is_normal: bool,
         has_nrem2_bias: bool = False,
         has_rem_bias: bool = False,
+        is_time_series: bool = False,
     ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -41,6 +44,7 @@ class PreProcess:
         self.is_previous = is_previous
         self.stride = stride
         self.is_normal = is_normal
+        self.is_time_series = is_time_series
         self.load_sleep_data = LoadSleepData(
             data_type=self.data_type,
             fit_pos=self.fit_pos,
@@ -171,9 +175,11 @@ class PreProcess:
             print("訓練データの各睡眠段階（補正後）", ss_dict_train)
 
         # 確率的なサンプリングの実行部分
-        def _storchastic_sampling(data, target_records):
+        def _storchastic_sampling(
+            data: Dict[int, int], target_records: List[Record]
+        ):
             # TODO: 5クラス分類（data.keys()が1,2,3,4,5の時にしか対応していないので、修正）
-            def _splitEachSleepStage():
+            def _splitEachSleepStage() -> List[List[Record]]:
                 each_stage_list = list()
                 for ss in data.keys():
                     # 5クラス分類の時は下のものでよい
@@ -189,13 +195,13 @@ class PreProcess:
             # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
             ss_list = _splitEachSleepStage()
             # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
-            def _sample(target_records):
+            def _sample(target_records: List[Record]) -> List[Record]:
                 # 睡眠段階のラベルを知るために必要
                 # （target_recordsに入っているのは全て同じ睡眠段階なので代表として最初の睡眠段階を取得）
                 ss = target_records[0].ss
-                # 2クラス分類かつtarget_ssと睡眠段階が一致するときは他のクラスの4倍のデータを作成する
+                # 2クラス分類かつtarget_ssと睡眠段階が一致するときは他のクラスのx倍のデータを作成する
                 if ss in self.ss2int(target_ss):
-                    _selected_list = choices(target_records, k=data[ss] * 2)
+                    _selected_list = choices(target_records, k=data[ss])
                 else:
                     if is_multiply or mul_num is not None:
                         raise Exception("Unknown value is specified")
@@ -207,7 +213,11 @@ class PreProcess:
 
             return list(itertools.chain.from_iterable(map(_sample, ss_list)))
 
-        train = _storchastic_sampling(data=ss_dict_train, target_records=train)
+        # 時系列のデータセット作成方法でないときは、確率分布でランダムにとってくる
+        if not self.is_time_series:
+            train = _storchastic_sampling(
+                data=ss_dict_train, target_records=train
+            )
         # 補正後の各睡眠段階のクラス数の表示
         if self.verbose == 0:
             print(
@@ -236,13 +246,13 @@ class PreProcess:
             sys.exit(1)
 
         # Noneの処理をするかどうか
-        if catch_none is True:
+        if catch_none:
             print("- noneの処理を行います")
             x_train, y_train = self.catch_none(x_train, y_train)
             x_test, y_test = self.catch_none(x_test, y_test)
 
         # max正規化をするかどうか
-        if normalize is True:
+        if normalize:
             print("- max正規化を行います")
             self.max_norm(x_train)
             self.max_norm(x_test)
