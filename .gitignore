@@ -6,6 +6,7 @@ __pycache__/
 tmp_save/
 
 *.csv
+*.png
 custom_model/
 
 model_saved_by_save_method/
