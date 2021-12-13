@@ -8,15 +8,16 @@ from data_analysis.utils import Utils
 from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
 from pre_process.json_base import JsonBase
+from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
 from pre_process.tanita_reader import TanitaReader
 
 
 def main():
     # ハイパーパラメータの読み込み
-    DATA_TYPE = "spectrogram"
+    DATA_TYPE = "spectrum"
     FIT_POS_LIST = ["middle"]
-    STRIDE_LIST = [16]
+    STRIDE_LIST = [16 * 30]
     KERNEL_SIZE_LIST = [256]
     IS_NORMAL = True
     IS_PREVIOUS = True
@@ -37,7 +38,7 @@ def main():
                 # オブジェクトの作成
                 CD = CreateData()
                 FR = FileReader()
-                JB = JsonBase("pre_processed_id.json")
+                JB = PreProcessedId("pre_processed_id.json")
                 JB.load()
                 JB.dump(
                     keys=[
