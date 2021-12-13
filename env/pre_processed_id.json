@@ -1,696 +1,2480 @@
 {
-  "normal_follow": {
-    "cepstrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+  "home-pc": {
+    "normal_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_128": "20211213-045626",
+            "kernel_256": "20211213-043800",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_256": "20211029-211151",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_256": "20211028-105954",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrogram": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "normal_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_256": "20211029-211151",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_256": "20211028-105954",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "sas_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      }
+    },
+    "sas_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     }
   },
-  "normal_prev": {
-    "cepstrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+  "spica-2nd": {
+    "normal_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_256": "20211101-033549",
-          "kernel_512": "20211027-015928"
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": "20211101-100010"
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrogram": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "normal_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_256": "20211101-152932",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_128": "20211027-031719",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "sas_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_256": "20211101-034249",
-          "kernel_512": "demo"
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": "20211101-100046"
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      }
+    },
+    "sas_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     }
   },
-  "sas_follow": {
-    "spectrogram": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+  "win_249": {
+    "normal_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "normal_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        }
-      }
-    }
-  },
-  "sas_prev": {
-    "spectrogram": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        }
-      },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        }
-      },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     },
-    "spectrum": {
-      "bottom": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+    "sas_follow": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "middle": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
-        },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       },
-      "top": {
-        "stride_1": {
-          "kernel_1024": "",
-          "kernel_512": ""
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_1024": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_16": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      }
+    },
+    "sas_prev": {
+      "cepstrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_4": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         },
-        "stride_480": {
-          "kernel_1024": "",
-          "kernel_512": ""
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrogram": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        }
+      },
+      "spectrum": {
+        "bottom": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "middle": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
+        },
+        "top": {
+          "stride_1": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_1024": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_16": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_4": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          },
+          "stride_480": {
+            "kernel_1024": "",
+            "kernel_512": ""
+          }
         }
       }
     }
