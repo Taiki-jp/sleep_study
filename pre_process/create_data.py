@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
 from scipy.signal import hamming
-from tqdm import tqdm
 
 from data_analysis.py_color import PyColor
 from pre_process.record import Record, make_mul_records
@@ -144,21 +143,21 @@ class CreateData(object):
                 [i for i in range(kernel_size // 2)]
             ).reshape(kernel_size // 2, -1)
             for _ss_term in range(int(ss_term * 16 / stride)):
+                # 0814_shiraishi のデータでtanita_data["ss"][...]のオブジェクトタイプがfloatと読み込まれず掛け算が出来ないので、numpyに変換したら大丈夫か検証中
                 try:
-                    amped = (
-                        hamming(
-                            len(
-                                tanita_data["ss"][
-                                    start_point
-                                    + _ss_term : end_point
-                                    + 1
-                                    + _ss_term
-                                ]
-                            )
+                    amped = hamming(
+                        len(
+                            tanita_data["ss"][
+                                start_point
+                                + _ss_term : end_point
+                                + 1
+                                + _ss_term
+                            ]
                         )
-                        * tanita_data["ss"][
-                            start_point + _ss_term : end_point + 1 + _ss_term
-                        ]
+                    ) * tanita_data["ss"][
+                        start_point + _ss_term : end_point + 1 + _ss_term
+                    ].astype(
+                        np.float16
                     )
                 except IndexError:
                     print(f"{end_point+1}は tanita の長さを超えてます")
@@ -173,8 +172,8 @@ class CreateData(object):
             record.spectrogram = spectrogram
             record.time = tanita_data["time"].iloc[fit_index]
             # NOTE: 付け焼刃なので後で吟味
-            # もしtanitaの長さを超えていたらFalseを返す
-            if len(tanita_data) < end_point:
+            # もしtanitaの長さ以上を超えていたらFalseを返す
+            if len(tanita_data) <= end_point:
                 return False, None
             _time_tanita = datetime.datetime.strptime(
                 tanita_data["time"].iloc[end_point], "%H:%M:%S"
@@ -263,7 +262,7 @@ class CreateData(object):
         # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        for start_point, record in zip(start_points_list, records):
             (can_make, _fit_index) = self._make(
                 mode="cepstrum",
                 start_point=start_point,
@@ -316,7 +315,7 @@ class CreateData(object):
         # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        for start_point, record in zip(start_points_list, records):
             (can_make, _fit_index) = self._make(
                 mode="spectrum",
                 start_point=start_point,
@@ -372,7 +371,7 @@ class CreateData(object):
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
         # スペクトログラムの作成
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        for start_point, record in zip(start_points_list, records):
             can_make, _fit_index = self._make(
                 mode="spectrogram",
                 start_point=start_point,
@@ -409,7 +408,7 @@ class CreateData(object):
         records = make_mul_records(recordLen)
 
         def _make():
-            for i, record in enumerate(tqdm(records)):
+            for i, record in enumerate(records):
                 spectroGram = list()
                 stop = 0
                 for k in range(timeLen):
