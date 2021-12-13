@@ -1,7 +1,9 @@
-import pandas as pd
 import os
-from pre_process.my_env import MyEnv
+
+import pandas as pd
+
 from data_analysis.py_color import PyColor
+from pre_process.my_env import MyEnv
 
 
 class CsvReader(object):
@@ -29,7 +31,7 @@ class CsvReader(object):
             if self.verbose == 0:
                 print(
                     PyColor.GREEN,
-                    f"*** read {self.person_dir} ***",
+                    f"*** read {file_path} ***",
                     PyColor.END,
                 )
             elif self.verbose == 1:
