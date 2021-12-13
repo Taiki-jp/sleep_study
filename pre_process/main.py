@@ -2,12 +2,15 @@ import datetime
 import os
 import random
 import sys
+from json import load
+
+from tqdm import tqdm
 
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
-from pre_process.json_base import JsonBase
+from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
 from pre_process.tanita_reader import TanitaReader
 
@@ -17,9 +20,10 @@ def main():
     DATA_TYPE = "spectrogram"
     FIT_POS_LIST = ["middle"]
     STRIDE_LIST = [16]
-    KERNEL_SIZE_LIST = [256]
+    KERNEL_SIZE_LIST = [128]
     IS_NORMAL = True
-    IS_PREVIOUS = True
+    IS_PREVIOUS = False
+    VERBOSE = 2
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -35,13 +39,15 @@ def main():
 
                 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 # オブジェクトの作成
+                utils = Utils()
                 CD = CreateData()
                 FR = FileReader()
-                JB = JsonBase("pre_processed_id.json")
-                JB.load()
-                JB.dump(
+                PPI = PreProcessedId()
+                PPI.load()
+                PPI.dump(
                     keys=[
-                        JB.first_key_of_pre_process(
+                        PPI.get_hostkey(),
+                        PPI.first_key_of_pre_process(
                             is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
                         ),
                         DATA_TYPE,
@@ -52,20 +58,23 @@ def main():
                     value="demo",
                     is_pre_dump=True,
                 )
-                utils = Utils()
 
                 target_folders = FR.my_env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
                 )
-                # 実験を効率よくするためにランダムに並べ替える（エラーをはく時に毎回同じ被験者で止まらないようにするため）
+                # To debug efficiently (not to stop the same patient when cause error), sort target_folders randomly
                 target_folders = random.sample(
                     target_folders, len(target_folders)
                 )
 
-                for target in target_folders:
+                for target in tqdm(target_folders):
                     _, name = os.path.split(target)
-                    tanita = TanitaReader(target, is_previous=IS_PREVIOUS)
-                    psg = PsgReader(target, is_previous=IS_PREVIOUS)
+                    tanita = TanitaReader(
+                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    )
+                    psg = PsgReader(
+                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    )
                     tanita.read_csv()
                     psg.read_csv()
                     # 最初の時間がそろっていることを確認する
@@ -97,14 +106,10 @@ def main():
                         records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
                     )
 
-                # jsonへの書き込み
-                # TODO: normal_prevに書き込むようになっているので、
-                # 1. 過去の被験者かどうか
-                # 2. SAS患者かどうか
-                # に応じて一つ目のキーに渡す文字列を変更する
-                JB.dump(
+                PPI.dump(
                     keys=[
-                        JB.first_key_of_pre_process(
+                        PPI.hostkey,
+                        PPI.first_key_of_pre_process(
                             is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
                         ),
                         DATA_TYPE,
