@@ -1,32 +1,26 @@
 import os
 import sys
 
-from tensorflow import keras
-
-# from nn.wandb_classification_callback import WandbClassificationCallback
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-
-tf.random.set_seed(100)
 import datetime
 from collections import Counter
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List
 
-from tensorflow.python.framework.ops import Tensor
+import tensorflow as tf
 
 import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.model_id import ModelId
 
 # from nn.metrics import CategoricalTruePositives
-from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 from pre_process.record import Record
-from wandb.keras import WandbCallback
+
+# from wandb.keras import WandbCallback
 
 
 def main(
@@ -88,14 +82,14 @@ def main(
     }
     # wandb_config.update(added_config)
     # wandbの初期化
-    # wandb.init(
-    #     name=name,
-    #     project=project,
-    #     tags=my_tags,
-    #     config=wandb_config,
-    #     sync_tensorboard=True,
-    #     dir=pre_process.my_env.project_dir,
-    # )
+    wandb.init(
+        name=name,
+        project=project,
+        tags=my_tags,
+        config=wandb_config,
+        sync_tensorboard=True,
+        dir=pre_process.my_env.project_dir,
+    )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
@@ -165,17 +159,17 @@ def main(
         epochs=epochs,
         callbacks=[
             tf_callback,
-            # WandbClassificationCallback(
-            #     validation_data=(x_test, y_test),
-            #     log_confusion_matrix=True,
-            #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            # ),
+            WandbClassificationCallback(
+                validation_data=(x_test, y_test),
+                log_confusion_matrix=True,
+                labels=["nr34", "nr2", "nr1", "rem", "wake"],
+            ),
         ],
         verbose=2,
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_test)
-    tuple_y = (y_train, y_test)
+    # tuple_x = (x_train, x_test)
+    # tuple_y = (y_train, y_test)
     # for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
     #     evidence = model.predict(_x)
     #     utils.make_graphs(
@@ -195,7 +189,7 @@ def main(
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
         model.save(path)
-    # wandb.finish()
+    wandb.finish()
 
 
 if __name__ == "__main__":
@@ -215,7 +209,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
@@ -244,7 +238,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "master"
+    WANDB_PROJECT = "test" if TEST_RUN else "1215_test"
     # WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
@@ -291,21 +285,21 @@ if __name__ == "__main__":
             f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
         ]
 
-        # wandb_config = {
-        #     "test name": test_name,
-        #     "date id": date_id,
-        #     "sample_size": SAMPLE_SIZE,
-        #     "epochs": EPOCHS,
-        #     "kernel": KERNEL_SIZE,
-        #     "stride": STRIDE,
-        #     "fit_pos": FIT_POS,
-        #     "batch_size": BATCH_SIZE,
-        #     "n_class": N_CLASS,
-        #     "has_nrem2_bias": HAS_NREM2_BIAS,
-        #     "has_rem_bias": HAS_REM_BIAS,
-        #     "model_type": ENN_TAG,
-        #     "data_type": DATA_TYPE,
-        # }
+        wandb_config = {
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+            "has_nrem2_bias": HAS_NREM2_BIAS,
+            "has_rem_bias": HAS_REM_BIAS,
+            "model_type": ENN_TAG,
+            "data_type": DATA_TYPE,
+        }
         main(
             has_dropout=True,
             log_tf_projector=True,

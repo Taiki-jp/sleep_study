@@ -31,7 +31,7 @@ class JsonBase(object):
         self.preprocess_type = ["spectrum", "spectrogram", "cepstrum"]
         self.ss_pos = ["bottom", "middle", "top"]
         self.stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        self.kernel = ["kernel_" + str(i) for i in (512, 1024)]
+        self.kernel = ["kernel_" + str(i) for i in (128, 256, 512, 1024)]
         self.added_key = ["birth", "sex", "sleeping_time"]
         self.subjects_list = [
             "H_Li",
@@ -365,12 +365,12 @@ class JsonBase(object):
 
 if __name__ == "__main__":
     filenames = [
-        "pre_processed_id.json",
+        # "pre_processed_id.json",
         "model_id.json",
         # "my_color.json",
-        "ss.json",
-        "subjects_list.json",
-        "subjects_info.json",
+        # "ss.json",
+        # "subjects_list.json",
+        # "subjects_info.json",
     ]
     for _filenames in filenames:
         jb = JsonBase(_filenames)
