@@ -20,6 +20,7 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.model_id import ModelId
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.json_base import JsonBase
@@ -246,9 +247,6 @@ if __name__ == "__main__":
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
-    # 記録用のjsonファイルを読み込む
-    JB = JsonBase("model_id.json")
-    JB.load()
     # オブジェクトの作成
     pre_process = PreProcess(
         data_type=DATA_TYPE,
@@ -261,6 +259,8 @@ if __name__ == "__main__":
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
     )
+    # 記録用のjsonファイルを読み込む
+    MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True,
         pse_data=PSE_DATA,
@@ -334,9 +334,9 @@ if __name__ == "__main__":
         if TEST_RUN:
             break
     # json に書き込み
-    JB.dump(
+    MI.dump(
         keys=[
-            JB.first_key_of_pre_process(
+            MI.first_key_of_pre_process(
                 is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
             ),
             ENN_TAG,
