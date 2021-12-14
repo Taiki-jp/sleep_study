@@ -47,6 +47,8 @@ class Utils:
         fit_pos,
         stride,
         kernel_size,
+        model_type,
+        cleansing_type,
         ss_list=None,
         catch_nrem2: bool = False,
     ) -> None:
@@ -58,6 +60,8 @@ class Utils:
             fit_pos=fit_pos,
             stride=stride,
             kernel_size=kernel_size,
+            model_type=model_type,
+            cleansing_type=cleansing_type,
         )
         self.env = self.fr.my_env
         # self.name_list = self.fr.sl.name_list
