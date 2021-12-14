@@ -343,8 +343,8 @@ class JsonBase(object):
     def get_hostkey(self) -> str:
         if self.hostname == "DESKTOP-0CSCRP7":
             return "home-pc"
-        elif self.hostname == "spica-2nd":
-            return self.hostname
+        elif self.hostname == "Spica-2nd":
+            return "spica-2nd"
         elif self.hostname == "DESKTOP-TPBSQ67":
             return "win_249"
 
