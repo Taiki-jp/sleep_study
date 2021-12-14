@@ -13,6 +13,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from data_analysis.py_color import PyColor
 from pre_process.load_sleep_data import LoadSleepData
+from pre_process.my_env import MyEnv
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -39,7 +40,7 @@ class PreProcess:
         self.is_previous = is_previous
         self.stride = stride
         self.is_normal = is_normal
-        self.load_sleep_data = LoadSleepData(
+        self.load_sleep_data: LoadSleepData = LoadSleepData(
             data_type=self.data_type,
             fit_pos=self.fit_pos,
             verbose=self.verbose,
@@ -53,7 +54,7 @@ class PreProcess:
         # LoadSleepData の参照を作成
         self.fr = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
-        self.my_env = self.load_sleep_data.my_env
+        self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく
         self.name_list = self.sl.set_name_list(
             is_previous=self.is_previous, is_normal=self.is_normal
