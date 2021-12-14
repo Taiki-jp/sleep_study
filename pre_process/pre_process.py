@@ -12,6 +12,7 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from data_analysis.py_color import PyColor
+from pre_process.file_reader import FileReader
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.my_env import MyEnv
 
@@ -28,8 +29,10 @@ class PreProcess:
         is_previous: bool,
         stride: int,
         is_normal: bool,
+        cleansing_type: str,
         has_nrem2_bias: bool = False,
         has_rem_bias: bool = False,
+        model_type: str = "",
     ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -39,6 +42,7 @@ class PreProcess:
         self.kernel_size = kernel_size
         self.is_previous = is_previous
         self.stride = stride
+        self.model_type = model_type
         self.is_normal = is_normal
         self.load_sleep_data: LoadSleepData = LoadSleepData(
             data_type=self.data_type,
@@ -48,11 +52,13 @@ class PreProcess:
             is_previous=self.is_previous,
             stride=self.stride,
             is_normal=self.is_normal,
+            model_type=self.model_type,
+            cleansing_type=cleansing_type,
         )
         self.has_nrem2_bias = has_nrem2_bias
         self.has_rem_bias = has_rem_bias
         # LoadSleepData の参照を作成
-        self.fr = self.load_sleep_data.fr
+        self.fr: FileReader = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
         self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく

@@ -16,6 +16,8 @@ class MyEnv:
         fit_pos,
         stride,
         kernel_size,
+        model_type: str = "",
+        cleansing_type: str = "",
     ) -> None:
         self.is_normal = is_normal
         self.is_previous = is_previous
@@ -23,6 +25,8 @@ class MyEnv:
         self.fit_pos = fit_pos
         self.stride = stride
         self.kernel_size = kernel_size
+        self.model_type = model_type
+        self.cleansing_type = cleansing_type
         self.project_dir: str = os.environ["sleep"]
         self.figure_dir: str = os.path.join(self.project_dir, "figures")
         self.video_dir: str = os.path.join(self.project_dir, "videos")
@@ -57,6 +61,8 @@ class MyEnv:
             fit_pos=self.fit_pos,
             stride=self.stride,
             kernel=self.kernel_size,
+            model_type=self.model_type,
+            cleansing_type=self.cleansing_type,
         )
 
     # 生データの被験者までのフォルダパスを指定する

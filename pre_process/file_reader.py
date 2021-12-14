@@ -17,6 +17,8 @@ class FileReader(object):
         fit_pos,
         stride,
         kernel_size,
+        model_type,
+        cleansing_type,
     ) -> None:
 
         self.sl: SubjectsList = SubjectsList()
@@ -27,6 +29,8 @@ class FileReader(object):
             fit_pos,
             stride,
             kernel_size,
+            model_type,
+            cleansing_type,
         )
         self.ppi = self.my_env.ppi
         self.sl.load()

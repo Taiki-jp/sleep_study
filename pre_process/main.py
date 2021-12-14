@@ -45,6 +45,8 @@ def main():
                     FIT_POS,
                     STRIDE,
                     KERNEL_SIZE,
+                    model_type="pass",
+                    cleansing_type="",
                 )
                 CD = CreateData()
                 FR = FileReader(
@@ -54,6 +56,8 @@ def main():
                     FIT_POS,
                     STRIDE,
                     KERNEL_SIZE,
+                    model_type="pass",
+                    cleansing_type="",
                 )
                 PPI = FR.my_env.ppi
                 PPI.dump(is_pre_dump=True)

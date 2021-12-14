@@ -19,6 +19,7 @@ class LoadSleepData:
     def __init__(
         self,
         data_type: str,
+        cleansing_type: str,
         verbose: int = 0,
         fit_pos: str = "",
         kernel_size: int = 0,
@@ -26,6 +27,7 @@ class LoadSleepData:
         stride: int = 0,
         is_normal: bool = False,
         hostkey: str = "",
+        model_type: str = "",
     ):
         self.fr = FileReader(
             is_normal,
@@ -34,6 +36,8 @@ class LoadSleepData:
             fit_pos,
             stride,
             kernel_size,
+            model_type,
+            cleansing_type=cleansing_type,
         )
         self.sl = self.fr.sl
         self.my_env = self.fr.my_env
