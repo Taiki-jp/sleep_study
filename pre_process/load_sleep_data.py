@@ -25,8 +25,16 @@ class LoadSleepData:
         is_previous: bool = False,
         stride: int = 0,
         is_normal: bool = False,
+        hostkey: str = "",
     ):
-        self.fr = FileReader()
+        self.fr = FileReader(
+            is_normal,
+            is_previous,
+            data_type,
+            fit_pos,
+            stride,
+            kernel_size,
+        )
         self.sl = self.fr.sl
         self.my_env = self.fr.my_env
         self.data_type = data_type
@@ -63,11 +71,8 @@ class LoadSleepData:
 
             for name in subjects:
                 path = self.my_env.set_processed_filepath(
-                    is_previous=self.is_previous,
                     subject=name,
-                    stride=self.stride,
                     fit_pos=self.fit_pos,
-                    kernel_size=self.kernel_size,
                     data_type=self.data_type,
                 )
                 print(PyColor.GREEN, f"{name} を読み込みます", PyColor.END)
