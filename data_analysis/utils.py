@@ -33,16 +33,32 @@ from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
 from pre_process.file_reader import FileReader
-from pre_process.load_sleep_data import LoadSleepData
 from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
 
 # 便利な関数をまとめたもの
 class Utils:
-    def __init__(self, ss_list=None, catch_nrem2: bool = False) -> None:
+    def __init__(
+        self,
+        is_normal,
+        is_previous,
+        data_type,
+        fit_pos,
+        stride,
+        kernel_size,
+        ss_list=None,
+        catch_nrem2: bool = False,
+    ) -> None:
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.fr = FileReader()
+        self.fr = FileReader(
+            is_normal=is_normal,
+            is_previous=is_previous,
+            data_type=data_type,
+            fit_pos=fit_pos,
+            stride=stride,
+            kernel_size=kernel_size,
+        )
         self.env = self.fr.my_env
         # self.name_list = self.fr.sl.name_list
         # self.name_dict = self.fr.sl.name_dict
