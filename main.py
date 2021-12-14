@@ -102,7 +102,7 @@ def main(
     if data_type == "spectrum" or data_type == "cepstrum":
         shape = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape = (128, 30, 1)
+        shape = (64, 30, 1)
     else:
         print("correct here based on your model")
         sys.exit(1)
@@ -176,17 +176,17 @@ def main(
     # 混合行列・不確かさ・ヒストグラムの作成
     tuple_x = (x_train, x_test)
     tuple_y = (y_train, y_test)
-    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = model.predict(_x)
-        utils.make_graphs(
-            y=_y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=date_id,
-            is_each_unc=True,
-        )
+    # for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
+    #     evidence = model.predict(_x)
+    #     utils.make_graphs(
+    #         y=_y,
+    #         evidence=evidence,
+    #         train_or_test=train_or_test,
+    #         graph_person_id=test_name,
+    #         calling_graph="all",
+    #         graph_date_id=date_id,
+    #         is_each_unc=True,
+    #     )
     # tensorboardのログ
     # if log_tf_projector:
     #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
@@ -232,17 +232,19 @@ if __name__ == "__main__":
     BATCH_SIZE = 64
     N_CLASS = 5
     # KERNEL_SIZE = 512
-    KERNEL_SIZE = 256
+    # KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
     SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
+    CLEANSING_TYPE = "no_cleansing"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    # WANDB_PROJECT = "test" if TEST_RUN else "master"
+    WANDB_PROJECT = "test" if TEST_RUN else "master"
     # WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
@@ -258,6 +260,8 @@ if __name__ == "__main__":
         is_normal=IS_NORMAL,
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
+        model_type=ENN_TAG,
+        cleansing_type=CLEANSING_TYPE,
     )
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
@@ -306,7 +310,7 @@ if __name__ == "__main__":
             has_dropout=True,
             log_tf_projector=True,
             name=test_name,
-            # project=WANDB_PROJECT,
+            project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
@@ -326,7 +330,16 @@ if __name__ == "__main__":
             # wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
-            utils=Utils(),
+            utils=Utils(
+                IS_NORMAL,
+                IS_PREVIOUS,
+                DATA_TYPE,
+                FIT_POS,
+                STRIDE,
+                KERNEL_SIZE,
+                model_type=ENN_TAG,
+                cleansing_type=CLEANSING_TYPE,
+            ),
             dropout_rate=DROPOUT_RATE,
         )
 
@@ -334,17 +347,4 @@ if __name__ == "__main__":
         if TEST_RUN:
             break
     # json に書き込み
-    MI.dump(
-        keys=[
-            MI.first_key_of_pre_process(
-                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-            ),
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            "no_cleansing",
-        ],
-        value=date_id_saving_list,
-    )
+    pre_process.fr.my_env.mi.dump(value=date_id_saving_list)
