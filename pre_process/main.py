@@ -105,7 +105,7 @@ def main():
                         records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
                     )
 
-                    PPI.dump(value=date_id)
+                PPI.dump(value=date_id)
 
 
 if __name__ == "__main__":
