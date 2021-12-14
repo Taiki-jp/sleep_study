@@ -927,10 +927,12 @@
           },
           "stride_1024": {
             "kernel_1024": "",
+            "kernel_256": "demo",
             "kernel_512": ""
           },
           "stride_16": {
             "kernel_1024": "",
+            "kernel_256": "20211214-193950",
             "kernel_512": ""
           },
           "stride_4": {
@@ -939,6 +941,7 @@
           },
           "stride_480": {
             "kernel_1024": "",
+            "kernel_256": "demo",
             "kernel_512": ""
           }
         },
