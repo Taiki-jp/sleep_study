@@ -139,23 +139,29 @@ class CreateData(object):
         elif mode == "spectrogram":
             end_point = start_point + kernel_size * ss_term - 1
             fit_index = set_fit_pos_func(start_point, end_point)
+            # 後に周波数変換後のデータを格納用のダミー配列
             spectrogram = np.array(
                 [i for i in range(kernel_size // 2)]
             ).reshape(kernel_size // 2, -1)
-            for _ss_term in range(int(ss_term * 16 / stride)):
+            # TODO: 何に基づいて下のループを回しているのか？
+            # スペクトログラム内で窓をずらしながらスペクトル作成(30回)＋結合
+            for _ss_term in range(ss_term):
                 # 0814_shiraishi のデータでtanita_data["ss"][...]のオブジェクトタイプがfloatと読み込まれず掛け算が出来ないので、numpyに変換したら大丈夫か検証中
                 try:
                     amped = hamming(
                         len(
                             tanita_data["ss"][
                                 start_point
-                                + _ss_term : end_point
-                                + 1
-                                + _ss_term
+                                + _ss_term * 16 : start_point
+                                + _ss_term * 16
+                                + kernel_size  # 16は_ss_termの単位が秒なのでタニタのデータに関して16Hzなので16倍進める
                             ]
                         )
                     ) * tanita_data["ss"][
-                        start_point + _ss_term : end_point + 1 + _ss_term
+                        start_point
+                        + _ss_term * 16 : start_point
+                        + _ss_term * 16
+                        + kernel_size  # 16は_ss_termの単位が秒なのでタニタのデータに関して16Hzなので16倍進める
                     ].astype(
                         np.float16
                     )
@@ -165,7 +171,7 @@ class CreateData(object):
                 fft = 20 * np.log10(np.abs(fft))
                 fft = fft[: int(kernel_size / 2)]
                 spectrogram = np.hstack(
-                    [spectrogram, fft.reshape(kernel_size // 2, -1)]
+                    [spectrogram, fft.reshape(kernel_size // 2, 1)]
                 )
             # 1列目はappendが出来るように入れていたダミーデータのため保存の前に除去（obj:0の要素，axis:1（列方向））
             spectrogram = np.delete(spectrogram, obj=0, axis=1)
@@ -173,19 +179,28 @@ class CreateData(object):
             record.time = tanita_data["time"].iloc[fit_index]
             # NOTE: 付け焼刃なので後で吟味
             # もしtanitaの長さ以上を超えていたらFalseを返す
+            # tanitaが終了時刻まで取れてないのであれば終了
             if len(tanita_data) <= end_point:
+                print("tanita_len", len(tanita_data), "end_point", end_point)
                 return False, None
+            # tanitaは取れてるけど、psgが取れてない時の終了条件が下
             _time_tanita = datetime.datetime.strptime(
                 tanita_data["time"].iloc[end_point], "%H:%M:%S"
             )
             # PSGの最後の時刻とFFT中のtanitaのデータを比較する
             _time_delta = time_psg - _time_tanita
+            # _time_delta = _time_tanita - time_psg
             # 以下2条件を同時に満たす場合はtanitaのデータがpsgのデータの最後の時刻を超えているため終了とする条件である
-            # 1. psgデータの方がtanitaデータの方よりも時刻が早い（min:0時00分00秒，max:23時59分59秒．）NOTE:日付があればこんな処理をする必要はないが、各データに入れるのがめんどくさいためこの方法で代替
+            # 1. psgデータの方がtanitaデータの方よりも時刻が低い（min:0時00分00秒，max:23時59分59秒．）NOTE:日付があればこんな処理をする必要はないが、各データに入れるのがめんどくさいためこの方法で代替
             # 2. 22時間以上離れている
+            # （ex. 0時をまたぐ場合にtanita: 23:59:59, psg: 00:00:00の場合、睡眠は続くので以降も前処理を続けるべきなので単純に_time_delta.days < 0 だけでは判断できない）
+            # そのためそのようなケースは22時間以上
+            # タニタとPSGの差が1時間以内 かつ経過方向が正（タニタの方が後の時刻）であれば終了とする
+            # if _time_delta.seconds / 60 / 60 < 1 and _time_delta.days == 0:
+            #     return False, None
             if _time_delta.days < 0 and _time_delta.seconds / 60 / 60 > 22:
                 return False, None
-            # psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
+            # tanitaの前処理の最終時刻がpsgの最終時刻より前でも、psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
             elif psg_len <= fit_index // 16:
                 print(PyColor.RED_FLASH, "実装上あまりここには来てほしくない", PyColor.END)
                 return False, None
@@ -219,6 +234,9 @@ class CreateData(object):
                 PyColor.END,
             )
             sys.exit(1)
+        # 睡眠段階がNoneであればストップ
+        if record.ss is None:
+            print("stop")
 
     # スペクトルの作成などのメタメソッド
     def make_freq_transform(
@@ -352,11 +370,12 @@ class CreateData(object):
     ):
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
         # NOTE: スペクトログラムに関して畳み込みができる回数をしっかり調べる必要がある
+        # recordオブジェクトの必要な数．タニタのデータから算出
         record_len = (
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
         records = make_mul_records(record_len)
-        # stride(4) * ss_term(30)インデント毎に作成
+        # stride * ss_term
         start_points_list = [
             i
             for i in range(0, stride * record_len * ss_term, stride * ss_term)
@@ -371,6 +390,10 @@ class CreateData(object):
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
         # スペクトログラムの作成
+        try:
+            assert len(start_points_list) == len(records)
+        except AssertionError as AE:
+            print(AE)
         for start_point, record in zip(start_points_list, records):
             can_make, _fit_index = self._make(
                 mode="spectrogram",

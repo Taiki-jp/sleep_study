@@ -48,7 +48,7 @@ class PreProcessedId(JsonBase):
 
         if is_pre_dump:
             print(
-                PyColor().RED_FLASH,
+                PyColor().RED,
                 f"comfirming whether dump into {self.json_file} is possipoble or not",
                 PyColor().END,
             )
