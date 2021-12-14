@@ -2,7 +2,6 @@ import datetime
 import os
 import random
 import sys
-from json import load
 
 from tqdm import tqdm
 
@@ -20,7 +19,7 @@ def main():
     DATA_TYPE = "spectrogram"
     FIT_POS_LIST = ["middle"]
     STRIDE_LIST = [16]
-    KERNEL_SIZE_LIST = [128]
+    KERNEL_SIZE_LIST = [256]
     IS_NORMAL = True
     IS_PREVIOUS = False
     VERBOSE = 2
@@ -39,25 +38,25 @@ def main():
 
                 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 # オブジェクトの作成
-                utils = Utils()
-                CD = CreateData()
-                FR = FileReader()
-                PPI = PreProcessedId()
-                PPI.load()
-                PPI.dump(
-                    keys=[
-                        PPI.get_hostkey(),
-                        PPI.first_key_of_pre_process(
-                            is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-                        ),
-                        DATA_TYPE,
-                        FIT_POS,
-                        f"stride_{str(STRIDE)}",
-                        f"kernel_{str(KERNEL_SIZE)}",
-                    ],
-                    value="demo",
-                    is_pre_dump=True,
+                utils = Utils(
+                    IS_NORMAL,
+                    IS_PREVIOUS,
+                    DATA_TYPE,
+                    FIT_POS,
+                    STRIDE,
+                    KERNEL_SIZE,
                 )
+                CD = CreateData()
+                FR = FileReader(
+                    IS_NORMAL,
+                    IS_PREVIOUS,
+                    DATA_TYPE,
+                    FIT_POS,
+                    STRIDE,
+                    KERNEL_SIZE,
+                )
+                PPI = FR.my_env.ppi
+                PPI.dump(is_pre_dump=True)
 
                 target_folders = FR.my_env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
@@ -106,19 +105,7 @@ def main():
                         records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
                     )
 
-                PPI.dump(
-                    keys=[
-                        PPI.hostkey,
-                        PPI.first_key_of_pre_process(
-                            is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-                        ),
-                        DATA_TYPE,
-                        FIT_POS,
-                        f"stride_{str(STRIDE)}",
-                        f"kernel_{str(KERNEL_SIZE)}",
-                    ],
-                    value=date_id,
-                )
+                PPI.dump(value=date_id)
 
 
 if __name__ == "__main__":
