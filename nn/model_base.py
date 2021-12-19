@@ -825,6 +825,16 @@ class VDANN(tf.keras.Model):
         )
 
     @tf.function
+    def call(self, inputs):
+        mean, logvar = self.encode(inputs)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z)
+        # loss = self.compute_loss(inputs, y_tar, y_sub)
+        # loss = self.compute_loss(inputs)
+        # self.add_loss(loss)
+        return x_logit
+
+    @tf.function
     def train_step(self, data):
         x, y_true = data
         y_tar = y_true[:, 0]
