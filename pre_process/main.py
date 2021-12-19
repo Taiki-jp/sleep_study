@@ -75,6 +75,9 @@ def main():
                 subject_age_d = FR.my_env.si.get_age()
                 for target in tqdm(target_folders):
                     _, name = os.path.split(target)
+                    # tatebeじゃない時は続行
+                    if not name == "141204_Tatebe":
+                        continue
                     tanita = TanitaReader(
                         target, is_previous=IS_PREVIOUS, verbose=VERBOSE
                     )
@@ -111,7 +114,11 @@ def main():
                     # recordsの被験者名と被験者年齢を更新
                     for _record in records:
                         _record.name = name
-                        _record.age = subject_age_d[name]
+                        # TODO: 例外処理以外の方法でやった方が良い
+                        try:
+                            _record.age = subject_age_d[name]
+                        except KeyError:
+                            pass
 
                     # ssが空のレコードは削除
                     records = Record().drop_none(records)
