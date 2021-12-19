@@ -9,17 +9,12 @@ from collections import Counter
 from typing import Any, Dict, List
 
 import tensorflow as tf
-
 import wandb
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
-from nn.model_base import (
-    EDLModelBase,
-    edl_classifier_1d,
-    edl_classifier_2d,
-    vdann_decorder,
-)
+from nn.model_base import VDANN
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess
@@ -57,7 +52,11 @@ def main(
 ):
 
     # データセットの作成
-    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
+    (x_train, y_train, y_train_subject), (
+        x_test,
+        y_test,
+        y_test_subject,
+    ) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -87,71 +86,71 @@ def main(
     }
     # wandb_config.update(added_config)
     # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
+    # wandb.init(
+    #     name=name,
+    #     project=project,
+    #     tags=my_tags,
+    #     config=wandb_config,
+    #     sync_tensorboard=True,
+    #     dir=pre_process.my_env.project_dir,
+    # )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum" or data_type == "cepstrum":
-        shape = (int(kernel_size / 2), 1)
+        sys.exit(1)
+        # shape = (int(kernel_size / 2), 1)
+        # inputs = tf.keras.Input(shape=shape)
+        # outputs = edl_classifier_1d(
+        #     x=inputs,
+        #     n_class=n_class,
+        #     has_attention=has_attention,
+        #     has_inception=has_inception,
+        #     is_mul_layer=is_mul_layer,
+        #     has_dropout=has_dropout,
+        #     dropout_rate=dropout_rate,
+        # )
+
     elif data_type == "spectrogram":
         shape = (64, 30, 1)
+        inputs = tf.keras.Input(shape=shape)
+
     else:
         print("correct here based on your model")
         sys.exit(1)
 
-    inputs = tf.keras.Input(shape=shape)
-    if data_type == "spectrum" or data_type == "cepstrum":
-        outputs = edl_classifier_1d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    elif data_type == "spectrogram":
-        outputs = edl_classifier_2d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy", "mse"],
-        )
+        pass
+        # model = CVAE(latent_dim=6, alpha=0, beta=0, encoder=encoder, decorder=decorder)
+        # model = EDLModelBase(inputs=inputs, outputs=outputs)
+        # model.compile(
+        #     optimizer=tf.keras.optimizers.Adam(),
+        #     loss=EDLLoss(K=n_class, annealing=0.1),
+        #     metrics=["accuracy", "mse"],
+        # )
 
     else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model = VDANN(
+            inputs=inputs,
+            gamma=1,
+            latent_dim=6,
+            alpha=0,
+            beta=0,
+            target_dim=5,
+            subject_dim=60,
+            has_inception=has_inception,
+            has_attention=has_attention,
+        )
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            ),
-            metrics=[
-                "accuracy",
-                # "mse"
-            ],
         )
 
     # tensorboard作成
     log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id
+        pre_process.my_env.project_dir, "vdann", test_name, date_id
     )
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
     )
@@ -164,11 +163,11 @@ def main(
         epochs=epochs,
         callbacks=[
             tf_callback,
-            WandbClassificationCallback(
-                validation_data=(x_test, y_test),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            ),
+            # WandbClassificationCallback(
+            #     validation_data=(x_test, y_test),
+            #     log_confusion_matrix=True,
+            #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
+            # ),
         ],
         verbose=2,
     )
@@ -194,20 +193,19 @@ def main(
         print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
         path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
         model.save(path)
-    wandb.finish()
+    # wandb.finish()
 
 
 if __name__ == "__main__":
     # 環境設定
-    CALC_DEVICE = "gpu"
-    # CALC_DEVICE = "cpu"
+    CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # なんか下のやつ使えなくなっている、、
@@ -222,7 +220,7 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
-    IS_ENN = True
+    IS_ENN = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
@@ -314,7 +312,7 @@ if __name__ == "__main__":
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
+            save_model=False,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,

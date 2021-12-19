@@ -1,10 +1,18 @@
 import datetime
 import os
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.layers.core import Dense
+from tensorflow.python.keras.models import Model
+
+
+def classifier(latent: Tensor, output_dim: int):
+    x = tf.keras.layers.Dense(units=output_dim ** 2, activation="relu")(latent)
+    x = tf.keras.layers.Dense(units=output_dim, activation="relu")(latent)
+    return x
 
 
 def vdann_decorder(latent: Tensor):
