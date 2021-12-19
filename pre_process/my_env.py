@@ -5,6 +5,7 @@ import sys
 from data_analysis.py_color import PyColor
 from nn.model_id import ModelId
 from pre_process.pre_processed_id import PreProcessedId
+from pre_process.subjects_info import SubjectsInfo
 
 
 class MyEnv:
@@ -40,8 +41,7 @@ class MyEnv:
         self.raw_dir: str = os.path.join(self.data_dir, "raw_data")
         self.ppi = PreProcessedId()
         self.mi = ModelId()
-        self.ppi.load()
-        self.mi.load()
+        self.si = SubjectsInfo()
         self.set_jsonkey()
 
     # set json_keys as its member variables

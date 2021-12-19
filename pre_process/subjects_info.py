@@ -20,11 +20,10 @@ class SubjectsInfo(JsonBase):
         # 10~70代の数をカウントする
         for key, value in age_d.items():
             for i in range(1, 9):
-                if int(value) < i * 10:
+                if int(value) < (i + 1) * 10:
                     summary_d[str(i * 10) + "'s"] += 1
                     break
         print(summary_d)
-        age_d_df = pd.DataFrame(summary_d, index=[0])
 
     # 被験者のリストを取得するメソッド
     def get_subjects(self) -> list:

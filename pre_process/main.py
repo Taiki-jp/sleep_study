@@ -11,6 +11,7 @@ from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
 from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
+from pre_process.record import Record
 from pre_process.subjects_info import SubjectsInfo
 from pre_process.tanita_reader import TanitaReader
 
@@ -49,7 +50,6 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
-                CD = CreateData()
                 FR = FileReader(
                     IS_NORMAL,
                     IS_PREVIOUS,
@@ -60,6 +60,7 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
+                CD = CreateData()
                 PPI = FR.my_env.ppi
                 PPI.dump(is_pre_dump=True)
 
@@ -71,6 +72,7 @@ def main():
                     target_folders, len(target_folders)
                 )
 
+                subject_age_d = FR.my_env.si.get_age()
                 for target in tqdm(target_folders):
                     _, name = os.path.split(target)
                     tanita = TanitaReader(
@@ -106,6 +108,13 @@ def main():
                         stride=STRIDE,
                         fit_pos=FIT_POS,
                     )
+                    # recordsの被験者名と被験者年齢を更新
+                    for _record in records:
+                        _record.name = name
+                        _record.age = subject_age_d[name]
+
+                    # ssが空のレコードは削除
+                    records = Record().drop_none(records)
                     utils.dump_with_pickle(
                         records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
                     )
