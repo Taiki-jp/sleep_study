@@ -11,6 +11,7 @@ from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
 from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
+from pre_process.subjects_info import SubjectsInfo
 from pre_process.tanita_reader import TanitaReader
 
 

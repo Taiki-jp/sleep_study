@@ -2,12 +2,14 @@
 # *         Import Some Libraries
 # ================================================ #
 
-from nn.model_base import EDLModelBase
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
-from nn.model_base import ModelBase, CreateModelBase, EDLModelBase
-import nn.layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 from tensorflow.python.keras import backend
+
+import nn.layer_base as MyLayer
+from nn.model_base import CreateModelBase, EDLModelBase, ModelBase
 
 
 def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
@@ -28,6 +30,125 @@ def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
     model.add(tf.keras.layers.Dense(1))
     print(model.summary)
     return model
+
+
+# cvaeをネットから引っ張ってきただけ
+# https://www.tensorflow.org/tutorials/generative/cvae
+class CVAE(tf.keras.Model):
+    def __init__(
+        self,
+        latent_dim: int,
+        alpha: float,
+        beta: float,
+        encoder: tf.keras.Model,
+        decorder: tf.keras.Model,
+    ):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.encoder = encoder
+        self.decoder = decorder
+        self.alpha = alpha
+        self.beta = beta
+
+    @tf.function
+    def sample(self, eps=None):
+        if eps is None:
+            eps = tf.random.normal(shape=(100, self.latent_dim))
+        return self.decode(eps, apply_sigmoid=True)
+
+    def encode(self, x):
+        mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
+        return mean, logvar
+
+    def reparameterize(self, mean, logvar):
+        eps = tf.random.normal(shape=mean.shape)
+        return eps * tf.exp(logvar * 0.5) + mean
+
+    def decode(self, z, apply_sigmoid=False):
+        logits = self.decoder(z)
+        if apply_sigmoid:
+            probs = tf.sigmoid(logits)
+            return probs
+        return logits
+
+    def log_normal_pdf(self, sample, mean, logvar, raxis=1):
+        log2pi = tf.math.log(2.0 * np.pi)
+        return tf.reduce_sum(
+            -0.5
+            * ((sample - mean) ** 2.0 * tf.exp(-logvar) + logvar + log2pi),
+            axis=raxis,
+        )
+
+    @tf.function
+    def compute_loss(self, x, y):
+        # vae loss
+        mean, logvar = self.encode(x)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z)
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=x_logit, labels=x
+        )
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        logqz_x = self.log_normal_pdf(z, mean, logvar)
+        vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+        # target_loss
+        latent = self.encode(x)
+        output = self.target_classifier(latent)
+        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y, y_pred=output, from_logits=True
+        )
+
+        # subject_loss
+        latent = self.encode(x)
+        output = self.subject_classifier(latent)
+        subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y, y_pred=output, from_logits=True
+        )
+        return vae_loss, target_loss, subject_loss
+
+    @tf.function
+    def train_step(self, data):
+        # x.shape : (32, 128, 512, 1)
+        # y.shape : (32,)
+        x, y = data
+
+        with tf.GradientTape() as tape:
+            vae_loss, target_loss, subject_loss = self.compute_loss(x, y)
+            loss = (
+                vae_loss + self.alpha * target_loss + self.beta * subject_loss
+            )
+
+        # Gradients
+        training_vars = self.trainable_variables
+        gradients = tape.gradient(loss, training_vars)
+
+        # Step with optimizer
+        self.optimizer.apply_gradients(zip(gradients, training_vars))
+        # accuracyのメトリクスにはy_predを入れる
+        # self.compiled_metrics.update_state(y, y_pred)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        # return {m.name: m.result() for m in self.metrics}
+
+    # @tf.function
+    # def test_step(self, data):
+    # # Unpack the data
+    # x, y = data
+    # # Compute predictions
+    # evidence = self(x, training=False)
+    # alpha = evidence + 1
+    # y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+    # # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+    # # Updates the metrics tracking the loss
+    # # yをone-hot表現にして送る
+    # y = tf.one_hot(y, depth=self.n_class)
+    # # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
+    # # Update the metrics.
+    # self.compiled_metrics.update_state(y, y_pred)
+    # metrics_dict = {m.name: m.result() for m in self.metrics}
+    # # metrics_dict.update(u_dict)
+    # return metrics_dict
 
 
 # ================================================ #

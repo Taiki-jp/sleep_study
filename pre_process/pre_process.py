@@ -3,6 +3,7 @@ import os
 import sys
 from collections import Counter
 from random import choices, seed, shuffle
+from typing import List
 
 import numpy as np
 import tensorflow as tf
@@ -15,6 +16,7 @@ from data_analysis.py_color import PyColor
 from pre_process.file_reader import FileReader
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.my_env import MyEnv
+from pre_process.record import Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -340,10 +342,17 @@ class PreProcess:
 
         return records_train, records_test
 
+    # def set_subjects_info(records: List[List[Record]]):
+    #     for _record in records:
+    #         for __record in _record:
+    #             __record.name =
+
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
     def split_train_test_from_records(
         self, records, test_id, pse_data: bool = False
     ):
+        # 被験者データ情報をリスト情報から追加  TODO: このメソッド内に書くのは違う気がする
+        self.set_subjects_info(records)
         # NOTE : pse_data is needed for avoiding split data
         if pse_data:
             print("仮データのためスキップします")

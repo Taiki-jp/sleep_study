@@ -171,6 +171,7 @@ class JsonBase(object):
             "positive_cleansing",
             "negative_cleansing",
         ]
+        self.load()
 
     def load(self) -> None:
         with open(self.json_file) as f:

@@ -14,7 +14,12 @@ import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
-from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.model_base import (
+    EDLModelBase,
+    edl_classifier_1d,
+    edl_classifier_2d,
+    vdann_decorder,
+)
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess

@@ -3,7 +3,23 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.layers.core import Dense
+
+
+def vdann_decorder(latent: Tensor):
+    x = tf.keras.layers.Dense(units=8 * 5 * 128, activation="relu")(latent)
+    x = tf.keras.layers.Reshape(target_shape=(8, 5, 288))
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=64, kernel_size=3, strides=2, padding="same"
+    )
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=32, kernel_size=3, strides=(4, 3), padding="same"
+    )
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=1, kernel_size=3, strides=1, padding="same"
+    )
+    return x
 
 
 # =========================
