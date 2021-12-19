@@ -5,6 +5,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.keras import optimizer_v2
 from tensorflow.python.keras.layers.core import Dense
 from tensorflow.python.keras.models import Model
 
@@ -646,7 +647,7 @@ class VDANN(tf.keras.Model):
         self.beta = beta
         self.gamma = gamma
         self.encoder = self.make_encoder()
-        self.vae_decoder = self.make_decorder()
+        self.decoder = self.make_decorder()
         self.sbj_classifier = self.make_classifier(target="subjects")
         self.tar_classifier = self.make_classifier(target="targets")
 
@@ -679,7 +680,7 @@ class VDANN(tf.keras.Model):
         return x
 
     def make_classifier(self, target: str = ""):
-        inputs = tf.keras.Input(shape=(self.latent_dim,))
+        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         if target == "subjects":
             outputs = tf.keras.layers.Dense(self.subject_dim ** 2)(inputs)
             outputs = tf.keras.layers.Activation("relu")(outputs)
@@ -695,7 +696,7 @@ class VDANN(tf.keras.Model):
         return Model(inputs=inputs, outputs=outputs)
 
     def make_decorder(self) -> Model:
-        inputs = tf.keras.Input(shape=(self.latent_dim,))
+        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         vae_out = tf.keras.layers.Dense(
             units=8 * 5 * self.latent_dim, activation="relu"
         )(inputs)
@@ -800,7 +801,8 @@ class VDANN(tf.keras.Model):
         logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
         logpz = self.log_normal_pdf(z, 0.0, 0.0)
         logqz_x = self.log_normal_pdf(z, mean, logvar)
-        vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+        vae_loss = -(logpx_z + logpz - logqz_x)
+        # vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
         # target_loss
         output = self.tar_classifier(z)
@@ -813,6 +815,9 @@ class VDANN(tf.keras.Model):
         subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
             y_true=y_sub, y_pred=output, from_logits=True
         )
+        vae_loss = tf.reduce_mean(vae_loss)
+        target_loss = tf.reduce_mean(target_loss)
+        subject_loss = tf.reduce_mean(subject_loss)
         return (
             self.gamma * vae_loss
             + self.alpha * target_loss
@@ -821,16 +826,18 @@ class VDANN(tf.keras.Model):
 
     @tf.function
     def train_step(self, data):
-        x, y_tar, y_sub = data
+        x, y_true = data
+        y_tar = y_true[:, 0]
+        y_sub = y_true[:, 1]
         with tf.GradientTape() as tape:
             loss = self.compute_loss(x, y_tar, y_sub)
         training_vars = self.trainable_variables
         gradients = tape.gradient(loss, training_vars)
         self.optimizer.apply_gradients(zip(gradients, training_vars))
         # accuracyのメトリクスにはy_predを入れる
-        # self.compiled_metrics.update_state(y, y_pred)
+        self.compiled_metrics.update_state(y_tar, y_tar)
         # loss: edlのロス，accuracy: edlの出力が合っているか
-        # return {m.name: m.result() for m in self.metrics}
+        return {m.name: m.result() for m in self.metrics}
 
     # @tf.function
     # def test_step(self, data):

@@ -3,12 +3,13 @@ import os
 import sys
 from collections import Counter
 from random import choices, seed, shuffle
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
 from imblearn.over_sampling import SMOTE
+from numpy import ndarray
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -88,7 +89,7 @@ class PreProcess:
         insert_channel_axis=True,
         to_one_hot_vector=True,
         pse_data=False,
-    ):
+    ) -> Tuple[ndarray, ndarray]:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
@@ -302,10 +303,9 @@ class PreProcess:
             y_train = tf.one_hot(y_train, class_size)
             y_test = tf.one_hot(y_test, class_size)
 
-        return (x_train, y_train, y_train_subject), (
+        return (x_train, np.vstack([y_train, y_train_subject])), (
             x_test,
-            y_test,
-            y_test_subject,
+            np.vstack([y_test, y_test_subject]),
         )
 
     # recordからスペクトラムの作成
@@ -321,7 +321,7 @@ class PreProcess:
         return [k.age for k in list_data]
 
     # recordから被験者の作成
-    def list2sub(self, list_data: List[Record]):
+    def list2sub(self, list_data: List[Record]) -> ndarray:
         has_catched_name = dict()
         subject_counter = 0
         # 被験者名とそのラベルを定義
@@ -329,7 +329,9 @@ class PreProcess:
             if not __record.name in has_catched_name:
                 has_catched_name.update({__record.name: subject_counter})
                 subject_counter += 1
-        return [has_catched_name[__record.name] for __record in list_data]
+        return np.array(
+            [has_catched_name[__record.name] for __record in list_data]
+        )
 
     # recordからスペクトログラムの作成
     def list2Spectrogram(self, list_data):

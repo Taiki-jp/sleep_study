@@ -1,6 +1,8 @@
 import os
 import sys
 
+from tensorflow.python.keras.metrics import accuracy
+
 from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -52,11 +54,7 @@ def main(
 ):
 
     # データセットの作成
-    (x_train, y_train, y_train_subject), (
-        x_test,
-        y_test,
-        y_test_subject,
-    ) = pre_process.make_dataset(
+    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -66,8 +64,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
+    ss_train_dict = Counter(y_train[0])
+    ss_test_dict = Counter(y_test[0])
 
     # config の追加
     added_config = {
@@ -137,12 +135,12 @@ def main(
             alpha=0,
             beta=0,
             target_dim=5,
-            subject_dim=60,
+            subject_dim=68,
             has_inception=has_inception,
             has_attention=has_attention,
         )
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
+            optimizer=tf.keras.optimizers.Adam(), metrics=["accuracy"]
         )
 
     # tensorboard作成
@@ -157,9 +155,9 @@ def main(
 
     model.fit(
         x_train,
-        y_train,
+        y_train.T,
         batch_size=batch_size,
-        validation_data=(x_test, y_test),
+        validation_data=(x_test, y_test.T),
         epochs=epochs,
         callbacks=[
             tf_callback,
@@ -198,18 +196,18 @@ def main(
 
 if __name__ == "__main__":
     # 環境設定
-    CALC_DEVICE = "cpu"
+    CALC_DEVICE = "gpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        tf.config.run_functions_eagerly(True)
+        # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # なんか下のやつ使えなくなっている、、
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     TEST_RUN = False
