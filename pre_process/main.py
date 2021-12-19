@@ -75,9 +75,6 @@ def main():
                 subject_age_d = FR.my_env.si.get_age()
                 for target in tqdm(target_folders):
                     _, name = os.path.split(target)
-                    # tatebeじゃない時は続行
-                    if not name == "141204_Tatebe":
-                        continue
                     tanita = TanitaReader(
                         target, is_previous=IS_PREVIOUS, verbose=VERBOSE
                     )
