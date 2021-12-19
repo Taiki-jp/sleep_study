@@ -622,6 +622,236 @@ class H_EDLModelBase(tf.keras.Model):
         return metrics_dict
 
 
+class VDANN(tf.keras.Model):
+    def __init__(
+        self,
+        inputs: Tensor,
+        latent_dim: int,
+        alpha: float,
+        beta: float,
+        gamma: float,
+        target_dim: int,
+        subject_dim: int,
+        has_inception: bool,
+        has_attention: bool,
+    ):
+        super().__init__()
+        self.has_inception = has_inception
+        self.has_attention = has_attention
+        self.inputs = inputs
+        self.target_dim = target_dim
+        self.subject_dim = subject_dim
+        self.latent_dim = latent_dim
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.encoder = self.make_encoder()
+        self.vae_decoder = self.make_decorder()
+        self.sbj_classifier = self.make_classifier(target="subjects")
+        self.tar_classifier = self.make_classifier(target="targets")
+
+    def _conv2d_bn(
+        self,
+        x: Tensor,
+        filters: int,
+        num_row: int,
+        num_col: int,
+        padding: str = "same",
+        strides: Tuple[int, int] = (1, 1),
+        name=None,
+    ):
+        if name is not None:
+            bn_name = name + "_bn"
+            conv_name = name + "_conv"
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv2D(
+            filters,
+            (num_row, num_col),
+            strides=strides,
+            padding=padding,
+            use_bias=False,
+            name=conv_name,
+        )(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation("relu", name=name)(x)
+        return x
+
+    def make_classifier(self, target: str = ""):
+        inputs = tf.keras.Input(shape=(self.latent_dim,))
+        if target == "subjects":
+            outputs = tf.keras.layers.Dense(self.subject_dim ** 2)(inputs)
+            outputs = tf.keras.layers.Activation("relu")(outputs)
+            outputs = tf.keras.layers.Dense(self.subject_dim)(outputs)
+            outputs = tf.keras.layers.Activation("relu")(outputs)
+        elif target == "targets":
+            outputs = tf.keras.layers.Dense(self.target_dim ** 2)(inputs)
+            outputs = tf.keras.layers.Activation("relu")(outputs)
+            outputs = tf.keras.layers.Dense(self.target_dim)(outputs)
+            outputs = tf.keras.layers.Activation("relu")(outputs)
+        else:
+            print("正しいターゲット引数を指定してください")
+        return Model(inputs=inputs, outputs=outputs)
+
+    def make_decorder(self) -> Model:
+        inputs = tf.keras.Input(shape=(self.latent_dim,))
+        vae_out = tf.keras.layers.Dense(
+            units=8 * 5 * self.latent_dim, activation="relu"
+        )(inputs)
+        vae_out = tf.keras.layers.Reshape(
+            target_shape=(8, 5, self.latent_dim)
+        )(vae_out)
+        # (8, 5) => (16, 10)
+        vae_out = tf.keras.layers.Conv2DTranspose(
+            filters=64, kernel_size=3, strides=2, padding="same"
+        )(vae_out)
+        # (16, 10) => (64, 30)
+        vae_out = tf.keras.layers.Conv2DTranspose(
+            filters=32, kernel_size=3, strides=(4, 3), padding="same"
+        )(vae_out)
+        # (64, 30) => (64, 30)
+        vae_out = tf.keras.layers.Conv2DTranspose(
+            filters=1, kernel_size=3, strides=1, padding="same"
+        )(vae_out)
+        return Model(inputs=inputs, outputs=vae_out)
+
+    def make_encoder(self) -> Model:
+        x = self._conv2d_bn(
+            self.inputs, 32, 3, 3, strides=(2, 2), padding="same"
+        )
+        x = self._conv2d_bn(x, 32, 3, 3, padding="same")
+        x = self._conv2d_bn(x, 64, 3, 3)
+        x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+        # 畳み込み開始02
+        x = self._conv2d_bn(x, 80, 1, 1, padding="same")
+        x = self._conv2d_bn(x, 192, 3, 3, padding="same")
+        x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+        if self.has_inception:
+            # mixed 1: 35 x 35 x 288
+            branch1x1 = self._conv2d_bn(x, 64, 1, 1)
+            branch5x5 = self._conv2d_bn(x, 48, 1, 1)
+            branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
+            branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
+            branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+            branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+            branch_pool = tf.keras.layers.AveragePooling2D(
+                (3, 3), strides=(1, 1), padding="same"
+            )(x)
+            branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
+            x = tf.keras.layers.concatenate(
+                [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                axis=-1,
+                name="mixed1",
+            )  # (13, 13, 288)
+            if self.has_attention:
+                attention = tf.keras.layers.Conv2D(
+                    1, kernel_size=3, padding="same"
+                )(
+                    x
+                )  # (13, 13, 1)
+                attention = tf.keras.layers.Activation("sigmoid")(attention)
+                x *= attention
+        x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
+        return Model(inputs=self.inputs, outputs=x)
+
+    @tf.function
+    def sample(self, eps=None):
+        if eps is None:
+            eps = tf.random.normal(shape=(100, self.latent_dim))
+        return self.decode(eps, apply_sigmoid=True)
+
+    @tf.function
+    def encode(self, x):
+        mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
+        return mean, logvar
+
+    @tf.function
+    def reparameterize(self, mean, logvar):
+        eps = tf.random.normal(shape=mean.shape)
+        return eps * tf.exp(logvar * 0.5) + mean
+
+    @tf.function
+    def decode(self, z, apply_sigmoid=False):
+        logits = self.decoder(z)
+        if apply_sigmoid:
+            probs = tf.sigmoid(logits)
+            return probs
+        return logits
+
+    def log_normal_pdf(self, sample, mean, logvar, raxis=1):
+        log2pi = tf.math.log(2.0 * np.pi)
+        return tf.reduce_sum(
+            -0.5
+            * ((sample - mean) ** 2.0 * tf.exp(-logvar) + logvar + log2pi),
+            axis=raxis,
+        )
+
+    @tf.function
+    def compute_loss(self, x, y_tar, y_sub):
+        # vae loss
+        mean, logvar = self.encode(x)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z)
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=x_logit, labels=x
+        )
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        logqz_x = self.log_normal_pdf(z, mean, logvar)
+        vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+        # target_loss
+        output = self.tar_classifier(z)
+        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y_tar, y_pred=output, from_logits=True
+        )
+
+        # subject_loss
+        output = self.sbj_classifier(z)
+        subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y_sub, y_pred=output, from_logits=True
+        )
+        return (
+            self.gamma * vae_loss
+            + self.alpha * target_loss
+            + self.beta * subject_loss
+        )
+
+    @tf.function
+    def train_step(self, data):
+        x, y_tar, y_sub = data
+        with tf.GradientTape() as tape:
+            loss = self.compute_loss(x, y_tar, y_sub)
+        training_vars = self.trainable_variables
+        gradients = tape.gradient(loss, training_vars)
+        self.optimizer.apply_gradients(zip(gradients, training_vars))
+        # accuracyのメトリクスにはy_predを入れる
+        # self.compiled_metrics.update_state(y, y_pred)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        # return {m.name: m.result() for m in self.metrics}
+
+    # @tf.function
+    # def test_step(self, data):
+    # # Unpack the data
+    # x, y = data
+    # # Compute predictions
+    # evidence = self(x, training=False)
+    # alpha = evidence + 1
+    # y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
+    # # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
+    # # Updates the metrics tracking the loss
+    # # yをone-hot表現にして送る
+    # y = tf.one_hot(y, depth=self.n_class)
+    # # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
+    # # Update the metrics.
+    # self.compiled_metrics.update_state(y, y_pred)
+    # metrics_dict = {m.name: m.result() for m in self.metrics}
+    # # metrics_dict.update(u_dict)
+    # return metrics_dict
+
+
 # 睡眠データのモデルを返す
 
 if __name__ == "__main__":
