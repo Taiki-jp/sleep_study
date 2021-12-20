@@ -12,8 +12,8 @@ from collections import Counter
 from typing import Any, Dict, List
 
 import tensorflow as tf
-
 import wandb
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -69,7 +69,10 @@ def main(
     traindata = traindata.shuffle(buffer_size=x_train.shape[0]).batch(
         batch_size
     )
-    testdata = tf.data.Dataset.from_tensor_slices((x_test, y_test.T))
+    testdata = tf.data.Dataset.from_tensor_slices(
+        (x_test.astype("float32"), y_test.T)
+    )
+    testdata = testdata.shuffle(buffer_size=x_test.shape[0]).batch(batch_size)
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train[0])
@@ -168,7 +171,11 @@ def main(
         # Iterate over the batches of the dataset.
         for step, x_batch_train in enumerate(traindata):
             result = model.train_step(x_batch_train)
-        print(f"metrics: {result}")
+        print(f"train result: {result}")
+
+        for step, x_batch_test in enumerate(testdata):
+            result = model.train_step(x_batch_test)
+        print(f"test metrics: {result}")
 
     # model.fit(
     #     x_train,
