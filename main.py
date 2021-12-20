@@ -1,6 +1,7 @@
 import os
 import sys
 
+from rich import print
 from tensorflow.python.keras.metrics import accuracy
 
 from nn.wandb_classification_callback import WandbClassificationCallback
@@ -62,6 +63,13 @@ def main(
         to_one_hot_vector=False,
         each_data_size=sample_size,
     )
+    traindata = tf.data.Dataset.from_tensor_slices(
+        (x_train.astype("float32"), y_train.T)
+    )
+    traindata = traindata.shuffle(buffer_size=x_train.shape[0]).batch(
+        batch_size
+    )
+    testdata = tf.data.Dataset.from_tensor_slices((x_test, y_test.T))
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
     ss_train_dict = Counter(y_train[0])
@@ -130,9 +138,9 @@ def main(
     else:
         model = VDANN(
             inputs=inputs,
-            gamma=1,
-            latent_dim=6,
-            alpha=0,
+            gamma=0,
+            latent_dim=32,
+            alpha=1,
             beta=0,
             target_dim=5,
             subject_dim=68,
@@ -140,7 +148,8 @@ def main(
             has_attention=has_attention,
         )
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(), metrics=["accuracy"]
+            optimizer=tf.keras.optimizers.Adam(),
+            metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
         )
 
     # tensorboard作成
@@ -153,22 +162,37 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
 
-    model.fit(
-        x_train,
-        y_train.T,
-        batch_size=batch_size,
-        validation_data=(x_test, y_test.T),
-        epochs=epochs,
-        callbacks=[
-            tf_callback,
-            # WandbClassificationCallback(
-            #     validation_data=(x_test, y_test),
-            #     log_confusion_matrix=True,
-            #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            # ),
-        ],
-        verbose=2,
-    )
+    for epoch in range(epochs):
+        print("Start of epoch %d" % (epoch,))
+
+        # Iterate over the batches of the dataset.
+        for step, x_batch_train in enumerate(traindata):
+            result = model.train_step(x_batch_train)
+            print(f"metrics: {result}")
+            if step % 100 == 0:
+                # print(
+                #     "step %d: mean loss = %.4f"
+                #     # % (step, model.loss_metric.result())
+                # )
+                print(f"step: {step}")
+                print(f"metrics: {result}")
+
+    # model.fit(
+    #     x_train,
+    #     y_train.T,
+    #     batch_size=batch_size,
+    #     validation_data=(x_test, y_test.T),
+    #     epochs=epochs,
+    #     callbacks=[
+    #         tf_callback,
+    #         # WandbClassificationCallback(
+    #         #     validation_data=(x_test, y_test),
+    #         #     log_confusion_matrix=True,
+    #         #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
+    #         # ),
+    #     ],
+    #     verbose=2,
+    # )
     # 混合行列・不確かさ・ヒストグラムの作成
     # tuple_x = (x_train, x_test)
     # tuple_y = (y_train, y_test)

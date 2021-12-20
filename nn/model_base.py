@@ -623,6 +623,15 @@ class H_EDLModelBase(tf.keras.Model):
         return metrics_dict
 
 
+class Sampling(tf.keras.layers.Layer):
+    def call(self, inputs):
+        z_mean, z_log_var = inputs
+        batch = tf.shape(z_mean)[0]
+        dim = tf.shape(z_mean)[1]
+        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+
 class VDANN(tf.keras.Model):
     def __init__(
         self,
@@ -650,6 +659,7 @@ class VDANN(tf.keras.Model):
         self.decoder = self.make_decorder()
         self.sbj_classifier = self.make_classifier(target="subjects")
         self.tar_classifier = self.make_classifier(target="targets")
+        self.sample = Sampling()
 
     def _conv2d_bn(
         self,
@@ -684,11 +694,13 @@ class VDANN(tf.keras.Model):
         if target == "subjects":
             outputs = tf.keras.layers.Dense(self.subject_dim ** 2)(inputs)
             outputs = tf.keras.layers.Activation("relu")(outputs)
+            outputs = tf.keras.layers.Dropout(0.2)(outputs)
             outputs = tf.keras.layers.Dense(self.subject_dim)(outputs)
             outputs = tf.keras.layers.Activation("relu")(outputs)
         elif target == "targets":
             outputs = tf.keras.layers.Dense(self.target_dim ** 2)(inputs)
             outputs = tf.keras.layers.Activation("relu")(outputs)
+            outputs = tf.keras.layers.Dropout(0.2)(outputs)
             outputs = tf.keras.layers.Dense(self.target_dim)(outputs)
             outputs = tf.keras.layers.Activation("relu")(outputs)
         else:
@@ -757,11 +769,11 @@ class VDANN(tf.keras.Model):
         x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
         return Model(inputs=self.inputs, outputs=x)
 
-    @tf.function
-    def sample(self, eps=None):
-        if eps is None:
-            eps = tf.random.normal(shape=(100, self.latent_dim))
-        return self.decode(eps, apply_sigmoid=True)
+    # @tf.function
+    # def sample(self, eps=None):
+    #     if eps is None:
+    #         eps = tf.random.normal(shape=(100, self.latent_dim))
+    #     return self.decode(eps, apply_sigmoid=True)
 
     @tf.function
     def encode(self, x):
@@ -770,7 +782,8 @@ class VDANN(tf.keras.Model):
 
     @tf.function
     def reparameterize(self, mean, logvar):
-        eps = tf.random.normal(shape=mean.shape)
+        # NOTE: hard coding
+        eps = tf.random.normal(shape=(None, 3))
         return eps * tf.exp(logvar * 0.5) + mean
 
     @tf.function
@@ -790,11 +803,11 @@ class VDANN(tf.keras.Model):
         )
 
     @tf.function
-    def compute_loss(self, x, y_tar, y_sub):
+    def compute_loss(self, x_logit, y_tar, y_sub):
         # vae loss
-        mean, logvar = self.encode(x)
-        z = self.reparameterize(mean, logvar)
-        x_logit = self.decode(z)
+        # mean, logvar = self.encode(x)
+        # z = self.reparameterize(mean, logvar)
+        # x_logit = self.decode(z)
         cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
             logits=x_logit, labels=x
         )
@@ -827,7 +840,7 @@ class VDANN(tf.keras.Model):
     @tf.function
     def call(self, inputs):
         mean, logvar = self.encode(inputs)
-        z = self.reparameterize(mean, logvar)
+        z = self.sample(inputs=(mean, logvar))
         x_logit = self.decode(z)
         # loss = self.compute_loss(inputs, y_tar, y_sub)
         # loss = self.compute_loss(inputs)
@@ -840,12 +853,45 @@ class VDANN(tf.keras.Model):
         y_tar = y_true[:, 0]
         y_sub = y_true[:, 1]
         with tf.GradientTape() as tape:
-            loss = self.compute_loss(x, y_tar, y_sub)
-        training_vars = self.trainable_variables
+            mean, logvar = self.encode(x)
+            z = self.sample(inputs=(mean, logvar))
+            # eps = tf.random.normal(shape=(mean.shape))
+            # z = eps * tf.exp(logvar * 0.5) + mean
+            # z = self.reparameterize(mean, logvar)
+            x_logit = self.decode(z)
+            # loss = self.compute_loss(x, x_logit, y_tar, y_sub)
+            cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+                logits=x_logit, labels=x
+            )
+            logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+            logpz = self.log_normal_pdf(z, 0.0, 0.0)
+            logqz_x = self.log_normal_pdf(z, mean, logvar)
+            vae_loss = -(logpx_z + logpz - logqz_x)
+            # target_loss
+            tar_output = self.tar_classifier(z)
+            target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+                y_true=y_tar, y_pred=tar_output, from_logits=True
+            )
+
+            # subject_loss
+            sub_output = self.sbj_classifier(z)
+            subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+                y_true=y_sub, y_pred=sub_output, from_logits=True
+            )
+            vae_loss = tf.reduce_mean(vae_loss)
+            target_loss = tf.reduce_mean(target_loss)
+            subject_loss = tf.reduce_mean(subject_loss)
+            training_vars = self.trainable_variables
+            loss = (
+                self.gamma * vae_loss
+                + self.alpha * target_loss
+                + self.beta * subject_loss
+            )
+
         gradients = tape.gradient(loss, training_vars)
         self.optimizer.apply_gradients(zip(gradients, training_vars))
         # accuracyのメトリクスにはy_predを入れる
-        self.compiled_metrics.update_state(y_tar, y_tar)
+        self.compiled_metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         return {m.name: m.result() for m in self.metrics}
 
