@@ -891,9 +891,10 @@ class VDANN(tf.keras.Model):
         gradients = tape.gradient(loss, training_vars)
         self.optimizer.apply_gradients(zip(gradients, training_vars))
         # accuracyのメトリクスにはy_predを入れる
-        self.compiled_metrics.update_state(y_tar, tar_output)
+        # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
-        return {m.name: m.result() for m in self.metrics}
+        # return {m.name: m.result() for m in self.metrics}
+        return loss
 
     @tf.function
     def test_step(self, data):
@@ -924,16 +925,16 @@ class VDANN(tf.keras.Model):
         vae_loss = tf.reduce_mean(vae_loss)
         target_loss = tf.reduce_mean(target_loss)
         subject_loss = tf.reduce_mean(subject_loss)
-        training_vars = self.trainable_variables
         loss = (
             self.gamma * vae_loss
             + self.alpha * target_loss
             + self.beta * subject_loss
         )
 
-        self.compiled_metrics.update_state(y_tar, tar_output)
+        # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
-        return {m.name: m.result() for m in self.metrics}
+        # return {m.name: m.result() for m in self.metrics}
+        return loss
 
     # @tf.function
     # def test_step(self, data):

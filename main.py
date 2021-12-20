@@ -142,7 +142,7 @@ def main(
         model = VDANN(
             inputs=inputs,
             gamma=0,
-            latent_dim=32,
+            latent_dim=6,
             alpha=1,
             beta=0,
             target_dim=5,
@@ -152,7 +152,6 @@ def main(
         )
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
         )
 
     # tensorboard作成
@@ -165,17 +164,22 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
 
+    # train_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
+    # test_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
+
     for epoch in range(epochs):
         print("Start of epoch %d" % (epoch,))
 
         # Iterate over the batches of the dataset.
         for step, x_batch_train in enumerate(traindata):
-            result = model.train_step(x_batch_train)
-        print(f"train result: {result}")
+            train_loss = model.train_step(x_batch_train)
+        print(f"train loss: {train_loss}")
+        # train_metrics.reset_states()
 
         for step, x_batch_test in enumerate(testdata):
-            result = model.test_step(x_batch_test)
-        print(f"test metrics: {result}")
+            test_loss = model.test_step(x_batch_test)
+        print(f"test loss: {test_loss}")
+        # test_metrics.reset_states()
 
     # model.fit(
     #     x_train,
