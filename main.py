@@ -174,7 +174,7 @@ def main(
         print(f"train result: {result}")
 
         for step, x_batch_test in enumerate(testdata):
-            result = model.train_step(x_batch_test)
+            result = model.test_step(x_batch_test)
         print(f"test metrics: {result}")
 
     # model.fit(
