@@ -12,8 +12,8 @@ from collections import Counter
 from typing import Any, Dict, List
 
 import tensorflow as tf
-import wandb
 
+import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -168,14 +168,7 @@ def main(
         # Iterate over the batches of the dataset.
         for step, x_batch_train in enumerate(traindata):
             result = model.train_step(x_batch_train)
-            print(f"metrics: {result}")
-            if step % 100 == 0:
-                # print(
-                #     "step %d: mean loss = %.4f"
-                #     # % (step, model.loss_metric.result())
-                # )
-                print(f"step: {step}")
-                print(f"metrics: {result}")
+        print(f"metrics: {result}")
 
     # model.fit(
     #     x_train,
