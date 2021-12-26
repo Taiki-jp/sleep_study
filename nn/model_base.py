@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 from typing import Tuple
 
 import numpy as np
@@ -692,19 +693,17 @@ class VDANN(tf.keras.Model):
     def make_classifier(self, target: str = ""):
         inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         if target == "subjects":
-            outputs = tf.keras.layers.Dense(self.subject_dim ** 2)(inputs)
-            outputs = tf.keras.layers.Activation("relu")(outputs)
-            outputs = tf.keras.layers.Dropout(0.2)(outputs)
-            outputs = tf.keras.layers.Dense(self.subject_dim)(outputs)
-            outputs = tf.keras.layers.Activation("relu")(outputs)
+            latent_dim = self.subject_dim
         elif target == "targets":
-            outputs = tf.keras.layers.Dense(self.target_dim ** 2)(inputs)
-            outputs = tf.keras.layers.Activation("relu")(outputs)
-            outputs = tf.keras.layers.Dropout(0.2)(outputs)
-            outputs = tf.keras.layers.Dense(self.target_dim)(outputs)
-            outputs = tf.keras.layers.Activation("relu")(outputs)
+            latent_dim = self.target_dim
         else:
             print("正しいターゲット引数を指定してください")
+            sys.exit(1)
+        outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
+        outputs = tf.keras.layers.Activation("relu")(outputs)
+        outputs = tf.keras.layers.Dropout(0.5)(outputs)
+        outputs = tf.keras.layers.Dense(latent_dim)(outputs)
+        outputs = tf.keras.layers.Activation("relu")(outputs)
         return Model(inputs=inputs, outputs=outputs)
 
     # def make_classifier(self, target: str = ""):
@@ -747,17 +746,14 @@ class VDANN(tf.keras.Model):
 
     def make_encoder(self) -> Model:
         x = self._conv2d_bn(
-            self.inputs, 32, 3, 3, strides=(2, 2), padding="same"
+            self.inputs,
+            32,
+            3,
+            3,
+            strides=(2, 2),
+            padding="same",
+            name="first_layer",
         )
-        # x = self._conv2d_bn(
-        #     self.inputs,
-        #     32,
-        #     3,
-        #     3,
-        #     strides=(2, 2),
-        #     padding="same",
-        #     # name="first_layer",
-        # )
         x = self._conv2d_bn(x, 32, 3, 3, padding="same")
         x = self._conv2d_bn(x, 64, 3, 3)
         x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
@@ -793,12 +789,6 @@ class VDANN(tf.keras.Model):
         x = tf.keras.layers.GlobalAveragePooling2D()(x)
         x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
         return Model(inputs=self.inputs, outputs=x)
-
-    # @tf.function
-    # def sample(self, eps=None):
-    #     if eps is None:
-    #         eps = tf.random.normal(shape=(100, self.latent_dim))
-    #     return self.decode(eps, apply_sigmoid=True)
 
     @tf.function
     def encode(self, x):

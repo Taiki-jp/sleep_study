@@ -253,7 +253,7 @@ if __name__ == "__main__":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # なんか下のやつ使えなくなっている、、
@@ -262,9 +262,9 @@ if __name__ == "__main__":
     # ハイパーパラメータの設定
     TEST_RUN = False
     EPOCHS = 50
-    HAS_ATTENTION = True
+    HAS_ATTENTION = False
     PSE_DATA = False
-    HAS_INCEPTION = True
+    HAS_INCEPTION = False
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 1
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     CLEANSING_TYPE = "no_cleansing"
