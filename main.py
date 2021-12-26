@@ -8,9 +8,11 @@ from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import datetime
+import random
 from collections import Counter
 from typing import Any, Dict, List
 
+import numpy as np
 import tensorflow as tf
 import wandb
 
@@ -24,6 +26,17 @@ from pre_process.pre_process import PreProcess
 from pre_process.record import Record
 
 # from wandb.keras import WandbCallback
+
+
+def set_seed(seed=200):
+    tf.random.set_seed(seed)
+    # optional
+    # for numpy.random
+    np.random.seed(seed)
+    # for built-in random
+    random.seed(seed)
+    # for hash seed
+    os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 def main(
@@ -167,18 +180,25 @@ def main(
     # train_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
     # test_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
 
+    # model_baes内にGPUの計算中にnumpyに渡すことが出来ないのでmainにlambda式用意
+    tensor2numpy = lambda x: x.numpy()
     for epoch in range(epochs):
         print("Start of epoch %d" % (epoch,))
 
         # Iterate over the batches of the dataset.
         for step, x_batch_train in enumerate(traindata):
             train_loss = model.train_step(x_batch_train)
-        print(f"train loss: {train_loss}")
+            if step % 50 == 0:
+                print(
+                    f"train loss: (vae, sbj, tar) =  {tuple(map(tensor2numpy, train_loss))}"
+                )
         # train_metrics.reset_states()
 
         for step, x_batch_test in enumerate(testdata):
             test_loss = model.test_step(x_batch_test)
-        print(f"test loss: {test_loss}")
+        print(
+            f"test loss: (vae, sbj, tar) = {tuple(map(tensor2numpy, test_loss))}"
+        )
         # test_metrics.reset_states()
 
     # model.fit(
@@ -223,6 +243,8 @@ def main(
 
 
 if __name__ == "__main__":
+    # シードの固定
+    set_seed()
     # 環境設定
     CALC_DEVICE = "gpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
