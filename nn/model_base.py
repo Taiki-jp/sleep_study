@@ -707,6 +707,22 @@ class VDANN(tf.keras.Model):
             print("正しいターゲット引数を指定してください")
         return Model(inputs=inputs, outputs=outputs)
 
+    # def make_classifier(self, target: str = ""):
+    #     inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+    #     if target == "subjects":
+    #         latent_dim = self.subject_dim
+    #     elif target == "targets":
+    #         latent_dim = self.target_dim
+    #     else:
+    #         print("正しいターゲット引数を指定してください")
+
+    #     outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
+    #     outputs = tf.keras.layers.Activation("relu")(outputs)
+    #     outputs = tf.keras.layers.Dropout(0.2)(outputs)
+    #     outputs = tf.keras.layers.Dense(latent_dim)(outputs)
+    #     outputs = tf.keras.layers.Activation("relu")(outputs)
+    #     return Model(inputs=inputs, outputs=outputs)
+
     def make_decorder(self) -> Model:
         inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         vae_out = tf.keras.layers.Dense(
@@ -733,6 +749,15 @@ class VDANN(tf.keras.Model):
         x = self._conv2d_bn(
             self.inputs, 32, 3, 3, strides=(2, 2), padding="same"
         )
+        # x = self._conv2d_bn(
+        #     self.inputs,
+        #     32,
+        #     3,
+        #     3,
+        #     strides=(2, 2),
+        #     padding="same",
+        #     # name="first_layer",
+        # )
         x = self._conv2d_bn(x, 32, 3, 3, padding="same")
         x = self._conv2d_bn(x, 64, 3, 3)
         x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
@@ -802,40 +827,40 @@ class VDANN(tf.keras.Model):
             axis=raxis,
         )
 
-    @tf.function
-    def compute_loss(self, x_logit, y_tar, y_sub):
-        # vae loss
-        # mean, logvar = self.encode(x)
-        # z = self.reparameterize(mean, logvar)
-        # x_logit = self.decode(z)
-        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=x_logit, labels=x
-        )
-        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-        logpz = self.log_normal_pdf(z, 0.0, 0.0)
-        logqz_x = self.log_normal_pdf(z, mean, logvar)
-        vae_loss = -(logpx_z + logpz - logqz_x)
-        # vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+    # @tf.function
+    # def compute_loss(self, x_logit, y_tar, y_sub):
+    #     # vae loss
+    #     # mean, logvar = self.encode(x)
+    #     # z = self.reparameterize(mean, logvar)
+    #     # x_logit = self.decode(z)
+    #     cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+    #         logits=x_logit, labels=x
+    #     )
+    #     logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+    #     logpz = self.log_normal_pdf(z, 0.0, 0.0)
+    #     logqz_x = self.log_normal_pdf(z, mean, logvar)
+    #     vae_loss = -(logpx_z + logpz - logqz_x)
+    #     # vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
-        # target_loss
-        output = self.tar_classifier(z)
-        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            y_true=y_tar, y_pred=output, from_logits=True
-        )
+    #     # target_loss
+    #     output = self.tar_classifier(z)
+    #     target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+    #         y_true=y_tar, y_pred=output, from_logits=true
+    #     )
 
-        # subject_loss
-        output = self.sbj_classifier(z)
-        subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            y_true=y_sub, y_pred=output, from_logits=True
-        )
-        vae_loss = tf.reduce_mean(vae_loss)
-        target_loss = tf.reduce_mean(target_loss)
-        subject_loss = tf.reduce_mean(subject_loss)
-        return (
-            self.gamma * vae_loss
-            + self.alpha * target_loss
-            + self.beta * subject_loss
-        )
+    #     # subject_loss
+    #     output = self.sbj_classifier(z)
+    #     subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+    #         y_true=y_sub, y_pred=output, from_logits=true
+    #     )
+    #     vae_loss = tf.reduce_mean(vae_loss)
+    #     target_loss = tf.reduce_mean(target_loss)
+    #     subject_loss = tf.reduce_mean(subject_loss)
+    #     return (
+    #         self.gamma * vae_loss
+    #         + self.alpha * target_loss
+    #         + self.beta * subject_loss
+    #     )
 
     @tf.function
     def call(self, inputs):
@@ -852,8 +877,12 @@ class VDANN(tf.keras.Model):
         x, y_true = data
         y_tar = y_true[:, 0]
         y_sub = y_true[:, 1]
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
+            # tmp = [var.name for var in tape.watched_variables()]
             mean, logvar = self.encode(x)
+            # mean, logvar = tf.split(
+            #     self.encoder(x), num_or_size_splits=2, axis=1
+            # )
             z = self.sample(inputs=(mean, logvar))
             # eps = tf.random.normal(shape=(mean.shape))
             # z = eps * tf.exp(logvar * 0.5) + mean
@@ -878,23 +907,40 @@ class VDANN(tf.keras.Model):
             subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
                 y_true=y_sub, y_pred=sub_output, from_logits=True
             )
-            vae_loss = tf.reduce_mean(vae_loss)
-            target_loss = tf.reduce_mean(target_loss)
-            subject_loss = tf.reduce_mean(subject_loss)
-            training_vars = self.trainable_variables
-            loss = (
-                self.gamma * vae_loss
-                + self.alpha * target_loss
-                + self.beta * subject_loss
-            )
+            vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+            target_loss = self.alpha * tf.reduce_mean(target_loss)
+            subject_loss = self.beta * tf.reduce_mean(subject_loss)
 
-        gradients = tape.gradient(loss, training_vars)
-        self.optimizer.apply_gradients(zip(gradients, training_vars))
+            # パラメータの取得
+            vae_vars = self.encoder.trainable_variables
+            enc_vars_cp4sub = vae_vars.copy()
+            enc_vars_cp4tar = vae_vars.copy()
+            # NOTE: コピーを取った後にデコーダ部分をマージする
+            vae_vars.extend(self.decoder.trainable_variables)
+            sub_vars = self.sbj_classifier.trainable_variables
+            tar_vars = self.tar_classifier.trainable_variables
+            # target classifierのパラメータ
+            enc_vars_cp4tar.extend(tar_vars)
+            # subject classifierのパラメータ
+            enc_vars_cp4sub.extend(sub_vars)
+
+        # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
+        # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
+        vae_gradients = tape.gradient(vae_loss, vae_vars)
+        self.optimizer.apply_gradients(zip(vae_gradients, vae_vars))
+        sbj_gradients = tape.gradient(subject_loss, enc_vars_cp4sub)
+        self.optimizer.apply_gradients(zip(sbj_gradients, enc_vars_cp4sub))
+        tar_gradients = tape.gradient(target_loss, enc_vars_cp4tar)
+        self.optimizer.apply_gradients(zip(tar_gradients, enc_vars_cp4tar))
         # accuracyのメトリクスにはy_predを入れる
         # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
-        return loss
+        return (
+            vae_loss,
+            subject_loss,
+            target_loss,
+        )
 
     @tf.function
     def test_step(self, data):
@@ -922,19 +968,18 @@ class VDANN(tf.keras.Model):
         subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
             y_true=y_sub, y_pred=sub_output, from_logits=True
         )
-        vae_loss = tf.reduce_mean(vae_loss)
-        target_loss = tf.reduce_mean(target_loss)
-        subject_loss = tf.reduce_mean(subject_loss)
-        loss = (
-            self.gamma * vae_loss
-            + self.alpha * target_loss
-            + self.beta * subject_loss
-        )
+        vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+        target_loss = self.alpha * tf.reduce_mean(target_loss)
+        subject_loss = self.beta * tf.reduce_mean(subject_loss)
 
         # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
-        return loss
+        return (
+            vae_loss,
+            subject_loss,
+            target_loss,
+        )
 
     # @tf.function
     # def test_step(self, data):
