@@ -38,7 +38,6 @@ class PreProcess:
         has_rem_bias: bool = False,
         model_type: str = "",
     ):
-        seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.data_type = data_type
         self.fit_pos = fit_pos
