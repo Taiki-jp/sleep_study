@@ -724,24 +724,46 @@ class VDANN(tf.keras.Model):
 
     def make_decorder(self) -> Model:
         inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+        # vae_out = tf.keras.layers.Dense(
+        #     units=8 * 5 * self.latent_dim, activation="relu"
+        # )(inputs)
+        # vae_out = tf.keras.layers.Reshape(
+        #     target_shape=(8, 5, self.latent_dim)
+        # )(vae_out)
+        # # (8, 5) => (16, 10)
+        # vae_out = tf.keras.layers.Conv2DTranspose(
+        #     filters=64, kernel_size=3, strides=2, padding="same"
+        # )(vae_out)
+        # # (16, 10) => (64, 30)
+        # vae_out = tf.keras.layers.Conv2DTranspose(
+        #     filters=32, kernel_size=3, strides=(4, 3), padding="same"
+        # )(vae_out)
+        # # (64, 30) => (64, 30)
+        # vae_out = tf.keras.layers.Conv2DTranspose(
+        #     filters=1, kernel_size=3, strides=1, padding="same"
+        # )(vae_out)
         vae_out = tf.keras.layers.Dense(
-            units=8 * 5 * self.latent_dim, activation="relu"
+            units=7 * 7 * 32, activation=tf.nn.relu
         )(inputs)
-        vae_out = tf.keras.layers.Reshape(
-            target_shape=(8, 5, self.latent_dim)
-        )(vae_out)
-        # (8, 5) => (16, 10)
+        vae_out = tf.keras.layers.Reshape(target_shape=(7, 7, 32))(vae_out)
         vae_out = tf.keras.layers.Conv2DTranspose(
-            filters=64, kernel_size=3, strides=2, padding="same"
+            filters=64,
+            kernel_size=3,
+            strides=2,
+            padding="same",
+            activation="relu",
         )(vae_out)
-        # (16, 10) => (64, 30)
         vae_out = tf.keras.layers.Conv2DTranspose(
-            filters=32, kernel_size=3, strides=(4, 3), padding="same"
+            filters=32,
+            kernel_size=3,
+            strides=2,
+            padding="same",
+            activation="relu",
         )(vae_out)
-        # (64, 30) => (64, 30)
         vae_out = tf.keras.layers.Conv2DTranspose(
             filters=1, kernel_size=3, strides=1, padding="same"
         )(vae_out)
+
         return Model(inputs=inputs, outputs=vae_out)
 
     def make_encoder(self) -> Model:
@@ -864,9 +886,7 @@ class VDANN(tf.keras.Model):
 
     @tf.function
     def train_step(self, data):
-        x, y_true = data
-        y_tar = y_true[:, 0]
-        y_sub = y_true[:, 1]
+        x = data
         with tf.GradientTape(persistent=True) as tape:
             # tmp = [var.name for var in tape.watched_variables()]
             mean, logvar = self.encode(x)
@@ -886,57 +906,26 @@ class VDANN(tf.keras.Model):
             logpz = self.log_normal_pdf(z, 0.0, 0.0)
             logqz_x = self.log_normal_pdf(z, mean, logvar)
             vae_loss = -(logpx_z + logpz - logqz_x)
-            # target_loss
-            tar_output = self.tar_classifier(z)
-            target_loss = tf.keras.losses.sparse_categorical_crossentropy(
-                y_true=y_tar, y_pred=tar_output, from_logits=True
-            )
-
-            # subject_loss
-            sub_output = self.sbj_classifier(z)
-            subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
-                y_true=y_sub, y_pred=sub_output, from_logits=True
-            )
             vae_loss = self.gamma * tf.reduce_mean(vae_loss)
-            target_loss = self.alpha * tf.reduce_mean(target_loss)
-            subject_loss = self.beta * tf.reduce_mean(subject_loss)
 
             # パラメータの取得
             vae_vars = self.encoder.trainable_variables
-            enc_vars_cp4sub = vae_vars.copy()
-            enc_vars_cp4tar = vae_vars.copy()
             # NOTE: コピーを取った後にデコーダ部分をマージする
             vae_vars.extend(self.decoder.trainable_variables)
-            sub_vars = self.sbj_classifier.trainable_variables
-            tar_vars = self.tar_classifier.trainable_variables
-            # target classifierのパラメータ
-            enc_vars_cp4tar.extend(tar_vars)
-            # subject classifierのパラメータ
-            enc_vars_cp4sub.extend(sub_vars)
 
         # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
         # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
         vae_gradients = tape.gradient(vae_loss, vae_vars)
         self.optimizer.apply_gradients(zip(vae_gradients, vae_vars))
-        sbj_gradients = tape.gradient(subject_loss, enc_vars_cp4sub)
-        self.optimizer.apply_gradients(zip(sbj_gradients, enc_vars_cp4sub))
-        tar_gradients = tape.gradient(target_loss, enc_vars_cp4tar)
-        self.optimizer.apply_gradients(zip(tar_gradients, enc_vars_cp4tar))
         # accuracyのメトリクスにはy_predを入れる
         # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
-        return (
-            vae_loss,
-            subject_loss,
-            target_loss,
-        )
+        return (vae_loss,)
 
     @tf.function
     def test_step(self, data):
-        x, y_true = data
-        y_tar = y_true[:, 0]
-        y_sub = y_true[:, 1]
+        x = data
         mean, logvar = self.encode(x)
         z = self.sample(inputs=(mean, logvar))
         x_logit = self.decode(z)
@@ -947,51 +936,9 @@ class VDANN(tf.keras.Model):
         logpz = self.log_normal_pdf(z, 0.0, 0.0)
         logqz_x = self.log_normal_pdf(z, mean, logvar)
         vae_loss = -(logpx_z + logpz - logqz_x)
-        # target_loss
-        tar_output = self.tar_classifier(z)
-        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            y_true=y_tar, y_pred=tar_output, from_logits=True
-        )
-
-        # subject_loss
-        sub_output = self.sbj_classifier(z)
-        subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            y_true=y_sub, y_pred=sub_output, from_logits=True
-        )
         vae_loss = self.gamma * tf.reduce_mean(vae_loss)
-        target_loss = self.alpha * tf.reduce_mean(target_loss)
-        subject_loss = self.beta * tf.reduce_mean(subject_loss)
+        return (vae_loss,)
 
-        # metrics.update_state(y_tar, tar_output)
-        # loss: edlのロス，accuracy: edlの出力が合っているか
-        # return {m.name: m.result() for m in self.metrics}
-        return (
-            vae_loss,
-            subject_loss,
-            target_loss,
-        )
-
-    # @tf.function
-    # def test_step(self, data):
-    # # Unpack the data
-    # x, y = data
-    # # Compute predictions
-    # evidence = self(x, training=False)
-    # alpha = evidence + 1
-    # y_pred = alpha / tf.reduce_sum(alpha, axis=1, keepdims=True)
-    # # uncertainty = self.n_class/tf.reduce_sum(alpha, axis=1,keepdims=True)
-    # # Updates the metrics tracking the loss
-    # # yをone-hot表現にして送る
-    # y = tf.one_hot(y, depth=self.n_class)
-    # # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
-    # # Update the metrics.
-    # self.compiled_metrics.update_state(y, y_pred)
-    # metrics_dict = {m.name: m.result() for m in self.metrics}
-    # # metrics_dict.update(u_dict)
-    # return metrics_dict
-
-
-# 睡眠データのモデルを返す
 
 if __name__ == "__main__":
     import os
