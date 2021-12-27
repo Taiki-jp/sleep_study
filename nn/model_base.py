@@ -768,49 +768,59 @@ class VDANN(tf.keras.Model):
         return Model(inputs=inputs, outputs=vae_out)
 
     def make_encoder(self) -> Model:
-        x = self._conv2d_bn(
-            self.inputs,
-            32,
-            3,
-            3,
-            strides=(2, 2),
-            padding="same",
-            name="first_layer",
-        )
-        x = self._conv2d_bn(x, 32, 3, 3, padding="same")
-        x = self._conv2d_bn(x, 64, 3, 3)
-        x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
-        # 畳み込み開始02
-        x = self._conv2d_bn(x, 80, 1, 1, padding="same")
-        x = self._conv2d_bn(x, 192, 3, 3, padding="same")
-        x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
-        if self.has_inception:
-            # mixed 1: 35 x 35 x 288
-            branch1x1 = self._conv2d_bn(x, 64, 1, 1)
-            branch5x5 = self._conv2d_bn(x, 48, 1, 1)
-            branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
-            branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
-            branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
-            branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
-            branch_pool = tf.keras.layers.AveragePooling2D(
-                (3, 3), strides=(1, 1), padding="same"
-            )(x)
-            branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
-            x = tf.keras.layers.concatenate(
-                [branch1x1, branch5x5, branch3x3dbl, branch_pool],
-                axis=-1,
-                name="mixed1",
-            )  # (13, 13, 288)
-            if self.has_attention:
-                attention = tf.keras.layers.Conv2D(
-                    1, kernel_size=3, padding="same"
-                )(
-                    x
-                )  # (13, 13, 1)
-                attention = tf.keras.layers.Activation("sigmoid")(attention)
-                x *= attention
-        x = tf.keras.layers.GlobalAveragePooling2D()(x)
-        x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
+
+        # x = self._conv2d_bn(
+        #     self.inputs,
+        #     32,
+        #     3,
+        #     3,
+        #     strides=(2, 2),
+        #     padding="same",
+        #     name="first_layer",
+        # )
+        # x = self._conv2d_bn(x, 32, 3, 3, padding="same")
+        # x = self._conv2d_bn(x, 64, 3, 3)
+        # x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+        # # 畳み込み開始02
+        # x = self._conv2d_bn(x, 80, 1, 1, padding="same")
+        # x = self._conv2d_bn(x, 192, 3, 3, padding="same")
+        # x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+        # if self.has_inception:
+        #     # mixed 1: 35 x 35 x 288
+        #     branch1x1 = self._conv2d_bn(x, 64, 1, 1)
+        #     branch5x5 = self._conv2d_bn(x, 48, 1, 1)
+        #     branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
+        #     branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
+        #     branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+        #     branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+        #     branch_pool = tf.keras.layers.AveragePooling2D(
+        #         (3, 3), strides=(1, 1), padding="same"
+        #     )(x)
+        #     branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
+        #     x = tf.keras.layers.concatenate(
+        #         [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+        #         axis=-1,
+        #         name="mixed1",
+        #     )  # (13, 13, 288)
+        #     if self.has_attention:
+        #         attention = tf.keras.layers.Conv2D(
+        #             1, kernel_size=3, padding="same"
+        #         )(
+        #             x
+        #         )  # (13, 13, 1)
+        #         attention = tf.keras.layers.Activation("sigmoid")(attention)
+        #         x *= attention
+        # x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
+        # return Model(inputs=self.inputs, outputs=x)
+        x = tf.keras.layers.Conv2D(
+            filters=32, kernel_size=3, strides=(2, 2), activation="relu"
+        )(self.inputs)
+        x = tf.keras.layers.Conv2D(
+            filters=64, kernel_size=3, strides=(2, 2), activation="relu"
+        )(x)
+        x = tf.keras.layers.Flatten()(x)
+        x = tf.keras.layers.Dense(self.latent_dim)(x)
         return Model(inputs=self.inputs, outputs=x)
 
     @tf.function
@@ -819,7 +829,7 @@ class VDANN(tf.keras.Model):
         return mean, logvar
 
     @tf.function
-    def reparameterize(self, mean, logvar, latent_dim):
+    def reparameterize(self, mean, logvar):
         # NOTE: hard coding
         eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * 0.5) + mean
@@ -878,8 +888,8 @@ class VDANN(tf.keras.Model):
     @tf.function
     def call(self, inputs):
         mean, logvar = self.encode(inputs)
-        z = self.sample(inputs=(mean, logvar))
-        x_logit = self.decode(z)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z, apply_sigmoid=True)
         # loss = self.compute_loss(inputs, y_tar, y_sub)
         # loss = self.compute_loss(inputs)
         # self.add_loss(loss)
