@@ -625,12 +625,13 @@ class H_EDLModelBase(tf.keras.Model):
 
 
 class Sampling(tf.keras.layers.Layer):
-    def call(self, inputs):
-        z_mean, z_log_var = inputs
-        batch = tf.shape(z_mean)[0]
-        dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
-        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+    def call(self, model: Model, eps: float = None):
+        # epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        if eps is None:
+            sys.exit(1)
+            # epsilon = tf.random.normal(shape=(batch, dim))
+        return model.decode(eps, apply_sigmoid=True)
+        # return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
 
 class VDANN(tf.keras.Model):
@@ -850,79 +851,69 @@ class VDANN(tf.keras.Model):
             axis=raxis,
         )
 
-    # @tf.function
-    # def compute_loss(self, x_logit, y_tar, y_sub):
-    #     # vae loss
-    #     # mean, logvar = self.encode(x)
-    #     # z = self.reparameterize(mean, logvar)
-    #     # x_logit = self.decode(z)
-    #     cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-    #         logits=x_logit, labels=x
-    #     )
-    #     logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-    #     logpz = self.log_normal_pdf(z, 0.0, 0.0)
-    #     logqz_x = self.log_normal_pdf(z, mean, logvar)
-    #     vae_loss = -(logpx_z + logpz - logqz_x)
-    #     # vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
-
-    #     # target_loss
-    #     output = self.tar_classifier(z)
-    #     target_loss = tf.keras.losses.sparse_categorical_crossentropy(
-    #         y_true=y_tar, y_pred=output, from_logits=true
-    #     )
-
-    #     # subject_loss
-    #     output = self.sbj_classifier(z)
-    #     subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
-    #         y_true=y_sub, y_pred=output, from_logits=true
-    #     )
-    #     vae_loss = tf.reduce_mean(vae_loss)
-    #     target_loss = tf.reduce_mean(target_loss)
-    #     subject_loss = tf.reduce_mean(subject_loss)
-    #     return (
-    #         self.gamma * vae_loss
-    #         + self.alpha * target_loss
-    #         + self.beta * subject_loss
-    #     )
-
     @tf.function
-    def call(self, inputs):
-        mean, logvar = self.encode(inputs)
+    def compute_loss(self, x):
+        # vae loss
+        mean, logvar = self.encode(x)
         z = self.reparameterize(mean, logvar)
-        x_logit = self.decode(z, apply_sigmoid=True)
-        # loss = self.compute_loss(inputs, y_tar, y_sub)
-        # loss = self.compute_loss(inputs)
-        # self.add_loss(loss)
-        return x_logit
+        x_logit = self.decode(z)
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=x_logit, labels=x
+        )
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        logqz_x = self.log_normal_pdf(z, mean, logvar)
+        vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+        # target_loss
+        # output = self.tar_classifier(z)
+        # target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+        #     y_true=y_tar, y_pred=output, from_logits=True
+        # )
+
+        # subject_loss
+        # output = self.sbj_classifier(z)
+        # subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+        #     y_true=y_sub, y_pred=output, from_logits=True
+        # )
+
+        return (
+            self.gamma * vae_loss,
+            # + self.alpha * target_loss,
+            # + self.beta * subject_loss
+        )
 
     @tf.function
     def train_step(self, data):
         x = data
         with tf.GradientTape(persistent=True) as tape:
+            losses = self.compute_loss(x)
+            # vae_loss, tar_loss, sbj_loss = losses
+            (vae_loss,) = losses
             # tmp = [var.name for var in tape.watched_variables()]
-            mean, logvar = self.encode(x)
+            # mean, logvar = self.encode(x)
             # mean, logvar = tf.split(
             #     self.encoder(x), num_or_size_splits=2, axis=1
             # )
-            z = self.sample(inputs=(mean, logvar))
+            # z = self.sample(inputs=(mean, logvar))
             # eps = tf.random.normal(shape=(mean.shape))
             # z = eps * tf.exp(logvar * 0.5) + mean
             # z = self.reparameterize(mean, logvar)
-            x_logit = self.decode(z)
+            # x_logit = self.decode(z)
             # loss = self.compute_loss(x, x_logit, y_tar, y_sub)
-            cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-                logits=x_logit, labels=x
-            )
-            logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-            logpz = self.log_normal_pdf(z, 0.0, 0.0)
-            logqz_x = self.log_normal_pdf(z, mean, logvar)
-            vae_loss = -(logpx_z + logpz - logqz_x)
-            vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+            # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            #     logits=x_logit, labels=x
+            # )
+            # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+            # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+            # logqz_x = self.log_normal_pdf(z, mean, logvar)
+            # vae_loss = -(logpx_z + logpz - logqz_x)
+            # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
 
-            # パラメータの取得
-            vae_vars = self.encoder.trainable_variables
-            # NOTE: コピーを取った後にデコーダ部分をマージする
-            vae_vars.extend(self.decoder.trainable_variables)
+        # パラメータの取得
+        vae_vars = self.encoder.trainable_variables
+        # NOTE: コピーを取った後にデコーダ部分をマージする
+        vae_vars.extend(self.decoder.trainable_variables)
 
         # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
         # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
@@ -937,18 +928,31 @@ class VDANN(tf.keras.Model):
     @tf.function
     def test_step(self, data):
         x = data
-        mean, logvar = self.encode(x)
-        z = self.sample(inputs=(mean, logvar))
-        x_logit = self.decode(z)
-        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=x_logit, labels=x
-        )
-        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-        logpz = self.log_normal_pdf(z, 0.0, 0.0)
-        logqz_x = self.log_normal_pdf(z, mean, logvar)
-        vae_loss = -(logpx_z + logpz - logqz_x)
-        vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+        losses = self.compute_loss(x)
+        # vae_loss, tar_loss, sbj_loss = losses
+        (vae_loss,) = losses
+        # mean, logvar = self.encode(x)
+        # z = self.sample(inputs=(mean, logvar))
+        # x_logit = self.decode(z)
+        # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+        #     logits=x_logit, labels=x
+        # )
+        # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        # logqz_x = self.log_normal_pdf(z, mean, logvar)
+        # vae_loss = -(logpx_z + logpz - logqz_x)
+        # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
         return (vae_loss,)
+
+    @tf.function
+    def call(self, inputs):
+        mean, logvar = self.encode(inputs)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z, apply_sigmoid=True)
+        # loss = self.compute_loss(inputs, y_tar, y_sub)
+        # loss = self.compute_loss(inputs)
+        # self.add_loss(loss)
+        return x_logit
 
 
 if __name__ == "__main__":
