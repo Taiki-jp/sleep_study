@@ -722,7 +722,7 @@ class VDANN(tf.keras.Model):
     #     outputs = tf.keras.layers.Activation("relu")(outputs)
     #     return Model(inputs=inputs, outputs=outputs)
 
-    def make_decorder(self) -> Model:
+    def make_decorder(self, apply_sigmoid: bool = False) -> Model:
         inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         # vae_out = tf.keras.layers.Dense(
         #     units=8 * 5 * self.latent_dim, activation="relu"
@@ -763,7 +763,8 @@ class VDANN(tf.keras.Model):
         vae_out = tf.keras.layers.Conv2DTranspose(
             filters=1, kernel_size=3, strides=1, padding="same"
         )(vae_out)
-
+        if apply_sigmoid:
+            vae_out = tf.sigmoid(vae_out)
         return Model(inputs=inputs, outputs=vae_out)
 
     def make_encoder(self) -> Model:
@@ -818,9 +819,9 @@ class VDANN(tf.keras.Model):
         return mean, logvar
 
     @tf.function
-    def reparameterize(self, mean, logvar):
+    def reparameterize(self, mean, logvar, latent_dim):
         # NOTE: hard coding
-        eps = tf.random.normal(shape=(None, 3))
+        eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * 0.5) + mean
 
     @tf.function
