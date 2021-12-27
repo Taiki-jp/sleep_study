@@ -691,7 +691,8 @@ class VDANN(tf.keras.Model):
         return x
 
     def make_classifier(self, target: str = ""):
-        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+        inputs = tf.keras.Input(shape=(int(self.latent_dim),))
+        # inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         if target == "subjects":
             latent_dim = self.subject_dim
         elif target == "targets":
@@ -701,7 +702,7 @@ class VDANN(tf.keras.Model):
             sys.exit(1)
         outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
         outputs = tf.keras.layers.Activation("relu")(outputs)
-        outputs = tf.keras.layers.Dropout(0.5)(outputs)
+        outputs = tf.keras.layers.Dropout(0.3)(outputs)
         outputs = tf.keras.layers.Dense(latent_dim)(outputs)
         outputs = tf.keras.layers.Activation("relu")(outputs)
         return Model(inputs=inputs, outputs=outputs)
@@ -787,6 +788,7 @@ class VDANN(tf.keras.Model):
                 attention = tf.keras.layers.Activation("sigmoid")(attention)
                 x *= attention
         x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        x = tf.keras.layers.Dropout(0.2)(x)
         x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
         return Model(inputs=self.inputs, outputs=x)
 
@@ -869,23 +871,25 @@ class VDANN(tf.keras.Model):
         y_sub = y_true[:, 1]
         with tf.GradientTape(persistent=True) as tape:
             # tmp = [var.name for var in tape.watched_variables()]
-            mean, logvar = self.encode(x)
-            # mean, logvar = tf.split(
-            #     self.encoder(x), num_or_size_splits=2, axis=1
+            # mean, logvar = self.encode(x)
+            # # mean, logvar = tf.split(
+            # #     self.encoder(x), num_or_size_splits=2, axis=1
+            # # )
+            # z = self.sample(inputs=(mean, logvar))
+            # # eps = tf.random.normal(shape=(mean.shape))
+            # # z = eps * tf.exp(logvar * 0.5) + mean
+            # # z = self.reparameterize(mean, logvar)
+            # x_logit = self.decode(z)
+            # # loss = self.compute_loss(x, x_logit, y_tar, y_sub)
+            # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            #     logits=x_logit, labels=x
             # )
-            z = self.sample(inputs=(mean, logvar))
-            # eps = tf.random.normal(shape=(mean.shape))
-            # z = eps * tf.exp(logvar * 0.5) + mean
-            # z = self.reparameterize(mean, logvar)
-            x_logit = self.decode(z)
-            # loss = self.compute_loss(x, x_logit, y_tar, y_sub)
-            cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-                logits=x_logit, labels=x
-            )
-            logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-            logpz = self.log_normal_pdf(z, 0.0, 0.0)
-            logqz_x = self.log_normal_pdf(z, mean, logvar)
-            vae_loss = -(logpx_z + logpz - logqz_x)
+            # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+            # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+            # logqz_x = self.log_normal_pdf(z, mean, logvar)
+            # vae_loss = -(logpx_z + logpz - logqz_x)
+
+            z = self.encoder(x)
             # target_loss
             tar_output = self.tar_classifier(z)
             target_loss = tf.keras.losses.sparse_categorical_crossentropy(
@@ -897,7 +901,8 @@ class VDANN(tf.keras.Model):
             subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
                 y_true=y_sub, y_pred=sub_output, from_logits=True
             )
-            vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+            # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+            # vae_loss = tf.Variable(0)
             target_loss = self.alpha * tf.reduce_mean(target_loss)
             subject_loss = self.beta * tf.reduce_mean(subject_loss)
 
@@ -916,8 +921,8 @@ class VDANN(tf.keras.Model):
 
         # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
         # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
-        vae_gradients = tape.gradient(vae_loss, vae_vars)
-        self.optimizer.apply_gradients(zip(vae_gradients, vae_vars))
+        # vae_gradients = tape.gradient(vae_loss, vae_vars)
+        # self.optimizer.apply_gradients(zip(vae_gradients, vae_vars))
         sbj_gradients = tape.gradient(subject_loss, enc_vars_cp4sub)
         self.optimizer.apply_gradients(zip(sbj_gradients, enc_vars_cp4sub))
         tar_gradients = tape.gradient(target_loss, enc_vars_cp4tar)
@@ -927,7 +932,7 @@ class VDANN(tf.keras.Model):
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
         return (
-            vae_loss,
+            # vae_loss,
             subject_loss,
             target_loss,
         )
@@ -937,17 +942,19 @@ class VDANN(tf.keras.Model):
         x, y_true = data
         y_tar = y_true[:, 0]
         y_sub = y_true[:, 1]
-        mean, logvar = self.encode(x)
-        z = self.sample(inputs=(mean, logvar))
-        x_logit = self.decode(z)
-        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=x_logit, labels=x
-        )
-        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-        logpz = self.log_normal_pdf(z, 0.0, 0.0)
-        logqz_x = self.log_normal_pdf(z, mean, logvar)
-        vae_loss = -(logpx_z + logpz - logqz_x)
+        # mean, logvar = self.encode(x)
+        # z = self.sample(inputs=(mean, logvar))
+        # x_logit = self.decode(z)
+        # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+        #     logits=x_logit, labels=x
+        # )
+        # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        # logqz_x = self.log_normal_pdf(z, mean, logvar)
+        # vae_loss = -(logpx_z + logpz - logqz_x)
         # target_loss
+        z = self.encoder(x)
+        tar_output = self.tar_classifier(z)
         tar_output = self.tar_classifier(z)
         target_loss = tf.keras.losses.sparse_categorical_crossentropy(
             y_true=y_tar, y_pred=tar_output, from_logits=True
@@ -958,7 +965,7 @@ class VDANN(tf.keras.Model):
         subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
             y_true=y_sub, y_pred=sub_output, from_logits=True
         )
-        vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+        # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
         target_loss = self.alpha * tf.reduce_mean(target_loss)
         subject_loss = self.beta * tf.reduce_mean(subject_loss)
 
@@ -966,7 +973,7 @@ class VDANN(tf.keras.Model):
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
         return (
-            vae_loss,
+            # vae_loss,
             subject_loss,
             target_loss,
         )

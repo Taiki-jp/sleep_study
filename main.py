@@ -155,7 +155,7 @@ def main(
         model = VDANN(
             inputs=inputs,
             gamma=0,
-            latent_dim=6,
+            latent_dim=64,
             alpha=1,
             beta=0,
             target_dim=5,
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     EPOCHS = 50
     HAS_ATTENTION = False
     PSE_DATA = False
-    HAS_INCEPTION = False
+    HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
-    SAMPLE_SIZE = 1
+    SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     CLEANSING_TYPE = "no_cleansing"
