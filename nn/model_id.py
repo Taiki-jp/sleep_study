@@ -1,6 +1,7 @@
 import json
 import sys
 
+from data_analysis.py_color import PyColor
 from pre_process.json_base import JsonBase
 
 
@@ -28,6 +29,8 @@ class ModelId(JsonBase):
         fit_pos: str,
         stride: int,
         kernel: int,
+        model_type: str = "",
+        cleansing_type: str = "",
     ) -> None:
         self.subject_type = self.first_key_of_pre_process(
             is_normal=is_normal, is_prev=is_previous
@@ -35,13 +38,30 @@ class ModelId(JsonBase):
         self.data_type = data_type
         self.fit_pos = fit_pos
         self.stride = "stride_" + str(stride)
-        self.fit_pos = "kernel_" + str(kernel)
+        self.kernel = "kernel_" + str(kernel)
+        self.model_type = self.set_model_type(model_type)
+        self.cleansing_type = self.set_cleansing_type(cleansing_type)
 
-    def dump(self, is_pre_dump: bool) -> None:
+    def set_cleansing_type(self, cleansing_type):
+        return cleansing_type
+
+    def set_model_type(self, model_type: str):
+        if "enn" in model_type:
+            return "enn"
+        elif "dnn" in model_type:
+            return "dnn"
+        elif "pass":
+            return "pass"
+        else:
+            raise Exception
+
+    def dump(self, value, is_pre_dump: bool = False) -> None:
         def __dump():
-            self.json_dict[self.hostkey][self.data_type][self.model_type][
-                self.fit_pos
-            ][self.stride][self.kernel]
+            self.json_dict[self.hostkey][self.subject_type][self.model_type][
+                self.data_type
+            ][self.fit_pos][self.stride][self.kernel][
+                self.cleansing_type
+            ] = value
             with open(self.json_file, "w") as f:
                 json.dump(self.json_dict, f, indent=2)
 

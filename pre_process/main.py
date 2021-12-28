@@ -11,6 +11,8 @@ from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
 from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
+from pre_process.record import Record
+from pre_process.subjects_info import SubjectsInfo
 from pre_process.tanita_reader import TanitaReader
 
 
@@ -45,8 +47,9 @@ def main():
                     FIT_POS,
                     STRIDE,
                     KERNEL_SIZE,
+                    model_type="pass",
+                    cleansing_type="",
                 )
-                CD = CreateData()
                 FR = FileReader(
                     IS_NORMAL,
                     IS_PREVIOUS,
@@ -54,7 +57,10 @@ def main():
                     FIT_POS,
                     STRIDE,
                     KERNEL_SIZE,
+                    model_type="pass",
+                    cleansing_type="",
                 )
+                CD = CreateData()
                 PPI = FR.my_env.ppi
                 PPI.dump(is_pre_dump=True)
 
@@ -66,49 +72,58 @@ def main():
                     target_folders, len(target_folders)
                 )
 
+                subject_age_d = FR.my_env.si.get_age()
                 for target in tqdm(target_folders):
                     _, name = os.path.split(target)
-                    if "140731_Umezawa" in name:
-                        tanita = TanitaReader(
-                            target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    tanita = TanitaReader(
+                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    )
+                    psg = PsgReader(
+                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    )
+                    tanita.read_csv()
+                    psg.read_csv()
+                    # 最初の時間がそろっていることを確認する
+                    try:
+                        assert datetime.datetime.strptime(
+                            tanita.df["time"][0], "%H:%M:%S"
+                        ) == datetime.datetime.strptime(
+                            psg.df["time"][0], "%H:%M:%S"
                         )
-                        psg = PsgReader(
-                            target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    except AssertionError:
+                        print(
+                            PyColor.RED_FLASH,
+                            "tanita, psgの最初の時刻がそろっていることを確認してください",
+                            PyColor.END,
                         )
-                        tanita.read_csv()
-                        psg.read_csv()
-                        # 最初の時間がそろっていることを確認する
+                        print(
+                            f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
+                        )
+                        sys.exit(1)
+                    preprocessing = CD.make_freq_transform(mode=DATA_TYPE)
+                    records = preprocessing(
+                        tanita.df,
+                        psg.df,
+                        kernel_size=KERNEL_SIZE,
+                        stride=STRIDE,
+                        fit_pos=FIT_POS,
+                    )
+                    # recordsの被験者名と被験者年齢を更新
+                    for _record in records:
+                        _record.name = name
+                        # TODO: 例外処理以外の方法でやった方が良い
                         try:
-                            assert datetime.datetime.strptime(
-                                tanita.df["time"][0], "%H:%M:%S"
-                            ) == datetime.datetime.strptime(
-                                psg.df["time"][0], "%H:%M:%S"
-                            )
-                        except AssertionError:
-                            print(
-                                PyColor.RED_FLASH,
-                                "tanita, psgの最初の時刻がそろっていることを確認してください",
-                                PyColor.END,
-                            )
-                            print(
-                                f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
-                            )
-                            sys.exit(1)
-                        preprocessing = CD.make_freq_transform(mode=DATA_TYPE)
-                        records = preprocessing(
-                            tanita.df,
-                            psg.df,
-                            kernel_size=KERNEL_SIZE,
-                            stride=STRIDE,
-                            fit_pos=FIT_POS,
-                        )
-                        utils.dump_with_pickle(
-                            records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
-                        )
+                            _record.age = subject_age_d[name]
+                        except KeyError:
+                            pass
 
-                    PPI.dump(value=date_id)
-                else:
-                    print(name)
+                    # ssが空のレコードは削除
+                    records = Record().drop_none(records)
+                    utils.dump_with_pickle(
+                        records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
+                    )
+
+                PPI.dump(value=date_id)
 
 
 if __name__ == "__main__":

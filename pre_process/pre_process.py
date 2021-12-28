@@ -3,17 +3,22 @@ import os
 import sys
 from collections import Counter
 from random import choices, seed, shuffle
+from typing import List, Tuple
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
 from imblearn.over_sampling import SMOTE
+from numpy import ndarray
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from data_analysis.py_color import PyColor
+from pre_process.file_reader import FileReader
 from pre_process.load_sleep_data import LoadSleepData
 from pre_process.my_env import MyEnv
+from pre_process.record import Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -28,8 +33,10 @@ class PreProcess:
         is_previous: bool,
         stride: int,
         is_normal: bool,
+        cleansing_type: str,
         has_nrem2_bias: bool = False,
         has_rem_bias: bool = False,
+        model_type: str = "",
     ):
         seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -39,6 +46,7 @@ class PreProcess:
         self.kernel_size = kernel_size
         self.is_previous = is_previous
         self.stride = stride
+        self.model_type = model_type
         self.is_normal = is_normal
         self.load_sleep_data: LoadSleepData = LoadSleepData(
             data_type=self.data_type,
@@ -48,11 +56,13 @@ class PreProcess:
             is_previous=self.is_previous,
             stride=self.stride,
             is_normal=self.is_normal,
+            model_type=self.model_type,
+            cleansing_type=cleansing_type,
         )
         self.has_nrem2_bias = has_nrem2_bias
         self.has_rem_bias = has_rem_bias
         # LoadSleepData の参照を作成
-        self.fr = self.load_sleep_data.fr
+        self.fr: FileReader = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
         self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく
@@ -79,7 +89,7 @@ class PreProcess:
         insert_channel_axis=True,
         to_one_hot_vector=True,
         pse_data=False,
-    ):
+    ) -> Tuple[ndarray, ndarray]:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
@@ -222,6 +232,8 @@ class PreProcess:
         # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
         y_train = self.list2SS(train)
         y_test = self.list2SS(test)
+        y_train_subject = self.list2sub(train)
+        y_test_subject = self.list2sub(test)
         if self.data_type == "spectrum":
             x_train = self.list2Spectrum(train)
             x_test = self.list2Spectrum(test)
@@ -238,12 +250,22 @@ class PreProcess:
         # Noneの処理をするかどうか
         if catch_none is True:
             print("- noneの処理を行います")
-            x_train, y_train = self.catch_none(x_train, y_train)
-            x_test, y_test = self.catch_none(x_test, y_test)
+            x_train, y_train, y_train_subject = self.catch_none(
+                x_train, y_train, y_train_subject
+            )
+            x_test, y_test, y_test_subject = self.catch_none(
+                x_test, y_test, y_test_subject
+            )
 
         # max正規化をするかどうか
         if normalize is True:
+            # print("- 標準化を行います")
             print("- max正規化を行います")
+            # 3次元配列の標準化の方法
+            # https://stackoverflow.com/questions/50125844/how-to-standard-scale-a-3d-matrix
+            # sc = StandardScaler()
+            # x_train = sc.fit_transform(x_train.reshape(-1, x_train.shape[-1])).reshape(x_train.shape)
+            # x_train = sc.fit_transform(x_test.reshape(-1, x_test.shape[-1])).reshape(x_test.shape)
             self.max_norm(x_train)
             self.max_norm(x_test)
             # self.min_norm(x_train)
@@ -281,7 +303,10 @@ class PreProcess:
             y_train = tf.one_hot(y_train, class_size)
             y_test = tf.one_hot(y_test, class_size)
 
-        return (x_train, y_train), (x_test, y_test)
+        return (x_train, np.vstack([y_train, y_train_subject])), (
+            x_test,
+            np.vstack([y_test, y_test_subject]),
+        )
 
     # recordからスペクトラムの作成
     def list2Spectrum(self, list_data):
@@ -290,6 +315,23 @@ class PreProcess:
     # recordから睡眠段階の作成
     def list2SS(self, list_data):
         return np.array([k.ss for k in list_data])
+
+    # recordから年齢の作成
+    def list2age(self, list_data: List[Record]):
+        return [k.age for k in list_data]
+
+    # recordから被験者の作成
+    def list2sub(self, list_data: List[Record]) -> ndarray:
+        has_catched_name = dict()
+        subject_counter = 0
+        # 被験者名とそのラベルを定義
+        for __record in list_data:
+            if not __record.name in has_catched_name:
+                has_catched_name.update({__record.name: subject_counter})
+                subject_counter += 1
+        return np.array(
+            [has_catched_name[__record.name] for __record in list_data]
+        )
 
     # recordからスペクトログラムの作成
     def list2Spectrogram(self, list_data):
@@ -333,6 +375,11 @@ class PreProcess:
                 records_train.extend(data)
 
         return records_train, records_test
+
+    # def set_subjects_info(records: List[List[Record]]):
+    #     for _record in records:
+    #         for __record in _record:
+    #             __record.name =
 
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
     def split_train_test_from_records(
@@ -428,19 +475,26 @@ class PreProcess:
             X /= X.min()
 
     # NONEの睡眠段階をキャッチして入力データごと消去
-    def catch_none(self, x_data, y_data):
+    def catch_none(self, x_data, y_data, y_data_subject):
         import pandas as pd
 
         x_data = list(x_data)
         y_data = list(y_data)
+        y_data_subject = list(y_data_subject)
         # 保存用のリストを確保
         _x_data = list()
         _y_data = list()
+        _y_data_subject = list()
         for num, ss in enumerate(y_data):
             if not pd.isnull(ss):
                 _x_data.append(x_data[num])
                 _y_data.append(y_data[num])
-        return np.array(_x_data), np.array(_y_data).astype(np.int32)
+                _y_data_subject.append(y_data_subject[num])
+        return (
+            np.array(_x_data),
+            np.array(_y_data).astype(np.int32),
+            np.array(_y_data_subject).astype(np.int32),
+        )
 
     # ラベルをクラス数に合わせて変更
     def change_label(self, y_data, n_class, target_class=None):

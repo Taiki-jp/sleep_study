@@ -1,19 +1,34 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from typing import List, NewType
 
 import numpy as np
 
 
-@dataclass
 class Record(object):
-    time: str = ""
-    spectrum_raw: np.ndarray = np.array([])
-    spectrum: np.ndarray = np.array([])
-    cepstrum: np.ndarray = np.array([])
-    spectrogram_raw: np.ndarray = np.array([])
-    spectrogram: np.ndarray = np.array([])
-    wavelet_raw: np.ndarray = np.array([])
-    wavelet: np.ndarray = np.array([])
-    ss: int = None
+    def __init__(self) -> None:
+        self.time: str = ""
+        self.spectrum_raw: np.ndarray = np.array([])
+        self.spectrum: np.ndarray = np.array([])
+        self.cepstrum: np.ndarray = np.array([])
+        self.spectrogram_raw: np.ndarray = np.array([])
+        self.spectrogram: np.ndarray = np.array([])
+        self.wavelet_raw: np.ndarray = np.array([])
+        self.wavelet: np.ndarray = np.array([])
+        self.ss: int = None
+        self.name: str = ""
+        self.age: int = 0
+
+    # 継承のことを考えるとRecordよりは__class__の方が良いが，mypyではサポートされていない
+    # https://github.com/python/mypy/issues/4177
+    @staticmethod
+    def drop_none(records: List[Record]) -> List[Record]:
+        records_cp = list()
+        for _record in records:
+            # リストから値を消すときは削除条件にマッチしないものを別配列に追加する方針を取る
+            if _record.ss is not None:
+                records_cp.append(_record)
+        return records_cp
 
 
 # 複数レコードの作成

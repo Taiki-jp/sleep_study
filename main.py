@@ -1,32 +1,42 @@
 import os
 import sys
 
-from tensorflow import keras
+from rich import print
+from tensorflow.python.keras.metrics import accuracy
 
-# from nn.wandb_classification_callback import WandbClassificationCallback
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-
-tf.random.set_seed(100)
 import datetime
+import random
 from collections import Counter
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List
 
-from tensorflow.python.framework.ops import Tensor
-
+import numpy as np
+import tensorflow as tf
 import wandb
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
-from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.model_id import ModelId
+from nn.model_base import VDANN
 
 # from nn.metrics import CategoricalTruePositives
-from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
 from pre_process.record import Record
-from wandb.keras import WandbCallback
+
+# from wandb.keras import WandbCallback
+
+
+def set_seed(seed=200):
+    tf.random.set_seed(seed)
+    # optional
+    # for numpy.random
+    np.random.seed(seed)
+    # for built-in random
+    random.seed(seed)
+    # for hash seed
+    os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 def main(
@@ -66,10 +76,20 @@ def main(
         to_one_hot_vector=False,
         each_data_size=sample_size,
     )
+    traindata = tf.data.Dataset.from_tensor_slices(
+        (x_train.astype("float32"), y_train.T)
+    )
+    traindata = traindata.shuffle(buffer_size=x_train.shape[0]).batch(
+        batch_size
+    )
+    testdata = tf.data.Dataset.from_tensor_slices(
+        (x_test.astype("float32"), y_test.T)
+    )
+    testdata = testdata.shuffle(buffer_size=x_test.shape[0]).batch(batch_size)
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train)
-    ss_test_dict = Counter(y_test)
+    ss_train_dict = Counter(y_train[0])
+    ss_test_dict = Counter(y_test[0])
 
     # config の追加
     added_config = {
@@ -100,93 +120,117 @@ def main(
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum" or data_type == "cepstrum":
-        shape = (int(kernel_size / 2), 1)
+        sys.exit(1)
+        # shape = (int(kernel_size / 2), 1)
+        # inputs = tf.keras.Input(shape=shape)
+        # outputs = edl_classifier_1d(
+        #     x=inputs,
+        #     n_class=n_class,
+        #     has_attention=has_attention,
+        #     has_inception=has_inception,
+        #     is_mul_layer=is_mul_layer,
+        #     has_dropout=has_dropout,
+        #     dropout_rate=dropout_rate,
+        # )
+
     elif data_type == "spectrogram":
-        shape = (128, 30, 1)
+        shape = (64, 30, 1)
+        inputs = tf.keras.Input(shape=shape)
+
     else:
         print("correct here based on your model")
         sys.exit(1)
 
-    inputs = tf.keras.Input(shape=shape)
-    if data_type == "spectrum" or data_type == "cepstrum":
-        outputs = edl_classifier_1d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    elif data_type == "spectrogram":
-        outputs = edl_classifier_2d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
     if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy", "mse"],
-        )
+        pass
+        # model = CVAE(latent_dim=6, alpha=0, beta=0, encoder=encoder, decorder=decorder)
+        # model = EDLModelBase(inputs=inputs, outputs=outputs)
+        # model.compile(
+        #     optimizer=tf.keras.optimizers.Adam(),
+        #     loss=EDLLoss(K=n_class, annealing=0.1),
+        #     metrics=["accuracy", "mse"],
+        # )
 
     else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model = VDANN(
+            inputs=inputs,
+            gamma=0,
+            latent_dim=64,
+            alpha=1,
+            beta=0,
+            target_dim=5,
+            subject_dim=68,
+            has_inception=has_inception,
+            has_attention=has_attention,
+        )
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            ),
-            metrics=[
-                "accuracy",
-                # "mse"
-            ],
         )
 
     # tensorboard作成
     log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id
+        pre_process.my_env.project_dir, "vdann", test_name, date_id
     )
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
     )
 
-    model.fit(
-        x_train,
-        y_train,
-        batch_size=batch_size,
-        validation_data=(x_test, y_test),
-        epochs=epochs,
-        callbacks=[
-            tf_callback,
-            # WandbClassificationCallback(
-            #     validation_data=(x_test, y_test),
-            #     log_confusion_matrix=True,
-            #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            # ),
-        ],
-        verbose=2,
-    )
-    # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_test)
-    tuple_y = (y_train, y_test)
-    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = model.predict(_x)
-        utils.make_graphs(
-            y=_y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=date_id,
-            is_each_unc=True,
+    # train_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
+    # test_metrics = tf.keras.metrics.SparseCategoricalAccuracy()
+
+    # model_baes内にGPUの計算中にnumpyに渡すことが出来ないのでmainにlambda式用意
+    tensor2numpy = lambda x: x.numpy()
+    for epoch in range(epochs):
+        print("Start of epoch %d" % (epoch,))
+
+        # Iterate over the batches of the dataset.
+        for step, x_batch_train in enumerate(traindata):
+            train_loss = model.train_step(x_batch_train)
+            if step % 50 == 0:
+                print(
+                    f"train loss: (vae, sbj, tar) =  {tuple(map(tensor2numpy, train_loss))}"
+                )
+        # train_metrics.reset_states()
+
+        for step, x_batch_test in enumerate(testdata):
+            test_loss = model.test_step(x_batch_test)
+        print(
+            f"test loss: (vae, sbj, tar) = {tuple(map(tensor2numpy, test_loss))}"
         )
+        # test_metrics.reset_states()
+
+    # model.fit(
+    #     x_train,
+    #     y_train.T,
+    #     batch_size=batch_size,
+    #     validation_data=(x_test, y_test.T),
+    #     epochs=epochs,
+    #     callbacks=[
+    #         tf_callback,
+    #         # WandbClassificationCallback(
+    #         #     validation_data=(x_test, y_test),
+    #         #     log_confusion_matrix=True,
+    #         #     labels=["nr34", "nr2", "nr1", "rem", "wake"],
+    #         # ),
+    #     ],
+    #     verbose=2,
+    # )
+    # 混合行列・不確かさ・ヒストグラムの作成
+    # tuple_x = (x_train, x_test)
+    # tuple_y = (y_train, y_test)
+    # for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
+    #     evidence = model.predict(_x)
+    #     utils.make_graphs(
+    #         y=_y,
+    #         evidence=evidence,
+    #         train_or_test=train_or_test,
+    #         graph_person_id=test_name,
+    #         calling_graph="all",
+    #         graph_date_id=date_id,
+    #         is_each_unc=True,
+    #     )
     # tensorboardのログ
     # if log_tf_projector:
     #     utils.make_tf_projector(x=x_test, y=y_test, batch_size=batch_size, hidden_layer_id=-7, log_dir=log_dir, data_type=data_type, model=model)
@@ -199,31 +243,32 @@ def main(
 
 
 if __name__ == "__main__":
+    # シードの固定
+    set_seed()
     # 環境設定
     CALC_DEVICE = "gpu"
-    # CALC_DEVICE = "cpu"
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # なんか下のやつ使えなくなっている、、
-        # tf.config.run_functions_eagerly(True)
+        tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     EPOCHS = 50
-    HAS_ATTENTION = True
+    HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
-    IS_ENN = True
+    IS_ENN = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
@@ -232,17 +277,19 @@ if __name__ == "__main__":
     BATCH_SIZE = 64
     N_CLASS = 5
     # KERNEL_SIZE = 512
-    KERNEL_SIZE = 256
+    # KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
     SAMPLE_SIZE = 10000
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
+    CLEANSING_TYPE = "no_cleansing"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    # WANDB_PROJECT = "test" if TEST_RUN else "master"
+    WANDB_PROJECT = "test" if TEST_RUN else "1215_test"
     # WANDB_PROJECT = "test" if TEST_RUN else "base_learning_20211109"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
@@ -258,6 +305,8 @@ if __name__ == "__main__":
         is_normal=IS_NORMAL,
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
+        model_type=ENN_TAG,
+        cleansing_type=CLEANSING_TYPE,
     )
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
@@ -287,31 +336,31 @@ if __name__ == "__main__":
             f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
         ]
 
-        # wandb_config = {
-        #     "test name": test_name,
-        #     "date id": date_id,
-        #     "sample_size": SAMPLE_SIZE,
-        #     "epochs": EPOCHS,
-        #     "kernel": KERNEL_SIZE,
-        #     "stride": STRIDE,
-        #     "fit_pos": FIT_POS,
-        #     "batch_size": BATCH_SIZE,
-        #     "n_class": N_CLASS,
-        #     "has_nrem2_bias": HAS_NREM2_BIAS,
-        #     "has_rem_bias": HAS_REM_BIAS,
-        #     "model_type": ENN_TAG,
-        #     "data_type": DATA_TYPE,
-        # }
+        wandb_config = {
+            "test name": test_name,
+            "date id": date_id,
+            "sample_size": SAMPLE_SIZE,
+            "epochs": EPOCHS,
+            "kernel": KERNEL_SIZE,
+            "stride": STRIDE,
+            "fit_pos": FIT_POS,
+            "batch_size": BATCH_SIZE,
+            "n_class": N_CLASS,
+            "has_nrem2_bias": HAS_NREM2_BIAS,
+            "has_rem_bias": HAS_REM_BIAS,
+            "model_type": ENN_TAG,
+            "data_type": DATA_TYPE,
+        }
         main(
             has_dropout=True,
             log_tf_projector=True,
             name=test_name,
-            # project=WANDB_PROJECT,
+            project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
+            save_model=False,
             has_attention=HAS_ATTENTION,
             my_tags=my_tags,
             date_id=date_id,
@@ -326,7 +375,16 @@ if __name__ == "__main__":
             # wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
-            utils=Utils(),
+            utils=Utils(
+                IS_NORMAL,
+                IS_PREVIOUS,
+                DATA_TYPE,
+                FIT_POS,
+                STRIDE,
+                KERNEL_SIZE,
+                model_type=ENN_TAG,
+                cleansing_type=CLEANSING_TYPE,
+            ),
             dropout_rate=DROPOUT_RATE,
         )
 
@@ -334,17 +392,4 @@ if __name__ == "__main__":
         if TEST_RUN:
             break
     # json に書き込み
-    MI.dump(
-        keys=[
-            MI.first_key_of_pre_process(
-                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-            ),
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            "no_cleansing",
-        ],
-        value=date_id_saving_list,
-    )
+    pre_process.fr.my_env.mi.dump(value=date_id_saving_list)
