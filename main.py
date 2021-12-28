@@ -34,9 +34,6 @@ def generate_and_save_images(
     model,
     epoch,
     test_sample,
-    batch_size,
-    num_examples_to_generate,
-    test_dataset,
 ):
     mean, logvar = model.encode(test_sample)
     z = model.reparameterize(mean, logvar)
@@ -51,11 +48,6 @@ def generate_and_save_images(
     # tight_layout minimizes the overlap between 2 sub-plots
     plt.savefig("image_at_epoch_{:04d}.png".format(epoch))
     plt.show()
-
-    # Pick a sample of the test set for generating output images
-    assert batch_size >= num_examples_to_generate
-    for test_batch in test_dataset.take(1):
-        test_sample = test_batch[0:num_examples_to_generate, :, :, :]
 
 
 def set_seed(seed=200):
@@ -119,7 +111,11 @@ def main(
     model.compile(
         optimizer=tf.keras.optimizers.Adam(),
     )
+    # Pick a sample of the test set for generating output images
     num_examples_to_generate = 16
+    assert batch_size >= num_examples_to_generate
+    for test_batch in test_dataset.take(1):
+        test_sample = test_batch[0:num_examples_to_generate, :, :, :]
 
     # keeping the random vector constant for generation (prediction) so
     # it will be easier to see the improvement.
