@@ -345,7 +345,7 @@ class JsonBase(object):
             return "home-pc"
         elif self.hostname == "Spica-2nd":
             return "spica-2nd"
-        elif self.hostname == "DESKTOP-TPBSQ67":
+        elif self.hostname == "Castor-2nd":
             return "win_249"
 
     # pre_processの第一キーを返す
