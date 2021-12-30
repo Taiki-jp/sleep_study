@@ -852,7 +852,7 @@ class VDANN(tf.keras.Model):
         )
 
     @tf.function
-    def compute_loss(self, x):
+    def compute_loss(self, x: Tensor, y: Tensor):
         # vae loss
         mean, logvar = self.encode(x)
         z = self.reparameterize(mean, logvar)
@@ -866,10 +866,10 @@ class VDANN(tf.keras.Model):
         vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
         # target_loss
-        # output = self.tar_classifier(z)
-        # target_loss = tf.keras.losses.sparse_categorical_crossentropy(
-        #     y_true=y_tar, y_pred=output, from_logits=True
-        # )
+        output = self.tar_classifier(z)
+        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y, y_pred=output, from_logits=True
+        )
 
         # subject_loss
         # output = self.sbj_classifier(z)
@@ -879,17 +879,17 @@ class VDANN(tf.keras.Model):
 
         return (
             self.gamma * vae_loss,
-            # + self.alpha * target_loss,
-            # + self.beta * subject_loss
+            self.alpha * target_loss,
+            # +self.beta * subject_loss,
         )
 
     @tf.function
-    def train_step(self, data):
-        x = data
+    def train_step(self, data, vae_opt, tar_opt):
+        x, y = data
         with tf.GradientTape(persistent=True) as tape:
-            losses = self.compute_loss(x)
+            losses = self.compute_loss(x, y)
             # vae_loss, tar_loss, sbj_loss = losses
-            (vae_loss,) = losses
+            (vae_loss, tar_loss) = losses
             # tmp = [var.name for var in tape.watched_variables()]
             # mean, logvar = self.encode(x)
             # mean, logvar = tf.split(
@@ -912,25 +912,30 @@ class VDANN(tf.keras.Model):
 
         # パラメータの取得
         vae_vars = self.encoder.trainable_variables
+        tar_vars = vae_vars.copy()
         # NOTE: コピーを取った後にデコーダ部分をマージする
         vae_vars.extend(self.decoder.trainable_variables)
+        tar_vars.extend(self.tar_classifier.trainable_variables)
 
         # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
         # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
         vae_gradients = tape.gradient(vae_loss, vae_vars)
-        self.optimizer.apply_gradients(zip(vae_gradients, vae_vars))
+        tar_gradients = tape.gradient(tar_loss, tar_vars)
+        vae_opt.apply_gradients(zip(vae_gradients, vae_vars))
+        tar_opt.apply_gradients(zip(tar_gradients, tar_vars))
+        # self.optimizer.apply_gradients(zip(tar_gradients, tar_vars))
         # accuracyのメトリクスにはy_predを入れる
         # metrics.update_state(y_tar, tar_output)
         # loss: edlのロス，accuracy: edlの出力が合っているか
         # return {m.name: m.result() for m in self.metrics}
-        return (vae_loss,)
+        return (vae_loss, tar_loss)
 
     @tf.function
     def test_step(self, data):
-        x = data
-        losses = self.compute_loss(x)
+        x, y = data
+        losses = self.compute_loss(x, y)
         # vae_loss, tar_loss, sbj_loss = losses
-        (vae_loss,) = losses
+        (vae_loss, tar_loss) = losses
         # mean, logvar = self.encode(x)
         # z = self.sample(inputs=(mean, logvar))
         # x_logit = self.decode(z)
@@ -942,7 +947,7 @@ class VDANN(tf.keras.Model):
         # logqz_x = self.log_normal_pdf(z, mean, logvar)
         # vae_loss = -(logpx_z + logpz - logqz_x)
         # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
-        return (vae_loss,)
+        return (vae_loss, tar_loss)
 
     @tf.function
     def call(self, inputs):
