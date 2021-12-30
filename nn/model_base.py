@@ -646,6 +646,8 @@ class VDANN(tf.keras.Model):
         subject_dim: int,
         has_inception: bool,
         has_attention: bool,
+        is_mnist: bool,
+        is_simple_arch: bool,
     ):
         super().__init__()
         self.has_inception = has_inception
@@ -657,8 +659,10 @@ class VDANN(tf.keras.Model):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.encoder = self.make_encoder()
-        self.decoder = self.make_decorder()
+        self.encoder = self.make_encoder(is_simple_arch=is_simple_arch)
+        self.decoder = self.make_decorder(
+            is_mnist=is_mnist, is_simple_arch=is_simple_arch
+        )
         self.sbj_classifier = self.make_classifier(target="subjects")
         self.tar_classifier = self.make_classifier(target="targets")
         self.sample = Sampling()
@@ -723,105 +727,150 @@ class VDANN(tf.keras.Model):
     #     outputs = tf.keras.layers.Activation("relu")(outputs)
     #     return Model(inputs=inputs, outputs=outputs)
 
-    def make_decorder(self, apply_sigmoid: bool = False) -> Model:
-        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
-        # vae_out = tf.keras.layers.Dense(
-        #     units=8 * 5 * self.latent_dim, activation="relu"
-        # )(inputs)
-        # vae_out = tf.keras.layers.Reshape(
-        #     target_shape=(8, 5, self.latent_dim)
-        # )(vae_out)
-        # # (8, 5) => (16, 10)
-        # vae_out = tf.keras.layers.Conv2DTranspose(
-        #     filters=64, kernel_size=3, strides=2, padding="same"
-        # )(vae_out)
-        # # (16, 10) => (64, 30)
-        # vae_out = tf.keras.layers.Conv2DTranspose(
-        #     filters=32, kernel_size=3, strides=(4, 3), padding="same"
-        # )(vae_out)
-        # # (64, 30) => (64, 30)
-        # vae_out = tf.keras.layers.Conv2DTranspose(
-        #     filters=1, kernel_size=3, strides=1, padding="same"
-        # )(vae_out)
-        vae_out = tf.keras.layers.Dense(
-            units=7 * 7 * 32, activation=tf.nn.relu
-        )(inputs)
-        vae_out = tf.keras.layers.Reshape(target_shape=(7, 7, 32))(vae_out)
-        vae_out = tf.keras.layers.Conv2DTranspose(
-            filters=64,
-            kernel_size=3,
-            strides=2,
-            padding="same",
-            activation="relu",
-        )(vae_out)
-        vae_out = tf.keras.layers.Conv2DTranspose(
-            filters=32,
-            kernel_size=3,
-            strides=2,
-            padding="same",
-            activation="relu",
-        )(vae_out)
-        vae_out = tf.keras.layers.Conv2DTranspose(
-            filters=1, kernel_size=3, strides=1, padding="same"
-        )(vae_out)
+    def make_decorder(
+        self,
+        apply_sigmoid: bool = False,
+        is_simple_arch: bool = False,
+        is_mnist: bool = False,
+    ) -> Model:
+        if is_mnist:
+            units_0 = 7 * 7 * 32
+            reshaped = (7, 7, 32)
+            filter_1 = 64
+            kernel_1 = 3
+            strides_1 = 2
+            filter_2 = 32
+            kernel_2 = 3
+            strides_2 = 2
+            filter_3 = 1
+            kernel_3 = 3
+            strides_3 = 1
+        else:
+            units_0 = 8 * 5 * 32
+            reshaped = (8, 5, 32)
+            filter_1 = 64
+            kernel_1 = 3
+            strides_1 = 2
+            filter_2 = 32
+            kernel_2 = 3
+            strides_2 = (4, 3)
+            filter_3 = 1
+            kernel_3 = 3
+            strides_3 = 1
+        if is_simple_arch:
+            inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+            vae_out = tf.keras.layers.Dense(
+                units=units_0, activation=tf.nn.relu
+            )(inputs)
+            vae_out = tf.keras.layers.Reshape(target_shape=reshaped)(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_1,
+                kernel_size=kernel_1,
+                strides=strides_1,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_2,
+                kernel_size=kernel_2,
+                strides=strides_2,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_3,
+                kernel_size=kernel_3,
+                strides=strides_3,
+                padding="same",
+            )(vae_out)
+        # NOTE: 睡眠データに合わせてでコード部分を複雑化予定のため条件分岐
+        else:
+            inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+            vae_out = tf.keras.layers.Dense(
+                units=units_0, activation=tf.nn.relu
+            )(inputs)
+            vae_out = tf.keras.layers.Reshape(target_shape=reshaped)(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_1,
+                kernel_size=kernel_1,
+                strides=strides_1,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_2,
+                kernel_size=kernel_2,
+                strides=strides_2,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_3,
+                kernel_size=kernel_3,
+                strides=strides_3,
+                padding="same",
+            )(vae_out)
         if apply_sigmoid:
             vae_out = tf.sigmoid(vae_out)
         return Model(inputs=inputs, outputs=vae_out)
 
-    def make_encoder(self) -> Model:
+    def make_encoder(self, is_simple_arch: bool) -> Model:
 
-        # x = self._conv2d_bn(
-        #     self.inputs,
-        #     32,
-        #     3,
-        #     3,
-        #     strides=(2, 2),
-        #     padding="same",
-        #     name="first_layer",
-        # )
-        # x = self._conv2d_bn(x, 32, 3, 3, padding="same")
-        # x = self._conv2d_bn(x, 64, 3, 3)
-        # x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
-        # # 畳み込み開始02
-        # x = self._conv2d_bn(x, 80, 1, 1, padding="same")
-        # x = self._conv2d_bn(x, 192, 3, 3, padding="same")
-        # x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
-        # if self.has_inception:
-        #     # mixed 1: 35 x 35 x 288
-        #     branch1x1 = self._conv2d_bn(x, 64, 1, 1)
-        #     branch5x5 = self._conv2d_bn(x, 48, 1, 1)
-        #     branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
-        #     branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
-        #     branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
-        #     branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
-        #     branch_pool = tf.keras.layers.AveragePooling2D(
-        #         (3, 3), strides=(1, 1), padding="same"
-        #     )(x)
-        #     branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
-        #     x = tf.keras.layers.concatenate(
-        #         [branch1x1, branch5x5, branch3x3dbl, branch_pool],
-        #         axis=-1,
-        #         name="mixed1",
-        #     )  # (13, 13, 288)
-        #     if self.has_attention:
-        #         attention = tf.keras.layers.Conv2D(
-        #             1, kernel_size=3, padding="same"
-        #         )(
-        #             x
-        #         )  # (13, 13, 1)
-        #         attention = tf.keras.layers.Activation("sigmoid")(attention)
-        #         x *= attention
-        # x = tf.keras.layers.GlobalAveragePooling2D()(x)
-        # x = tf.keras.layers.Dense(self.latent_dim, activation="relu")(x)
-        # return Model(inputs=self.inputs, outputs=x)
-        x = tf.keras.layers.Conv2D(
-            filters=32, kernel_size=3, strides=(2, 2), activation="relu"
-        )(self.inputs)
-        x = tf.keras.layers.Conv2D(
-            filters=64, kernel_size=3, strides=(2, 2), activation="relu"
-        )(x)
-        x = tf.keras.layers.Flatten()(x)
-        x = tf.keras.layers.Dense(self.latent_dim)(x)
+        if is_simple_arch:
+            x = tf.keras.layers.Conv2D(
+                filters=32, kernel_size=3, strides=(2, 2), activation="relu"
+            )(self.inputs)
+            x = tf.keras.layers.Conv2D(
+                filters=64, kernel_size=3, strides=(2, 2), activation="relu"
+            )(x)
+            x = tf.keras.layers.Flatten()(x)
+            x = tf.keras.layers.Dense(self.latent_dim)(x)
+        else:
+            x = self._conv2d_bn(
+                self.inputs,
+                32,
+                3,
+                3,
+                strides=(2, 2),
+                padding="same",
+                name="first_layer",
+            )
+            x = self._conv2d_bn(x, 32, 3, 3, padding="same")
+            x = self._conv2d_bn(x, 64, 3, 3)
+            x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+            # 畳み込み開始02
+            x = self._conv2d_bn(x, 80, 1, 1, padding="same")
+            x = self._conv2d_bn(x, 192, 3, 3, padding="same")
+            x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+            if self.has_inception:
+                # mixed 1: 35 x 35 x 288
+                branch1x1 = self._conv2d_bn(x, 64, 1, 1)
+                branch5x5 = self._conv2d_bn(x, 48, 1, 1)
+                branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
+                branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
+                branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+                branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+                branch_pool = tf.keras.layers.AveragePooling2D(
+                    (3, 3), strides=(1, 1), padding="same"
+                )(x)
+                branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
+                x = tf.keras.layers.concatenate(
+                    [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                    axis=-1,
+                    name="mixed1",
+                )  # (13, 13, 288)
+                if self.has_attention:
+                    attention = tf.keras.layers.Conv2D(
+                        1, kernel_size=3, padding="same"
+                    )(
+                        x
+                    )  # (13, 13, 1)
+                    attention = tf.keras.layers.Activation("sigmoid")(
+                        attention
+                    )
+                    x *= attention
+            x = tf.keras.layers.GlobalAveragePooling2D()(x)
+            x = tf.keras.layers.Dense(self.latent_dim)(x)
         return Model(inputs=self.inputs, outputs=x)
 
     @tf.function
