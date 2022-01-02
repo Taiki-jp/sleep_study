@@ -6,13 +6,17 @@ import sys
 from collections import Counter
 from typing import Any, Dict, List
 
+import imageio
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 import numpy as np
 import pandas as pd
+import PIL
 import seaborn as sns
 import tensorflow as tf
+import tensorflow_docs.vis.embed as embed
+import wandb
 
 # from imblearn.over_sampling import SMOTE
 from IPython.display import SVG
@@ -28,7 +32,6 @@ from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
-import wandb
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
@@ -1223,6 +1226,102 @@ class Utils:
         )
         acc = sum(y_pred == y.numpy()) / len(y)
         wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
+
+    def generate_and_save_images(
+        self,
+        model: tf.keras.Model,
+        epoch: int,
+        test_sample: tf.Tensor,
+        filename: str = "",
+    ):
+        mean, logvar = model.encode(test_sample)
+        z = model.reparameterize(mean, logvar)
+        predictions = model.sample(model, z)
+        fig = plt.figure(figsize=(4, 4))
+
+        for i in range(predictions.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(predictions[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        # tight_layout minimizes the overlap between 2 sub-plots
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+
+        plt.savefig(filepath)
+        plt.close()
+
+    def show_true_image(self, x: tf.Tensor, filename: str = ""):
+        fig = plt.figure(figsize=(4, 4))
+        for i in range(x.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(x[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"original_image_of_mine")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        plt.show()
+
+    def display_image(self, epoch_no: int, filename: str = ""):
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch_no:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        # plt.show()
+        return PIL.Image.open(filepath)
+
+    def create_gif(self, outputfile: str = "vdann.gif") -> None:
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        outputfile = os.path.join(file_dir, outputfile)
+        with imageio.get_writer(outputfile, mode="I") as writer:
+            filenames = glob.glob(os.path.join(file_dir, "image*.png"))
+            filenames = sorted(filenames)
+            for filename in filenames:
+                image = imageio.imread(os.path.join(file_dir, filename))
+                writer.append_data(image)
+            image = imageio.imread(filename)
+            writer.append_data(image)
+        embed.embed_file(outputfile)
+
+    def drow_latent_space(
+        self,
+        model: tf.keras.Model,
+        x: tf.Tensor,
+        y: tf.Tensor,
+        filename: str = "",
+    ):
+        data = x[::10], y[::10]
+        mean, logvar = model.encode(data[0])
+        z = model.reparameterize(mean, logvar)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        im = ax.scatter(z[:, 0], z[:, 1], c=data[1])
+        cbar = fig.colorbar(im)
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"vae_latent_space.png")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
 
 
 if __name__ == "__main__":

@@ -17,3 +17,4 @@ logs/
 !*.ipynb
 
 pre_process/pre_processed_id.json
+.ipynb_checkpoints/
