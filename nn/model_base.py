@@ -696,8 +696,7 @@ class VDANN(tf.keras.Model):
         return x
 
     def make_classifier(self, target: str = ""):
-        inputs = tf.keras.Input(shape=(int(self.latent_dim),))
-        # inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
         if target == "subjects":
             latent_dim = self.subject_dim
         elif target == "targets":
@@ -707,7 +706,7 @@ class VDANN(tf.keras.Model):
             sys.exit(1)
         outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
         outputs = tf.keras.layers.Activation("relu")(outputs)
-        outputs = tf.keras.layers.Dropout(0.3)(outputs)
+        outputs = tf.keras.layers.Dropout(0.5)(outputs)
         outputs = tf.keras.layers.Dense(latent_dim)(outputs)
         outputs = tf.keras.layers.Activation("relu")(outputs)
         return Model(inputs=inputs, outputs=outputs)
