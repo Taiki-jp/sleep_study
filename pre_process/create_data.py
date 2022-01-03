@@ -1,7 +1,7 @@
 import datetime
 import sys
 from collections import Counter
-from typing import Callable
+from typing import Callable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -242,7 +242,9 @@ class CreateData(object):
     def make_freq_transform(
         self,
         mode: str,
-    ) -> Callable:
+    ) -> Callable[
+        [pd.DataFrame, pd.DataFrame, int, int, str, int], List[Record]
+    ]:
         if mode == "spectrum":
             return self.make_spectrum
         elif mode == "spectrogram":
@@ -256,12 +258,13 @@ class CreateData(object):
     # ケプストラムの作成
     def make_cepstrum(
         self,
-        tanita_data: DataFrame,
-        psg_data: DataFrame,
+        tanita_data: pd.DataFrame,
+        psg_data: pd.DataFrame,
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
-    ) -> list:
+        ss_term: int = 0,
+    ) -> List[Record]:
         # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
@@ -314,7 +317,8 @@ class CreateData(object):
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
-    ) -> list:
+        ss_term: int = 0,
+    ) -> List[Record]:
         # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
@@ -363,11 +367,11 @@ class CreateData(object):
         self,
         tanita_data: DataFrame,
         psg_data: DataFrame,
+        kernel_size: int,
         stride: int,
         fit_pos: str,
-        kernel_size: int,
         ss_term: int = 30,
-    ):
+    ) -> List[Record]:
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
         # NOTE: スペクトログラムに関して畳み込みができる回数をしっかり調べる必要がある
         # recordオブジェクトの必要な数．タニタのデータから算出

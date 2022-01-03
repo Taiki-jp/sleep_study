@@ -6,11 +6,9 @@ import sys
 from tqdm import tqdm
 
 from data_analysis.py_color import PyColor
-from data_analysis.utils import Utils
-from pre_process.create_data import CreateData
-from pre_process.file_reader import FileReader
+from pre_process.create_data import CreateData, Record
+from pre_process.my_env import MyEnv
 from pre_process.psg_reader import PsgReader
-from pre_process.record import Record
 from pre_process.tanita_reader import TanitaReader
 
 
@@ -38,7 +36,7 @@ def main():
 
                 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 # オブジェクトの作成
-                utils = Utils(
+                env = MyEnv(
                     IS_NORMAL,
                     IS_PREVIOUS,
                     DATA_TYPE,
@@ -48,7 +46,6 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
-                env = utils.env
                 CD = CreateData()
                 PPI = env.ppi
                 PPI.dump(is_pre_dump=True)
@@ -96,6 +93,7 @@ def main():
                         kernel_size=KERNEL_SIZE,
                         stride=STRIDE,
                         fit_pos=FIT_POS,
+                        ss_term=30,
                     )
                     # recordsの被験者名と被験者年齢を更新
                     for _record in records:
@@ -108,8 +106,12 @@ def main():
 
                     # ssが空のレコードは削除
                     records = Record().drop_none(records)
-                    utils.dump_with_pickle(
-                        records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
+                    env.dump_with_pickle(
+                        records,
+                        name,
+                        data_type=DATA_TYPE,
+                        fit_pos=FIT_POS,
+                        date_id=date_id,
                     )
 
                 PPI.dump(value=date_id)

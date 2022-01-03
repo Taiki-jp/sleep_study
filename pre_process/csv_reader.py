@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import pandas as pd
 
@@ -15,13 +16,13 @@ class CsvReader(object):
         columns: list = list(),
         names: list = list(),
     ):
-        self.person_dir = person_dir
-        self.file_name = file_name
-        self.df = None
-        self.verbose = verbose
-        self.is_previous = is_previous
-        self.columns = columns
-        self.names = names
+        self.person_dir: str = person_dir
+        self.file_name: str = file_name
+        self.df: pd.DataFrame = None
+        self.verbose: int = verbose
+        self.is_previous: bool = is_previous
+        self.columns: str = columns
+        self.names: List[str] = names
 
     def read_csv(self):
         file_path = os.path.join(self.person_dir, self.file_name)

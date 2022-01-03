@@ -1,13 +1,15 @@
 import glob
 import os
+import pickle
 import sys
-
-from subjects_list import SubjectsList
+from typing import List
 
 from data_analysis.py_color import PyColor
 from nn.model_id import ModelId
 from pre_process.pre_processed_id import PreProcessedId
+from pre_process.record import Record
 from pre_process.subjects_info import SubjectsInfo
+from pre_process.subjects_list import SubjectsList
 
 
 class MyEnv:
@@ -109,6 +111,22 @@ class MyEnv:
             print(PyColor.RED_FLASH, f"{path}が存在しません", PyColor.END)
             sys.exit(3)
         return path
+
+    def dump_with_pickle(
+        self,
+        data: List[Record],
+        file_name: str,
+        data_type: str,
+        fit_pos: str,
+        date_id: str,
+    ):
+
+        file_path = os.path.join(self.pre_processed_dir, data_type, fit_pos)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        file_path = os.path.join(file_path, file_name + "_" + date_id + ".sav")
+        print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
+        pickle.dump(data, open(file_path, "wb"))
 
 
 if __name__ == "__main__":

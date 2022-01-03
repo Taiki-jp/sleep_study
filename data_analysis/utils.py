@@ -194,17 +194,6 @@ class Utils:
         else:
             print("全てのグラフを作成する引数'all'を指定してください")
 
-    def dump_with_pickle(self, data, file_name, data_type, fit_pos):
-
-        file_path = os.path.join(
-            self.env.pre_processed_dir, data_type, fit_pos
-        )
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        file_path = os.path.join(file_path, file_name + "_" + self.id + ".sav")
-        print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
-        pickle.dump(data, open(file_path, "wb"))
-
     def showSpectrogram(self, *datas, num=4, path=False):
         fig = plt.figure()
         for i, data in enumerate(datas):
