@@ -2,6 +2,9 @@ import datetime
 import os
 import random
 import sys
+import time
+from multiprocessing import Pool, cpu_count
+from typing import Dict
 
 from tqdm import tqdm
 
@@ -10,6 +13,67 @@ from pre_process.create_data import CreateData, Record
 from pre_process.my_env import MyEnv
 from pre_process.psg_reader import PsgReader
 from pre_process.tanita_reader import TanitaReader
+
+
+def exec_preprocess(
+    target: str,
+    is_previous: bool,
+    verbose: int,
+    CD: CreateData,
+    data_type: str,
+    kernel_size: int,
+    stride: int,
+    fit_pos: str,
+    subject_age_d: Dict[str, str],
+    env: MyEnv,
+    date_id: str,
+):
+    _, name = os.path.split(target)
+    tanita = TanitaReader(target, is_previous=is_previous, verbose=verbose)
+    psg = PsgReader(target, is_previous=is_previous, verbose=verbose)
+    tanita.read_csv()
+    psg.read_csv()
+    # 最初の時間がそろっていることを確認する
+    try:
+        assert datetime.datetime.strptime(
+            tanita.df["time"][0], "%H:%M:%S"
+        ) == datetime.datetime.strptime(psg.df["time"][0], "%H:%M:%S")
+    except AssertionError:
+        print(
+            PyColor.RED_FLASH,
+            "tanita, psgの最初の時刻がそろっていることを確認してください",
+            PyColor.END,
+        )
+        print(f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}")
+        sys.exit(1)
+    preprocessing = CD.make_freq_transform(mode=data_type)
+    records = preprocessing(
+        tanita.df,
+        psg.df,
+        kernel_size=kernel_size,
+        stride=stride,
+        fit_pos=fit_pos,
+        ss_term=30,
+    )
+    # recordsの被験者名と被験者年齢を更新
+    for _record in records:
+        _record.name = name
+        # TODO: 例外処理以外の方法でやった方が良い
+        try:
+            _record.age = subject_age_d[name]
+        except KeyError:
+            pass
+
+    # ssが空のレコードは削除
+    records = Record().drop_none(records)
+    env.dump_with_pickle(
+        records,
+        name,
+        data_type=data_type,
+        fit_pos=fit_pos,
+        date_id=date_id,
+    )
+    return
 
 
 def main():
@@ -59,60 +123,26 @@ def main():
                 )
 
                 subject_age_d = env.si.get_age()
+                p = Pool(cpu_count())
                 for target in tqdm(target_folders):
-                    _, name = os.path.split(target)
-                    tanita = TanitaReader(
-                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
+                    p.apply_async(
+                        exec_preprocess,
+                        args=(
+                            target,
+                            IS_PREVIOUS,
+                            VERBOSE,
+                            CD,
+                            DATA_TYPE,
+                            KERNEL_SIZE,
+                            STRIDE,
+                            FIT_POS,
+                            subject_age_d,
+                            env,
+                            date_id,
+                        ),
                     )
-                    psg = PsgReader(
-                        target, is_previous=IS_PREVIOUS, verbose=VERBOSE
-                    )
-                    tanita.read_csv()
-                    psg.read_csv()
-                    # 最初の時間がそろっていることを確認する
-                    try:
-                        assert datetime.datetime.strptime(
-                            tanita.df["time"][0], "%H:%M:%S"
-                        ) == datetime.datetime.strptime(
-                            psg.df["time"][0], "%H:%M:%S"
-                        )
-                    except AssertionError:
-                        print(
-                            PyColor.RED_FLASH,
-                            "tanita, psgの最初の時刻がそろっていることを確認してください",
-                            PyColor.END,
-                        )
-                        print(
-                            f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
-                        )
-                        sys.exit(1)
-                    preprocessing = CD.make_freq_transform(mode=DATA_TYPE)
-                    records = preprocessing(
-                        tanita.df,
-                        psg.df,
-                        kernel_size=KERNEL_SIZE,
-                        stride=STRIDE,
-                        fit_pos=FIT_POS,
-                        ss_term=30,
-                    )
-                    # recordsの被験者名と被験者年齢を更新
-                    for _record in records:
-                        _record.name = name
-                        # TODO: 例外処理以外の方法でやった方が良い
-                        try:
-                            _record.age = subject_age_d[name]
-                        except KeyError:
-                            pass
-
-                    # ssが空のレコードは削除
-                    records = Record().drop_none(records)
-                    env.dump_with_pickle(
-                        records,
-                        name,
-                        data_type=DATA_TYPE,
-                        fit_pos=FIT_POS,
-                        date_id=date_id,
-                    )
+                p.close()
+                p.join()
 
                 PPI.dump(value=date_id)
 
