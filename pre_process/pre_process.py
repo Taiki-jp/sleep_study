@@ -69,6 +69,7 @@ class PreProcess:
     # TODO: データ選択方法の見直し
     def make_dataset(
         self,
+        is_under_4hz: bool,
         train=None,
         test=None,
         is_set_data_size=True,
@@ -286,17 +287,25 @@ class PreProcess:
                 x_train = x_train[:, :, :, np.newaxis]  # .astype('float32')
                 x_test = x_test[:, :, :, np.newaxis]  # .astype('float32')
 
-        if self.verbose == 0:
-            print(
-                "*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n",
-                Counter(y_train),
-            )
-
         # convert to one-hot vector
         if to_one_hot_vector:
             print("- one-hotベクトルを出力します")
             y_train = tf.one_hot(y_train, class_size)
             y_test = tf.one_hot(y_test, class_size)
+
+        # only use under 4hz
+        if is_under_4hz:
+            print("- 4Hzで足切りをします")
+            batch, row, col, ch = x_train.shape
+            x_train = x_train[:, : int(row / 2), :, :]
+            batch, row, col, ch = x_test.shape
+            x_test = x_test[:, : int(row / 2), :, :]
+
+        if self.verbose == 0:
+            print(
+                "*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n",
+                Counter(y_train),
+            )
 
         return (x_train, np.vstack([y_train, y_train_subject])), (
             x_test,

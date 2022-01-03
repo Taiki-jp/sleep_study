@@ -48,6 +48,7 @@ def main(
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     utils: Utils = None,
+    is_under_4hz: bool = False,
 ):
 
     # データセットの作成
@@ -58,6 +59,7 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        is_under_4hz=is_under_4hz,
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
@@ -230,12 +232,13 @@ if __name__ == "__main__":
     IS_MUL_LAYER = True
     HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
+    IS_UNDER_4HZ = True
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 64
     N_CLASS = 5
     # KERNEL_SIZE = 512
     # KERNEL_SIZE = 256
-    KERNEL_SIZE = 128
+    KERNEL_SIZE = 256
     STRIDE = 16
     # STRIDE = 16
     SAMPLE_SIZE = 10000
@@ -342,6 +345,7 @@ if __name__ == "__main__":
                 cleansing_type=CLEANSING_TYPE,
             ),
             dropout_rate=DROPOUT_RATE,
+            is_under_4hz=IS_UNDER_4HZ,
         )
 
         # testの時は一人の被験者で止める
