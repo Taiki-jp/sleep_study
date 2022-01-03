@@ -88,7 +88,7 @@ class PreProcess:
         insert_channel_axis=True,
         to_one_hot_vector=True,
         pse_data=False,
-    ) -> Tuple[ndarray, ndarray]:
+    ) -> Tuple[Tuple[ndarray, ndarray], Tuple[ndarray, ndarray]]:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
