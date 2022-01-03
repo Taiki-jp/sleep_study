@@ -4,7 +4,6 @@ import sys
 
 from data_analysis.py_color import PyColor
 from pre_process.my_env import MyEnv
-from pre_process.subjects_list import SubjectsList
 
 
 class FileReader(object):
@@ -20,7 +19,6 @@ class FileReader(object):
         cleansing_type,
     ) -> None:
 
-        self.sl: SubjectsList = SubjectsList()
         self.my_env: MyEnv = MyEnv(
             is_normal,
             is_previous,
@@ -32,7 +30,7 @@ class FileReader(object):
             cleansing_type,
         )
         self.ppi = self.my_env.ppi
-        self.sl.load()
+        self.sl = self.my_env.sl
 
     # ファイルを読み込むためにファイルパスと被験者名を指定する
     def load(self, name: str = "", path_list: list = [], verbose: int = 0):

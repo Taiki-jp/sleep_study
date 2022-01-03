@@ -48,12 +48,12 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
-                FR = utils.fr
+                env = utils.env
                 CD = CreateData()
-                PPI = FR.my_env.ppi
+                PPI = env.ppi
                 PPI.dump(is_pre_dump=True)
 
-                target_folders = FR.my_env.set_raw_folder_path(
+                target_folders = env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
                 )
                 # To debug efficiently (not to stop the same patient when cause error), sort target_folders randomly
@@ -61,7 +61,7 @@ def main():
                     target_folders, len(target_folders)
                 )
 
-                subject_age_d = FR.my_env.si.get_age()
+                subject_age_d = env.si.get_age()
                 for target in tqdm(target_folders):
                     _, name = os.path.split(target)
                     tanita = TanitaReader(

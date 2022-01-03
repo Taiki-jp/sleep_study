@@ -36,6 +36,7 @@ from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
 from pre_process.file_reader import FileReader
+from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
 
@@ -55,7 +56,7 @@ class Utils:
         catch_nrem2: bool = False,
     ) -> None:
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.fr = FileReader(
+        self.env = MyEnv(
             is_normal=is_normal,
             is_previous=is_previous,
             data_type=data_type,
@@ -65,9 +66,6 @@ class Utils:
             model_type=model_type,
             cleansing_type=cleansing_type,
         )
-        self.env = self.fr.my_env
-        # self.name_list = self.fr.sl.name_list
-        # self.name_dict = self.fr.sl.name_dict
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
         self.my_color = MyColor()

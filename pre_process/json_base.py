@@ -8,7 +8,7 @@ from data_analysis.py_color import PyColor
 
 class JsonBase(object):
     def __init__(self, json_filename: str) -> None:
-        self.hostname = socket.gethostname()
+        self.hostname: str = socket.gethostname()
         self.json_file: str = os.path.join(
             os.environ["git"],
             "sleep_study",
@@ -22,18 +22,18 @@ class JsonBase(object):
         self.foll_sass: list = []
         # 各json形式で共通のキーはクラスメンバとして定義
         self.os_version: list = ["win_249", "spica-2nd", "home-pc"]
-        self.dataset = [
+        self.dataset: list = [
             "normal_prev",
             "normal_follow",
             "sas_prev",
             "sas_follow",
         ]
-        self.preprocess_type = ["spectrum", "spectrogram", "cepstrum"]
-        self.ss_pos = ["bottom", "middle", "top"]
-        self.stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        self.kernel = ["kernel_" + str(i) for i in (128, 256, 512, 1024)]
-        self.added_key = ["birth", "sex", "sleeping_time"]
-        self.subjects_list = [
+        self.preprocess_type: list = ["spectrum", "spectrogram", "cepstrum"]
+        self.ss_pos: list = ["bottom", "middle", "top"]
+        self.stride: list = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
+        self.kernel: list = ["kernel_" + str(i) for i in (128, 256, 512, 1024)]
+        self.added_key: list = ["birth", "sex", "sleeping_time"]
+        self.subjects_list: list = [
             "H_Li",
             "H_Murakami",
             "H_Yamamoto",
@@ -165,8 +165,8 @@ class JsonBase(object):
             "141215_Tomura",
             "151125_Umenai",
         ]
-        self.model_type = ["dnn", "enn"]
-        self.cleansing_type = [
+        self.model_type: list = ["dnn", "enn"]
+        self.cleansing_type: list = [
             "no_cleansing",
             "positive_cleansing",
             "negative_cleansing",

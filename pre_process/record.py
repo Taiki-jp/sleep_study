@@ -19,8 +19,7 @@ class Record(object):
         self.name: str = ""
         self.age: int = 0
 
-    # 継承のことを考えるとRecordよりは__class__の方が良いが，mypyではサポートされていない
-    # https://github.com/python/mypy/issues/4177
+    # NOTE: 継承のことを考えるとRecordよりは__class__の方が良いが，mypyではサポートされていない. ref: https://github.com/python/mypy/issues/4177
     @staticmethod
     def drop_none(records: List[Record]) -> List[Record]:
         records_cp = list()
@@ -33,10 +32,6 @@ class Record(object):
 
 # 複数レコードの作成
 make_mul_records = lambda num: [Record() for _ in range(num)]
-
-# TODO: 削除予定（上のラムダ式に移行して問題がなければ削除）
-# def multipleRecords(num):
-#     return [Record() for _ in range(num)]
 
 
 if __name__ == "__main__":

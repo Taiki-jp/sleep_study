@@ -2,6 +2,8 @@ import glob
 import os
 import sys
 
+from subjects_list import SubjectsList
+
 from data_analysis.py_color import PyColor
 from nn.model_id import ModelId
 from pre_process.pre_processed_id import PreProcessedId
@@ -42,6 +44,9 @@ class MyEnv:
         self.ppi = PreProcessedId()
         self.mi = ModelId()
         self.si = SubjectsInfo()
+        self.sl = SubjectsList()
+        # NOTE: SubjectsList は特別な変数を持つのでloadを明示的に呼ぶ
+        self.sl.load()
         self.set_jsonkey()
 
     # set json_keys as its member variables
