@@ -71,6 +71,7 @@ class Utils:
         # self.name_dict = self.fr.sl.name_dict
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
+        self.my_color = MyColor()
 
     # tensorboard のプロジェクタの作成
     def make_tf_projector(
@@ -477,10 +478,10 @@ class Utils:
         file_name: str,
         train_or_test: str,
         test_label: str,
+        colors: list,
         date_id: str = "",
         hist_label: list = None,
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
-        color_obj: MyColor = MyColor(),
     ) -> None:
         plt.style.use("default")
         sns.set()
@@ -489,12 +490,7 @@ class Utils:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         target_len = len(target_array)
-        try:
-            assert len(color_obj.__dict__) > target_len
-        except:
-            print("your color is smaller than target array")
-            sys.exit(1)
-        colors = list(color_obj.__dict__.values())[11 : 11 + target_len]
+        ss_list = ["nrem1", "nrem2", "nrem34", "rem", "wake"]
         ax.hist(
             target_array, bins=10, label=hist_label, stacked=True, color=colors
         )
@@ -522,8 +518,20 @@ class Utils:
         date_id: str = "",
         hist_label: list = ["True", "False"],
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
-        color_obj: MyColor = MyColor(),
     ):
+        """[Note that true label array is passed ahead]
+
+        Args:
+            true_label_array (list, optional): [description]. Defaults to None.
+            false_label_array (list, optional): [description]. Defaults to None.
+            dir2 (str, optional): [description]. Defaults to "histgram".
+            file_name (str, optional): [description]. Defaults to "hist".
+            train_or_test (str, optional): [description]. Defaults to "".
+            test_label (str, optional): [description]. Defaults to "".
+            date_id (str, optional): [description]. Defaults to "".
+            hist_label (list, optional): [description]. Defaults to ["True", "False"].
+            axis_label (dict, optional): [description]. Defaults to {"x": "uncertainty", "y": "samples"}.
+        """
 
         self._make_histgram(
             target_array=[true_label_array, false_label_array],
@@ -534,7 +542,9 @@ class Utils:
             date_id=date_id,
             hist_label=hist_label,
             axis_label=axis_label,
-            color_obj=color_obj,
+            colors=[
+                self.my_color.color[key] for key in ["TRUE_BLUE", "FALSE_RED"]
+            ],
         )
 
     # NOTE: 5クラス分類用の設定になっている
@@ -736,6 +746,7 @@ class Utils:
                 test_label=test_label,
                 date_id=date_id,
                 hist_label=hist_label,
+                colors=[self.my_color.color[key] for key in hist_label],
             )
 
         file_path = os.path.join(
