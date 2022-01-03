@@ -543,8 +543,9 @@ class EDLModelBase(tf.keras.Model):
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
-        # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
-        # Update the metrics.
+        loss = self.compiled_loss(
+            y, evidence, regularization_losses=self.losses
+        )
         self.compiled_metrics.update_state(y, y_pred)
         metrics_dict = {m.name: m.result() for m in self.metrics}
         # metrics_dict.update(u_dict)
