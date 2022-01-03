@@ -342,7 +342,7 @@ class JsonBase(object):
 
     # host名の第一キーを返す
     def get_hostkey(self) -> str:
-        if self.hostname == "DESKTOP-0CSCRP7":
+        if self.hostname == "HomeDesktop":
             return "home-pc"
         elif self.hostname == "Spica-2nd":
             return "spica-2nd"
