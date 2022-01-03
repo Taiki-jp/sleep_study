@@ -9,10 +9,8 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from pre_process.create_data import CreateData
 from pre_process.file_reader import FileReader
-from pre_process.pre_processed_id import PreProcessedId
 from pre_process.psg_reader import PsgReader
 from pre_process.record import Record
-from pre_process.subjects_info import SubjectsInfo
 from pre_process.tanita_reader import TanitaReader
 
 
@@ -21,7 +19,7 @@ def main():
     DATA_TYPE = "spectrogram"
     FIT_POS_LIST = ["middle"]
     STRIDE_LIST = [16]
-    KERNEL_SIZE_LIST = [128]
+    KERNEL_SIZE_LIST = [128, 256]
     IS_NORMAL = True
     IS_PREVIOUS = False
     VERBOSE = 2
@@ -50,16 +48,7 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
-                FR = FileReader(
-                    IS_NORMAL,
-                    IS_PREVIOUS,
-                    DATA_TYPE,
-                    FIT_POS,
-                    STRIDE,
-                    KERNEL_SIZE,
-                    model_type="pass",
-                    cleansing_type="",
-                )
+                FR = utils.fr
                 CD = CreateData()
                 PPI = FR.my_env.ppi
                 PPI.dump(is_pre_dump=True)

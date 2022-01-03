@@ -3,7 +3,6 @@ import os
 import pandas as pd
 
 from data_analysis.py_color import PyColor
-from pre_process.my_env import MyEnv
 
 
 class CsvReader(object):

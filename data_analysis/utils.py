@@ -36,7 +36,6 @@ from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
 from pre_process.file_reader import FileReader
-from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
 

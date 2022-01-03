@@ -4,7 +4,6 @@ import sys
 
 from data_analysis.py_color import PyColor
 from pre_process.my_env import MyEnv
-from pre_process.record import Record  # noqa
 from pre_process.subjects_list import SubjectsList
 
 
