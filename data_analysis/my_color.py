@@ -5,7 +5,6 @@ class MyColor(JsonBase):
     def __init__(self) -> None:
         super().__init__(json_filename="my_color.json")
         self.color = self.json_dict["color"]
-        print(self.color)
 
 
 if __name__ == "__main__":

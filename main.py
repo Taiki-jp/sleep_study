@@ -17,8 +17,7 @@ from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
 
 # from nn.metrics import CategoricalTruePositives
-from pre_process.pre_process import PreProcess
-from pre_process.record import Record
+from pre_process.pre_process import PreProcess, Record
 
 # from wandb.keras import WandbCallback
 
@@ -127,7 +126,7 @@ def main(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(),
             loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy", "mse"],
+            metrics=["accuracy"],
         )
 
     else:
@@ -139,7 +138,6 @@ def main(
             ),
             metrics=[
                 "accuracy",
-                # "mse"
             ],
         )
 
@@ -220,7 +218,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 20
+    EPOCHS = 1
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -350,4 +348,4 @@ if __name__ == "__main__":
         if TEST_RUN:
             break
     # json に書き込み
-    pre_process.fr.my_env.mi.dump(value=date_id_saving_list)
+    MI.dump(value=date_id_saving_list)

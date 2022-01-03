@@ -13,6 +13,7 @@ import numpy
 import numpy as np
 import pandas as pd
 import PIL
+import plotly.express as px
 import seaborn as sns
 import tensorflow as tf
 import tensorflow_docs.vis.embed as embed
@@ -35,7 +36,6 @@ from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
-from pre_process.file_reader import FileReader
 from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
@@ -248,14 +248,65 @@ class Utils:
         return returned_dict
 
     # グラフを並べて表示する
-    def plot_images(self, images_arr):
-        fig, axes = plt.subplots(1, 5, figsize=(20, 20))
+    def plot_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        fig, axes = plt.subplots(5, num_plot, figsize=(16, 16))
         axes = axes.flatten()
-        for img, ax in zip(images_arr, axes):
+        for img, title, ax in zip(images_arr, title_arr, axes):
             ax.imshow(img)
             ax.axis("off")
+            # ax.set_title(f"ss:{title}")
         plt.tight_layout()
         plt.show()
+
+    # グラフを並べて表示する
+    def plot_ss_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        row_num = 5
+        fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        for row, images in enumerate(ss_array):
+            for col in range(num_plot):
+                try:
+                    axes[row, col].imshow(images[col])
+
+                    axes[row, col].axis("off")
+                except:
+                    continue
+        plt.tight_layout()
+        plt.show()
+
+    # グラフをplotlyで表示
+    def plotly_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        fig = px.imshow(wake_arr[0].reshape(-1, 30))
+        fig.show()
+        # row_num = 5
+        # fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        # ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        # for row, images in enumerate(ss_array):
+        #     for col in range(num_plot):
+        #         try:
+        #             axes[row, col].imshow(images[col])
+
+        #             axes[row, col].axis("off")
+        #         except:
+        #             continue
+        # plt.tight_layout()
+        # plt.show()
 
     # wandbに画像のログを送る
     def save_image2Wandb(

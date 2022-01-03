@@ -15,10 +15,7 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from data_analysis.py_color import PyColor
-from pre_process.file_reader import FileReader
-from pre_process.load_sleep_data import LoadSleepData
-from pre_process.my_env import MyEnv
-from pre_process.record import Record
+from pre_process.load_sleep_data import LoadSleepData, MyEnv, Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -61,7 +58,6 @@ class PreProcess:
         self.has_nrem2_bias = has_nrem2_bias
         self.has_rem_bias = has_rem_bias
         # LoadSleepData の参照を作成
-        self.fr: FileReader = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
         self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく
@@ -86,7 +82,7 @@ class PreProcess:
         normalize=True,
         catch_none=True,
         insert_channel_axis=True,
-        to_one_hot_vector=True,
+        to_one_hot_vector=False,  # NOTE: yの次元は複数の時はone-hotではvstack出来ないのでTrueを使わないように注意
         pse_data=False,
     ) -> Tuple[Tuple[ndarray, ndarray], Tuple[ndarray, ndarray]]:
         # NOTE : when true, make pse_data based on the data type
@@ -662,13 +658,36 @@ class PreProcess:
 
 
 if __name__ == "__main__":
-    from pre_process.load_sleep_data import LoadSleepData
+    import rich
+
+    from data_analysis.utils import Utils
 
     PSE_DATA = False
-    load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0, n_class=5)
-    pre_process = PreProcess(load_sleep_data)
+    utils = Utils(
+        is_normal=True,
+        is_previous=False,
+        data_type="spectrogram",
+        fit_pos="middle",
+        stride=128,
+        kernel_size=16,
+        model_type="enn",
+        cleansing_type="nothing",
+        catch_nrem2=True,
+    )
+    pre_process = PreProcess(
+        data_type="spectrogram",
+        fit_pos="middle",
+        verbose=0,
+        kernel_size=128,
+        is_previous=False,
+        stride=16,
+        is_normal=True,
+        cleansing_type="nothing",
+        has_nrem2_bias=True,
+        model_type="enn",
+    )
     # 全員読み込む
-    records = load_sleep_data.load_data(
+    records = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA, name=None
     )
     # テストと訓練にスプリット
@@ -679,10 +698,21 @@ if __name__ == "__main__":
     # (train, test) = pre_process.split_train_test_data(
     #     load_all=True, test_name="H_Li")
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
-        train=train, test=test, is_storchastic=False, pse_data=PSE_DATA
+        train=train,
+        test=test,
+        is_storchastic=False,
+        pse_data=PSE_DATA,
+        to_one_hot_vector=False,
+        each_data_size=100,
+        normalize=False,
     )
-    print(x_train.shape)
-    # 1d が本当にデータ入っているかの確認 -> 確認済み
-    # import matplotlib.pyplot as plt
-    # plt.plot(x_train[0])
-    # plt.show()
+    ss = 5
+    num_plot = 16
+    print(Counter(y_test[0]))
+    utils.plotly_images(
+        images_arr=x_test,
+        title_arr=y_test[0],
+        num_plot=num_plot,
+    )
+    # print("x_train.shape: ", x_train.shape)
+    # print("y_train.shape: ", y_train.shape)
