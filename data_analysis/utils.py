@@ -16,8 +16,6 @@ import PIL
 import plotly.express as px
 import seaborn as sns
 import tensorflow as tf
-import tensorflow_docs.vis.embed as embed
-import wandb
 
 # from imblearn.over_sampling import SMOTE
 from IPython.display import SVG
@@ -33,6 +31,8 @@ from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
+# import tensorflow_docs.vis.embed as embed  # FIXME: this cause ModuleNotFoundError
+import wandb
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss

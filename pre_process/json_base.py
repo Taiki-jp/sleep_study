@@ -106,7 +106,7 @@ class JsonBase(object):
             "151215_Ishii_Haruyuki",
             "151217_Hoshino",
             "151217_Ishii_Haruyuki",
-            "190000_takadama_aki",
+            "190910_takadama_aki",
             "20190818_takano",
             "20190819_kobayashi",
             "20190820_murata",

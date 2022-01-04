@@ -1,10 +1,11 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from tensorflow.python.framework import ops
-from tensorflow.python.ops import math_ops
-from tensorflow.python.keras import backend as K
 from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.keras import backend as K
+from tensorflow.python.ops import math_ops
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
+
 
 # EDLのロス関数
 class EDLLoss(tf.keras.losses.Loss):
@@ -20,12 +21,14 @@ class EDLLoss(tf.keras.losses.Loss):
         self.annealing = annealing
         pass
 
+    @tf.function
     def call(self, y_true, evidence, unc=None):
         # y_trueはone-hotの状態
         alpha = evidence + 1  # (32:batch_size, 5:n_class)
         # カテゴリカルで送られてきたときは one-hot 表現に変換
         return self.loss_eq5(y_true=y_true, alpha=alpha, unc=unc)
 
+    @tf.function
     def KL(self, alpha):
         # 1行K列の全て値1のtensorflow.python.framework.ops.EagerTensorオブジェクト作成
         beta = tf.constant(np.ones((1, self.K)), dtype=tf.float32)  # (1, 5)
@@ -49,6 +52,7 @@ class EDLLoss(tf.keras.losses.Loss):
 
     # NOTE : y_trueがどのような形で入っているかに注意する
     # （実行は通るが、損失関数が訳分からなくなる）
+    @tf.function
     def loss_eq5(self, y_true: ndarray, alpha: Tensor, unc: Tensor):
         S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # (32, 1)
         # 2乗誤差
@@ -77,6 +81,7 @@ class EDLLoss(tf.keras.losses.Loss):
     def loss_eq3(self, y_trur, alpha):
         return
 
+    @tf.function
     def get_config(self):
         config = super().get_config()
         config.update({"K": self.K, "annealing": self.annealing})

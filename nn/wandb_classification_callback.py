@@ -6,6 +6,7 @@ import plotly.graph_objs as go
 import tensorflow.python.keras.backend as K
 from plotly.subplots import make_subplots
 from sklearn.metrics import confusion_matrix
+from tensorflow.python.data.ops.dataset_ops import BatchDataset
 
 import wandb
 from wandb.keras import WandbCallback
@@ -154,9 +155,11 @@ class WandbClassificationCallback(WandbCallback):
     def _log_confusion_matrix(self):
         eps4zero_div = 0.0001
         # テストデータからラベルを作成
-
-        x_val = self.validation_data[0]
-        y_val = self.validation_data[1]
+        if isinstance(self.validation_data, BatchDataset):
+            x_val, y_val = next(iter(self.validation_data))
+        else:
+            x_val = self.validation_data[0]
+            y_val = self.validation_data[1]
         y_pred = np.argmax(self.model.predict(x_val), axis=1)
         confmatrix = confusion_matrix(
             y_pred, y_val, labels=range(len(self.labels))

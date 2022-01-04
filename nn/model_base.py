@@ -499,7 +499,7 @@ class EDLModelBase(tf.keras.Model):
         self.time_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.n_class = n_class
 
-    @tf.function
+    # @tf.function
     def train_step(self, data):
         # x.shape : (32, 128, 512, 1)
         # y.shape : (32,)
@@ -531,7 +531,7 @@ class EDLModelBase(tf.keras.Model):
         # loss: edlのロス，accuracy: edlの出力が合っているか
         return {m.name: m.result() for m in self.metrics}
 
-    @tf.function
+    # @tf.function
     def test_step(self, data):
         # Unpack the data
         x, y = data

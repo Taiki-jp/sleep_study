@@ -9,8 +9,8 @@ from collections import Counter
 from typing import Any, Dict, List
 
 import tensorflow as tf
-import wandb
 
+import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -85,6 +85,18 @@ def main(
         "train nr2 before replaced": ss_train_dict[1],
         "train nr34 before replaced": ss_train_dict[0],
     }
+    # データセットの変更
+    train_dataset = (
+        tf.data.Dataset.from_tensor_slices((x_train, y_train[0]))
+        .shuffle(x_train.shape[0])
+        .batch(batch_size)
+    )
+    val_dataset = (
+        tf.data.Dataset.from_tensor_slices((x_val, y_val[0]))
+        .shuffle(x_val.shape[0])
+        .batch(batch_size)
+    )
+
     # wandb_config.update(added_config)
     # wandbの初期化
     wandb.init(
@@ -106,46 +118,48 @@ def main(
         print("correct here based on your model")
         sys.exit(1)
 
-    inputs = tf.keras.Input(shape=shape)
-    if data_type == "spectrum" or data_type == "cepstrum":
-        outputs = edl_classifier_1d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    elif data_type == "spectrogram":
-        outputs = edl_classifier_2d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy"],
-        )
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        inputs = tf.keras.Input(shape=shape)
+        if data_type == "spectrum" or data_type == "cepstrum":
+            outputs = edl_classifier_1d(
+                x=inputs,
+                n_class=n_class,
+                has_attention=has_attention,
+                has_inception=has_inception,
+                is_mul_layer=is_mul_layer,
+                has_dropout=has_dropout,
+                dropout_rate=dropout_rate,
+            )
+        elif data_type == "spectrogram":
+            outputs = edl_classifier_2d(
+                x=inputs,
+                n_class=n_class,
+                has_attention=has_attention,
+                has_inception=has_inception,
+                is_mul_layer=is_mul_layer,
+                has_dropout=has_dropout,
+                dropout_rate=dropout_rate,
+            )
+        if is_enn:
+            model = EDLModelBase(inputs=inputs, outputs=outputs)
+            model.compile(
+                optimizer=tf.keras.optimizers.Adam(),
+                loss=EDLLoss(K=n_class, annealing=0.1),
+                metrics=["accuracy"],
+            )
 
-    else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            ),
-            metrics=[
-                "accuracy",
-            ],
-        )
+        else:
+            model = tf.keras.Model(inputs=inputs, outputs=outputs)
+            model.compile(
+                optimizer=tf.keras.optimizers.Adam(),
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(
+                    from_logits=True
+                ),
+                metrics=[
+                    "accuracy",
+                ],
+            )
 
     # tensorboard作成
     log_dir = os.path.join(
@@ -159,17 +173,13 @@ def main(
     # y_test = y_test[0, :]
 
     model.fit(
-        x_train,
-        y_train[0],
-        batch_size=batch_size,
-        validation_data=(x_val, y_val[0]),
-        # validation_data=(x_test, y_test[0]),
+        train_dataset,
+        validation_data=val_dataset,
         epochs=epochs,
         callbacks=[
             tf_callback,
             WandbClassificationCallback(
-                validation_data=(x_val, y_val[0]),
-                # validation_data=(x_test, y_test[0]),
+                validation_data=val_dataset,
                 log_confusion_matrix=True,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
@@ -218,15 +228,17 @@ if __name__ == "__main__":
     if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
-        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        for gpu in physical_devices:
+            tf.config.experimental.set_memory_growth(gpu, True)
         # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
+
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 30
+    EPOCHS = 5
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -240,7 +252,7 @@ if __name__ == "__main__":
     HAS_REM_BIAS = False
     IS_UNDER_4HZ = True
     DROPOUT_RATE = 0.2
-    BATCH_SIZE = 64
+    BATCH_SIZE = 64 * 2
     N_CLASS = 5
     # KERNEL_SIZE = 512
     # KERNEL_SIZE = 256
