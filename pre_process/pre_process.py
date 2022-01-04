@@ -280,18 +280,17 @@ class PreProcess:
         if self.verbose == 0:
             print(
                 "*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n",
-                Counter("y_train", y_train),
-                Counter("y_val", y_val),
-                Counter("y_test", y_test),
+                "y_train: ",
+                Counter(y_train),
+                "y_val: ",
+                Counter(y_val),
+                "y_test: ",
+                Counter(y_test),
             )
         return (
-            x_train,
-            np.vstack([y_train, y_train_subject]),
-            (
-                x_val,
-                np.vstack([y_val, y_val_subject]),
-                (x_test, np.vstack([y_test, y_test_subject])),
-            ),
+            (x_train, np.vstack([y_train, y_train_subject])),
+            (x_val, np.vstack([y_val, y_val_subject])),
+            (x_test, np.vstack([y_test, y_test_subject])),
         )
 
     # recordからスペクトラムの作成

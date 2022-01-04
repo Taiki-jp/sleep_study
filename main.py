@@ -162,12 +162,14 @@ def main(
         x_train,
         y_train[0],
         batch_size=batch_size,
-        validation_data=(x_test, y_test[0]),
+        validation_data=(x_val, y_val[0]),
+        # validation_data=(x_test, y_test[0]),
         epochs=epochs,
         callbacks=[
             tf_callback,
             WandbClassificationCallback(
-                validation_data=(x_test, y_test[0]),
+                validation_data=(x_val, y_val[0]),
+                # validation_data=(x_test, y_test[0]),
                 log_confusion_matrix=True,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
@@ -224,7 +226,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 1
+    EPOCHS = 30
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
