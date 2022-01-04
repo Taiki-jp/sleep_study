@@ -52,7 +52,11 @@ def main(
 ):
 
     # データセットの作成
-    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
+    (
+        (x_train, y_train),
+        (x_val, y_val),
+        (x_test, y_test),
+    ) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -266,6 +270,7 @@ if __name__ == "__main__":
         has_rem_bias=HAS_REM_BIAS,
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
+        make_valdata=True,
     )
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
