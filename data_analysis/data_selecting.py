@@ -17,6 +17,7 @@ from nn.utils import load_model, separate_unc_data
 from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
+from pre_process.utils import set_seed
 from wandb.keras import WandbCallback
 
 
@@ -48,21 +49,27 @@ def main(
     saving_date_id: str = "",
     has_dropout: bool = False,
     dropout_rate: float = 0,
+    utils: Utils = None,
 ):
 
     # データセットの作成
-    (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
+    (
+        (x_train, y_train),
+        (x_val, y_val),
+        (x_test, y_test),
+    ) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        is_under_4hz=True,
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict: Dict[int, int] = Counter(y_train)
-    ss_test_dict: Dict[int, int] = Counter(y_test)
+    ss_train_dict: Dict[int, int] = Counter(y_train[0])
+    ss_test_dict: Dict[int, int] = Counter(y_test[0])
 
     # config の追加
     added_config = {
@@ -124,7 +131,7 @@ def main(
         )
 
     model = load_model(
-        loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=0
+        loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=1
     )
 
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
@@ -232,6 +239,7 @@ def main(
 
 
 if __name__ == "__main__":
+    set_seed(0)
     # 環境設定
     CALC_DEVICE = "gpu"
     # CALC_DEVICE = "cpu"
@@ -249,19 +257,6 @@ if __name__ == "__main__":
         # なんか下のやつ使えなくなっている、、
         # tf.config.run_functions_eagerly(True)
 
-    def set_seed(seed=200):
-        import random
-
-        tf.random.set_seed(seed)
-        # optional
-        # for numpy.random
-        np.random.seed(seed)
-        # for built-in random
-        random.seed(seed)
-        # for hash seed
-        os.environ["PYTHONHASHSEED"] = str(seed)
-
-    set_seed(0)
     # ハイパーパラメータの設定
     # TODO: jsonに移植
     TEST_RUN = False
@@ -298,6 +293,7 @@ if __name__ == "__main__":
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
+    CLEANSING_TYPE = "no_cleansing"
 
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -309,34 +305,25 @@ if __name__ == "__main__":
         stride=STRIDE,
         is_normal=IS_NORMAL,
         has_nrem2_bias=True,
+        has_rem_bias=False,
+        model_type=ENN_TAG,
+        cleansing_type=CLEANSING_TYPE,
+        make_valdata=True,
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA
     )
-    utils = Utils(catch_nrem2=CATCH_NREM2)
 
     # 読み込むモデルの日付リストを返す
-    JB = JsonBase("model_id.json")
-    JB.load()
-    model_date_list = JB.make_list_of_dict_from_mul_list(
-        "normal_prev" if IS_PREVIOUS else "normal_follow",
-        ENN_TAG,
-        DATA_TYPE,
-        FIT_POS,
-        f"stride_{STRIDE}",
-        f"kernel_{KERNEL_SIZE}",
-    )
-    try:
-        assert len(model_date_list) != 0
-    except AssertionError("model_date_listの中身が空です"):
-        sys.exit(1)
+    MI = pre_process.my_env.mi
+    model_date_d = MI.get_ppi()
+    model_date_list = model_date_d[CLEANSING_TYPE]
 
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
-    subjects_id = [i for i in range(len(pre_process.name_list))]
 
-    for test_id, test_name, date_id in zip(
-        subjects_id, pre_process.name_list, model_date_list
+    for (test_id, test_name), date_id in zip(
+        enumerate(pre_process.name_list), model_date_list
     ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
@@ -397,6 +384,16 @@ if __name__ == "__main__":
             saving_date_id=saving_date_id,
             has_dropout=HAS_DROPOUT,
             dropout_rate=DROPOUT_RATE,
+            utils=Utils(
+                IS_NORMAL,
+                IS_PREVIOUS,
+                DATA_TYPE,
+                FIT_POS,
+                STRIDE,
+                KERNEL_SIZE,
+                model_type=ENN_TAG,
+                cleansing_type=CLEANSING_TYPE,
+            ),
         )
 
         # testの時は一人の被験者で止める

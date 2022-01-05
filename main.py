@@ -1,23 +1,21 @@
+import datetime
 import os
 import sys
-
-from nn.wandb_classification_callback import WandbClassificationCallback
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import datetime
 from collections import Counter
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
-import wandb
 
+import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
+from pre_process.utils import set_seed
 
 # from wandb.keras import WandbCallback
 
@@ -67,8 +65,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train[0, :])
-    ss_test_dict = Counter(y_test[0, :])
+    ss_train_dict: Dict[int, int] = Counter(y_train[0, :])
+    ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
 
     # config の追加
     added_config = {
@@ -99,11 +97,11 @@ def main(
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum" or data_type == "cepstrum":
-        shape = (int(kernel_size / 2), 1)
+        shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape = (64, 30, 1)
+        shape: Tuple[int, int, int] = (int(kernel_size / 2), 30, 1)
     else:
-        print("correct here based on your model")
+        print("correct data_type based on your model")
         sys.exit(1)
 
     inputs = tf.keras.Input(shape=shape)
@@ -210,6 +208,9 @@ def main(
 
 
 if __name__ == "__main__":
+    # シードの固定
+    set_seed(0)
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     # 環境設定
     CALC_DEVICE = "gpu"
     # CALC_DEVICE = "cpu"
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     HAS_REM_BIAS = False
     IS_UNDER_4HZ = True
     DROPOUT_RATE = 0.2
-    BATCH_SIZE = 64
+    BATCH_SIZE = 512
     N_CLASS = 5
     # KERNEL_SIZE = 512
     # KERNEL_SIZE = 256
