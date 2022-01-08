@@ -2,49 +2,53 @@ import datetime
 import os
 import sys
 from collections import Counter
-from typing import Any, Dict, List, Tuple
+from typing import Dict, Tuple
 
+import numpy as np
 import tensorflow as tf
 
 import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
+from mywandb.utils import make_ss_dict4wandb
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.utils import load_model, separate_unc_data
 from nn.wandb_classification_callback import WandbClassificationCallback
-
-# from nn.metrics import CategoricalTruePositives
-from pre_process.pre_process import PreProcess, Record
+from pre_process.json_base import JsonBase
+from pre_process.pre_process import PreProcess
 from pre_process.utils import set_seed
+from wandb.keras import WandbCallback
 
-# from wandb.keras import WandbCallback
 
-
+# TODO: 使っていない引数の削除
 def main(
-    dropout_rate: float,
-    has_dropout: bool,
-    log_tf_projector: bool,
+    save_model: bool,
     name: str,
     project: str,
-    train: List[Record],
-    test: List[Record],
+    train: list,
+    test: list,
     pre_process: PreProcess,
-    epochs: int = 1,
-    save_model: bool = False,
-    my_tags: List[str] = None,
-    batch_size: int = 32,
+    my_tags: list = None,
     n_class: int = 5,
     pse_data: bool = False,
     test_name: str = None,
-    date_id: str = None,
+    date_id: dict = None,
     has_attention: bool = False,
     has_inception: bool = True,
     data_type: str = None,
     sample_size: int = 0,
     is_enn: bool = True,
-    wandb_config: Dict[str, Any] = dict(),
+    wandb_config: dict = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
+    batch_size: int = 0,
+    unc_threthold: float = 0,
+    epochs: int = 1,
+    experiment_type: str = "",
+    saving_date_id: str = "",
+    has_dropout: bool = False,
+    dropout_rate: float = 0,
     utils: Utils = None,
     is_under_4hz: bool = False,
 ):
@@ -65,8 +69,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict: Dict[int, int] = Counter(y_train[0, :])
-    ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
+    ss_train_dict: Dict[int, int] = Counter(y_train[0])
+    ss_test_dict: Dict[int, int] = Counter(y_test[0])
 
     # config の追加
     added_config = {
@@ -84,6 +88,7 @@ def main(
         "train nr34 before replaced": ss_train_dict[0],
     }
     wandb_config.update(added_config)
+
     # wandbの初期化
     wandb.init(
         name=name,
@@ -94,8 +99,8 @@ def main(
         dir=pre_process.my_env.project_dir,
     )
 
-    # モデルの作成とコンパイル
-    # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
+    # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
+    # TODO: mypyでshapeが違うとエラーになる
     if data_type == "spectrum" or data_type == "cepstrum":
         shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
@@ -132,150 +137,94 @@ def main(
             has_dropout=has_dropout,
             dropout_rate=dropout_rate,
         )
-    if is_enn:
-        model = EDLModelBase(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=["accuracy"],
-        )
 
-    else:
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(
-                from_logits=True
-            ),
-            metrics=[
-                "accuracy",
-            ],
-        )
-
-    # tensorboard, model保存のコールバック作成
-    log_dir = pre_process.my_env.get_tf_board_saved_path(
-        p_dir="logs", c_dir=test_name, model_id=date_id
-    )
-    tf_callback = tf.keras.callbacks.TensorBoard(
-        log_dir=log_dir, histogram_freq=1
-    )
-    cp_dir = pre_process.my_env.get_model_saved_path(
-        c_dir=test_name, model_id=date_id
-    )
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=cp_dir,
-        verbose=1,
-        period=1,
-        monitor="val_accuracy",
-        save_best_only=True,
+    model = load_model(
+        loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=1
     )
 
-    model.fit(
-        x_train,
-        y_train[0],
-        batch_size=batch_size,
-        validation_data=(x_val, y_val[0]),
-        # validation_data=(x_test, y_test[0]),
-        epochs=epochs,
-        callbacks=[
-            tf_callback,
-            WandbClassificationCallback(
-                validation_data=(x_val, y_val[0]),
-                # validation_data=(x_test, y_test[0]),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            ),
-            cp_callback,
-        ],
-        verbose=2,
+    # NOTE : そのためone-hotの状態でデータを読み込む必要がある
+    # TODO: このコピーいる？
+    evidence = model.predict(x=x_test, batch_size=batch_size)
+    evidence, alpha, unc, y_pred = utils.calc_enn_output_from_evidence(
+        evidence
+    )
+    # 一致率のログ
+    acc = utils.calc_acc_from_pred(
+        y_true=y_test[0], y_pred=y_pred, log_label="test accuracy"
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_test)
-    tuple_y = (y_train[0], y_test[0])
-    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = model.predict(_x)
-        utils.make_graphs(
-            y=_y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=date_id,
-            is_each_unc=True,
-        )
-    # tensorboardのログ
-    if log_tf_projector:
-        utils.make_tf_projector(
-            x=x_test,
-            y=y_test,
-            batch_size=batch_size,
-            hidden_layer_id=-7,
-            log_dir=log_dir,
-            data_type=data_type,
-            model=model,
-        )
-
-    # if save_model:
-    #     print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
-    #     path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-    #     model.save(path)
+    utils.make_graphs(
+        y=y_test[0],
+        evidence=evidence,
+        train_or_test="test",
+        graph_person_id=test_name,
+        calling_graph="all",
+        graph_date_id=date_id,
+        is_each_unc=True,
+    )
     wandb.finish()
 
 
 if __name__ == "__main__":
-    # シードの固定
     set_seed(0)
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     # 環境設定
     CALC_DEVICE = "gpu"
     # CALC_DEVICE = "cpu"
-    # NOTE: set here to specify which gpu you use
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
-    # if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
-    if CALC_DEVICE == "gpu":
+    os.environ["TF_DETERMINISTIC_OPS"] = "1"
+    os.environ["TF_CUDNN_DEEETERMINISTIC"] = "1"
+    if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    # tf.config.run_functions_eagerly(True)
+        # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
+        # なんか下のやつ使えなくなっている、、
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
+    # TODO: jsonに移植
     TEST_RUN = False
-    EPOCHS = 25
+    EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
+    IS_ENN = True  # FIXME: always true so remove here
+    IS_MUL_LAYER = False
+    CATCH_NREM2 = True
     HAS_DROPOUT = True
-    IS_ENN = False
-    # FIXME: 多層化はとりあえずいらない
-    IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = True
-    HAS_REM_BIAS = False
-    DROPOUT_RATE = 0.2
-    BATCH_SIZE = 512
+    BATCH_SIZE = 64
     N_CLASS = 5
-    # KERNEL_SIZE = 512
-    KERNEL_SIZE = 128
-    IS_UNDER_4HZ = False
-    # KERNEL_SIZE = 128
+    # KERNEL_SIZE = 256
+    KERNEL_SIZE = 256
     STRIDE = 16
-    # STRIDE = 16
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 2000
+    UNC_THRETHOLD = 0.3
+    DROPOUT_RATE = 0.3
+    IS_UNDER_4HZ = False
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
-    CLEANSING_TYPE = "no_cleansing"
+    EXPERIMENT_TYPES = (
+        "no_cleansing",
+        "positive_cleansing",
+        "negative_cleansing",
+    )
+    EXPERIENT_TYPE = "positive_cleansing"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else f"0107_r_test_k_{KERNEL_SIZE}"
+    WANDB_PROJECT = (
+        "test" if TEST_RUN else f"20220107_DA_K_{KERNEL_SIZE}_no_cut_nr2bias"
+    )
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
+    CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
+    CLEANSING_TYPE = "no_cleansing"
 
     # オブジェクトの作成
     pre_process = PreProcess(
@@ -286,41 +235,46 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
-        has_nrem2_bias=HAS_NREM2_BIAS,
-        has_rem_bias=HAS_REM_BIAS,
+        has_nrem2_bias=True,
+        has_rem_bias=False,
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
         make_valdata=True,
     )
-    # 記録用のjsonファイルを読み込む
-    MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
-        load_all=True,
-        pse_data=PSE_DATA,
+        load_all=True, pse_data=PSE_DATA
     )
+
+    # 読み込むモデルの日付リストを返す
+    MI = pre_process.my_env.mi
+    model_date_d = MI.get_ppi()
+    model_date_list = model_date_d[CLEANSING_TYPE]
+
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list):
-        date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        date_id_saving_list.append(date_id)
+    for (test_id, test_name), date_id in zip(
+        enumerate(pre_process.name_list), model_date_list
+    ):
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
+
+        # 保存用の時間id
+        saving_date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        date_id_saving_list.append(saving_date_id)
+
         # tagの設定
+        # TODO: wandb のutilsを作成する
         my_tags = [
             test_name,
             f"kernel:{KERNEL_SIZE}",
-            # f"stride:{STRIDE}",
-            # f"sample:{SAMPLE_SIZE}",
+            f"stride:{STRIDE}",
+            f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
-            # f"epoch:{EPOCHS}",
-            f"nrem2_bias:{HAS_NREM2_BIAS}",
-            f"rem_bias:{HAS_REM_BIAS}",
-            # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
-            f"under_4hz:{IS_UNDER_4HZ}",
+            f"{EXPERIENT_TYPE}",
+            f"u_th:{UNC_THRETHOLD}",
         ]
-
         wandb_config = {
             "test name": test_name,
             "date id": date_id,
@@ -331,36 +285,36 @@ if __name__ == "__main__":
             "fit_pos": FIT_POS,
             "batch_size": BATCH_SIZE,
             "n_class": N_CLASS,
-            "has_nrem2_bias": HAS_NREM2_BIAS,
-            "has_rem_bias": HAS_REM_BIAS,
-            "model_type": ENN_TAG,
-            "data_type": DATA_TYPE,
-            "under_4hz": IS_UNDER_4HZ,
+            "experiment": EXPERIENT_TYPE,
         }
+        # FIXME: name をコード名にする
         main(
-            has_dropout=True,
-            log_tf_projector=True,
-            name=test_name,
+            save_model=True,
+            name=f"{test_name}",
             project=WANDB_PROJECT,
-            pre_process=pre_process,
             train=train,
             test=test,
-            epochs=EPOCHS,
-            save_model=True,
-            has_attention=HAS_ATTENTION,
+            pre_process=pre_process,
             my_tags=my_tags,
+            has_attention=HAS_ATTENTION,
             date_id=date_id,
             pse_data=PSE_DATA,
             test_name=test_name,
             has_inception=HAS_INCEPTION,
-            batch_size=BATCH_SIZE,
             n_class=N_CLASS,
             data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
             is_enn=IS_ENN,
-            # wandb_config=wandb_config,
+            wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
+            batch_size=BATCH_SIZE,
+            unc_threthold=UNC_THRETHOLD,
+            experiment_type=EXPERIENT_TYPE,
+            epochs=EPOCHS,
+            saving_date_id=saving_date_id,
+            has_dropout=HAS_DROPOUT,
+            dropout_rate=DROPOUT_RATE,
             utils=Utils(
                 IS_NORMAL,
                 IS_PREVIOUS,
@@ -371,12 +325,10 @@ if __name__ == "__main__":
                 model_type=ENN_TAG,
                 cleansing_type=CLEANSING_TYPE,
             ),
-            dropout_rate=DROPOUT_RATE,
             is_under_4hz=IS_UNDER_4HZ,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
+            print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
-    # json に書き込み
-    MI.dump(value=date_id_saving_list)

@@ -51,6 +51,14 @@ class MyEnv:
         self.sl.load()
         self.set_jsonkey()
 
+    # モデルの保存先を返すメソッド
+    def get_tf_board_saved_path(self, p_dir: str, c_dir: str, model_id: str):
+        return os.path.join(self.project_dir, p_dir, c_dir, model_id)
+
+    # モデルの保存先を返すメソッド
+    def get_model_saved_path(self, c_dir: str, model_id: str):
+        return os.path.join(self.models_dir, c_dir, model_id)
+
     # set json_keys as its member variables
     def set_jsonkey(self):
         self.ppi.set_key(
