@@ -129,5 +129,5 @@ if __name__ == "__main__":
             _df = df
 
     # csvに書き込み
-    # path = os.path.join(os.environ["sleep"], "datas", "ss.csv")
-    # _df.to_csv(path)
+    path = os.path.join(load_sleep_data.my_env.tmp_dir, "ss.csv")
+    _df.to_csv(path)
