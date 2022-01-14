@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import datetime
-from typing import Dict
+from typing import Dict, List, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from _collections_abc import dict_keys
 from rich import print
 
 from pre_process.json_base import JsonBase
@@ -26,7 +29,7 @@ class SubjectsInfo(JsonBase):
         print(summary_d)
 
     # 被験者のリストを取得するメソッド
-    def get_subjects(self) -> list:
+    def get_subjects(self) -> List[str]:
         return list(self.json_dict.keys())
 
     # 被験者の実験当時の年齢を返すメソッド
@@ -54,7 +57,7 @@ class SubjectsInfo(JsonBase):
         added_d_by_age.update(added_d_by_birth)
         return added_d_by_age
 
-    def can_cast_int(self, string: str):
+    def can_cast_int(self, string: str) -> bool:
         try:
             int(string)
             return True

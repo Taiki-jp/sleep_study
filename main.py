@@ -1,23 +1,21 @@
+import datetime
 import os
 import sys
-
-from nn.wandb_classification_callback import WandbClassificationCallback
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import datetime
 from collections import Counter
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
-import wandb
 
+import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.wandb_classification_callback import WandbClassificationCallback
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
+from pre_process.utils import set_seed
 
 # from wandb.keras import WandbCallback
 
@@ -67,8 +65,8 @@ def main(
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
-    ss_train_dict = Counter(y_train[0, :])
-    ss_test_dict = Counter(y_test[0, :])
+    ss_train_dict: Dict[int, int] = Counter(y_train[0, :])
+    ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
 
     # config の追加
     added_config = {
@@ -85,7 +83,7 @@ def main(
         "train nr2 before replaced": ss_train_dict[1],
         "train nr34 before replaced": ss_train_dict[0],
     }
-    # wandb_config.update(added_config)
+    wandb_config.update(added_config)
     # wandbの初期化
     wandb.init(
         name=name,
@@ -99,11 +97,18 @@ def main(
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
     if data_type == "spectrum" or data_type == "cepstrum":
-        shape = (int(kernel_size / 2), 1)
+        shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape = (64, 30, 1)
+        if is_under_4hz:
+            shape: Tuple[int, int, int] = (
+                (32, 30, 1) if kernel_size == 128 else (64, 30, 1)
+            )
+        else:
+            shape: Tuple[int, int, int] = (
+                (64, 30, 1) if kernel_size == 128 else (128, 30, 1)
+            )
     else:
-        print("correct here based on your model")
+        print("correct data_type based on your model")
         sys.exit(1)
 
     inputs = tf.keras.Input(shape=shape)
@@ -147,16 +152,23 @@ def main(
             ],
         )
 
-    # tensorboard作成
-    log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id
+    # tensorboard, model保存のコールバック作成
+    log_dir = pre_process.my_env.get_tf_board_saved_path(
+        p_dir="logs", c_dir=test_name, model_id=date_id
     )
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
     )
-    # とりあえず追加
-    # y_train = y_train[0, :]
-    # y_test = y_test[0, :]
+    cp_dir = pre_process.my_env.get_model_saved_path(
+        c_dir=test_name, model_id=date_id
+    )
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=cp_dir,
+        verbose=1,
+        period=1,
+        monitor="val_accuracy",
+        save_best_only=True,
+    )
 
     model.fit(
         x_train,
@@ -173,6 +185,7 @@ def main(
                 log_confusion_matrix=True,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
+            cp_callback,
         ],
         verbose=2,
     )
@@ -202,49 +215,54 @@ def main(
             model=model,
         )
 
-    if save_model:
-        print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
-        path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-        model.save(path)
+    # if save_model:
+    #     print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
+    #     path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
+    #     model.save(path)
     wandb.finish()
 
 
 if __name__ == "__main__":
+    # シードの固定
+    set_seed(0)
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     # 環境設定
     CALC_DEVICE = "gpu"
     # CALC_DEVICE = "cpu"
+    # NOTE: set here to specify which gpu you use
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
-    if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
+    # if os.environ["CUDA_VISIBLE_DEVICES"] != "-1":
+    if CALC_DEVICE == "gpu":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        # tf.config.run_functions_eagerly(True)
+    # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
-    EPOCHS = 30
+    TEST_RUN = False
+    EPOCHS = 25
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
-    IS_ENN = True
+    IS_ENN = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = False
+    HAS_NREM2_BIAS = True
     HAS_REM_BIAS = False
-    IS_UNDER_4HZ = True
     DROPOUT_RATE = 0.2
-    BATCH_SIZE = 64
+    BATCH_SIZE = 512
     N_CLASS = 5
     # KERNEL_SIZE = 512
-    # KERNEL_SIZE = 256
-    KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
+    IS_UNDER_4HZ = False
+    # KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
     SAMPLE_SIZE = 10000
@@ -255,7 +273,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "1215_test"
+    WANDB_PROJECT = "test" if TEST_RUN else f"0107_r_test_k_{KERNEL_SIZE}"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -293,13 +311,14 @@ if __name__ == "__main__":
         my_tags = [
             test_name,
             f"kernel:{KERNEL_SIZE}",
-            f"stride:{STRIDE}",
-            f"sample:{SAMPLE_SIZE}",
+            # f"stride:{STRIDE}",
+            # f"sample:{SAMPLE_SIZE}",
             f"model:{ENN_TAG}",
-            f"epoch:{EPOCHS}",
+            # f"epoch:{EPOCHS}",
             f"nrem2_bias:{HAS_NREM2_BIAS}",
             f"rem_bias:{HAS_REM_BIAS}",
-            f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
+            # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
+            f"under_4hz:{IS_UNDER_4HZ}",
         ]
 
         wandb_config = {
@@ -316,6 +335,7 @@ if __name__ == "__main__":
             "has_rem_bias": HAS_REM_BIAS,
             "model_type": ENN_TAG,
             "data_type": DATA_TYPE,
+            "under_4hz": IS_UNDER_4HZ,
         }
         main(
             has_dropout=True,

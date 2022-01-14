@@ -13,13 +13,13 @@ class ModelId(JsonBase):
         self.data_type = ""
         self.fit_pos = ""
         self.stride = ""
-        self.fit_pos = ""
+        self.kernel = ""
         self.load()
 
     def get_ppi(self):
-        return self.json_dict[self.hostkey][self.subject_type][self.data_type][
-            self.fit_pos
-        ][self.stride][self.fit_pos]
+        return self.json_dict[self.hostkey][self.subject_type][
+            self.model_type
+        ][self.data_type][self.fit_pos][self.stride][self.kernel]
 
     def set_key(
         self,
