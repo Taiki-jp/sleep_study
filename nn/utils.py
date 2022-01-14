@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
-import sys
-from typing import Any
+from typing import Dict
 
 import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
@@ -15,7 +16,7 @@ def load_model(
     loaded_name: str,
     n_class: int,
     verbose: int,
-    model_id: Any = None,
+    model_id: Dict[str, str] | str = None,
     is_positive: bool = False,
     is_negative: bool = False,
 ) -> Model:
