@@ -50,6 +50,8 @@ class LoadSleepData:
         name: str = None,
         load_all: bool = False,
         pse_data: bool = False,
+        has_ignored: bool = False,
+        option: str = "",
     ) -> List[Record]:
         # NOTE : pse_data is needed for avoiding to load data
         if pse_data:
@@ -68,6 +70,15 @@ class LoadSleepData:
                     subjects = self.sl.foll_names
                 else:
                     subjects = self.sl.foll_sass
+            # 除外オプションがついている場合は除外する
+            if has_ignored:
+                ignoring_list = self.sl.get_ignoring_list(option=option)
+                new_subjects = [
+                    subject
+                    for subject in subjects
+                    if subject not in ignoring_list
+                ]
+                subjects = new_subjects
 
             for name in subjects:
                 path = self.my_env.set_processed_filepath(

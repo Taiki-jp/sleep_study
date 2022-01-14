@@ -190,8 +190,8 @@ def main(
         verbose=2,
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_test)
-    tuple_y = (y_train[0], y_test[0])
+    tuple_x = (x_train, x_val)
+    tuple_y = (y_train[0], y_val[0])
     for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
         evidence = model.predict(_x)
         utils.make_graphs(
@@ -273,7 +273,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else f"0107_r_test_k_{KERNEL_SIZE}"
+    WANDB_PROJECT = "test" if TEST_RUN else f"main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -295,8 +295,7 @@ if __name__ == "__main__":
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
-        load_all=True,
-        pse_data=PSE_DATA,
+        load_all=True, pse_data=PSE_DATA, has_ignored=True, option="nr2"
     )
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()

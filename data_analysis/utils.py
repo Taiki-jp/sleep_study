@@ -191,8 +191,19 @@ class Utils:
                 unc_threthold=unc_threthold,
                 evidence_positive=evidence_positive,
             )
+            # 全時間のスペクトログラムをログに送る
+            # self.make_time_series_prediction(y=y, evidence=evidence)
         else:
             print("全てのグラフを作成する引数'all'を指定してください")
+
+    def make_time_series_prediction(
+        self, y: ndarray, evidence: tf.Tensor
+    ) -> None:
+        _, _, _, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot(y)
+        ax.plot(y_pred)
 
     def showSpectrogram(self, *datas, num=4, path=False):
         fig = plt.figure()
@@ -621,7 +632,6 @@ class Utils:
         is_each_unc: bool = False,
         n_class: int = 5,
     ):
-        # TODO: calc_enn_outputで計算するようにまとめる
         evidence, alpha, unc, y_pred = self.calc_enn_output_from_evidence(
             evidence=evidence
         )

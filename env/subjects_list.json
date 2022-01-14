@@ -110,6 +110,20 @@
     "20210203_ihou",
     "20210204_kenka"
   ],
+  "ignoring_list": {
+    "nr2_rate": [
+      "20200804_shiraishi",
+      "20200723_yamane",
+      "141030_Kumazawa",
+      "140819_Kumazawa",
+      "141001_Hayashi",
+      "140825_Kashiwazaki",
+      "140925_Kashiwazaki",
+      "151210_Hoshino",
+      "151215_Ishii_Haruyuki",
+      "151209_Umenai"
+    ]
+  },
   "prev_sas_name": [
     "sas_5993",
     "sas_30929",
