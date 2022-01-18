@@ -50,6 +50,14 @@ class MyEnv:
         # NOTE: SubjectsList は特別な変数を持つのでloadを明示的に呼ぶ
         self.sl.load()
         self.set_jsonkey()
+        self.name_list = self.get_namelist()
+
+    def get_namelist(self) -> List[str]:
+        # 一覧を返す
+        name_list = self.sl.set_name_list(
+            is_previous=self.is_previous, is_normal=self.is_normal
+        )
+        return name_list
 
     # モデルの保存先を返すメソッド
     def get_tf_board_saved_path(self, p_dir: str, c_dir: str, model_id: str):

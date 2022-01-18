@@ -25,6 +25,8 @@ class LoadSleepData:
         is_normal: bool = False,
         hostkey: str = "",
         model_type: str = "",
+        has_ignored: bool = False,
+        option: str = "",
     ):
         self.my_env = MyEnv(
             is_normal=is_normal,
@@ -44,14 +46,29 @@ class LoadSleepData:
         self.is_previous = is_previous
         self.stride = stride
         self.is_normal = is_normal
+        self.has_ignored = has_ignored
+        self.option = option
+        self.name_list = self.get_namelist()
+
+    def get_ignoring_list(self) -> List[str]:
+        return self.sl.get_ignoring_list(option=self.option)
+
+    def get_namelist(self) -> List[str]:
+        namelist_tmp = self.my_env.name_list
+        if self.has_ignored:
+            ignoring_list = self.get_ignoring_list()
+            namelist = [
+                subject
+                for subject in namelist_tmp
+                if subject not in ignoring_list
+            ]
+        return namelist
 
     def load_data(
         self,
         name: str = None,
         load_all: bool = False,
         pse_data: bool = False,
-        has_ignored: bool = False,
-        option: str = "",
     ) -> List[Record]:
         # NOTE : pse_data is needed for avoiding to load data
         if pse_data:
@@ -60,27 +77,7 @@ class LoadSleepData:
         if load_all:
             print("*** すべての被験者を読み込みます（load_dataの引数:nameは無視します） ***")
             records = list()
-            if self.is_previous:
-                if self.is_normal:
-                    subjects = self.sl.prev_names
-                else:
-                    subjects = self.sl.prev_sass
-            else:
-                if self.is_normal:
-                    subjects = self.sl.foll_names
-                else:
-                    subjects = self.sl.foll_sass
-            # 除外オプションがついている場合は除外する
-            if has_ignored:
-                ignoring_list = self.sl.get_ignoring_list(option=option)
-                new_subjects = [
-                    subject
-                    for subject in subjects
-                    if subject not in ignoring_list
-                ]
-                subjects = new_subjects
-
-            for name in subjects:
+            for name in self.name_list:
                 path = self.my_env.set_processed_filepath(
                     subject=name,
                     fit_pos=self.fit_pos,

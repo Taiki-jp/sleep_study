@@ -36,6 +36,8 @@ class PreProcess:
         has_rem_bias: bool = False,
         model_type: str = "",
         make_valdata: bool = False,
+        has_ignored: bool = False,
+        lsp_option: str = "",
     ):
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.data_type = data_type
@@ -57,6 +59,8 @@ class PreProcess:
             is_normal=self.is_normal,
             model_type=self.model_type,
             cleansing_type=cleansing_type,
+            has_ignored=has_ignored,
+            option=lsp_option,
         )
         self.has_nrem2_bias = has_nrem2_bias
         self.has_rem_bias = has_rem_bias
@@ -64,9 +68,7 @@ class PreProcess:
         self.sl = self.load_sleep_data.sl
         self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく
-        self.name_list = self.sl.set_name_list(
-            is_previous=self.is_previous, is_normal=self.is_normal
-        )
+        self.name_list = self.load_sleep_data.name_list
         # self.list2sub method 用の登録辞書とカウンタ
         self.has_catched_name = dict()
         self.subject_counter = 0

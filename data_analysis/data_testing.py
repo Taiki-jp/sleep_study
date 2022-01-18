@@ -116,28 +116,6 @@ def main(
         print("correct data_type based on your model")
         sys.exit(1)
 
-    inputs = tf.keras.Input(shape=shape)
-    if data_type == "spectrum" or data_type == "cepstrum":
-        outputs = edl_classifier_1d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    elif data_type == "spectrogram":
-        outputs = edl_classifier_2d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-
     model = load_model(
         loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=1
     )
@@ -200,7 +178,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 64
     N_CLASS = 5
     # KERNEL_SIZE = 256
-    KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     STRIDE = 16
     SAMPLE_SIZE = 2000
     UNC_THRETHOLD = 0.3
@@ -218,9 +196,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = (
-        "test" if TEST_RUN else f"20220107_DA_K_{KERNEL_SIZE}_no_cut_nr2bias"
-    )
+    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -235,11 +211,13 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
-        has_nrem2_bias=True,
+        has_nrem2_bias=False,
         has_rem_bias=False,
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
         make_valdata=True,
+        has_ignored=True,
+        lsp_option="nr2",
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA

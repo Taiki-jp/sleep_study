@@ -203,22 +203,18 @@ def main(
             graph_date_id=date_id,
             is_each_unc=True,
         )
-    # tensorboardのログ
-    if log_tf_projector:
-        utils.make_tf_projector(
-            x=x_test,
-            y=y_test,
-            batch_size=batch_size,
-            hidden_layer_id=-7,
-            log_dir=log_dir,
-            data_type=data_type,
-            model=model,
-        )
+    # # tensorboardのログ
+    # if log_tf_projector:
+    #     utils.make_tf_projector(
+    #         x=x_test,
+    #         y=y_test,
+    #         batch_size=batch_size,
+    #         hidden_layer_id=-7,
+    #         log_dir=log_dir,
+    #         data_type=data_type,
+    #         model=model,
+    #     )
 
-    # if save_model:
-    #     print(PyColor().GREEN_FLASH, "モデルを保存します ...", PyColor().END)
-    #     path = os.path.join(pre_process.my_env.models_dir, test_name, date_id)
-    #     model.save(path)
     wandb.finish()
 
 
@@ -244,17 +240,17 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 25
+    EPOCHS = 10
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
-    IS_ENN = False
+    IS_ENN = True
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = True
+    HAS_NREM2_BIAS = False
     HAS_REM_BIAS = False
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 512
@@ -273,7 +269,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else f"main_project"
+    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -291,11 +287,14 @@ if __name__ == "__main__":
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
         make_valdata=True,
+        has_ignored=True,
+        lsp_option="nr2",
     )
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
-        load_all=True, pse_data=PSE_DATA, has_ignored=True, option="nr2"
+        load_all=True,
+        pse_data=PSE_DATA,
     )
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
