@@ -329,21 +329,27 @@ class Utils:
         train_or_test=None,
         test_label=None,
         date_id=None,
+        is_specific_path: bool = False,
+        specific_name: str = "",
     ):
         sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
         plt.xlabel("pred")
         plt.ylabel("actual")
-        # 保存するフォルダ名を取得
-        path = os.path.join(
-            self.env.figure_dir, dir2, test_label, train_or_test
-        )
-        # パスを通す
-        self.check_path_auto(path=path)
-        if not os.path.exists(path):
-            print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
-            os.makedirs(path)
-        # ファイル名を指定して保存
-        plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        if not is_specific_path:
+            # 保存するフォルダ名を取得
+            path = os.path.join(
+                self.env.figure_dir, dir2, test_label, train_or_test
+            )
+            # パスを通す
+            if not os.path.exists(path):
+                print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
+                os.makedirs(path)
+            # ファイル名を指定して保存
+            plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        else:
+            plt.savefig(
+                os.path.join(self.env.tmp_dir, specific_name, "cm.png")
+            )
 
         if to_wandb:
             im_read = plt.imread(
@@ -493,7 +499,10 @@ class Utils:
             labels = ["nrem", "rem", "wake"]
         elif n_class == 2:
             labels = ["non-target", "target"]
-        df = pd.DataFrame(cm)
+        try:
+            df = pd.DataFrame(cm, columns=labels, index=labels)
+        except:
+            df = pd.DataFrame(cm)
         return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas=False):
@@ -1380,6 +1389,34 @@ class Utils:
         else:
             filepath = os.path.join(file_dir, filename + ".png")
         plt.savefig(filepath)
+
+    def compare_ss(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        test_name: str,
+    ) -> None:
+        filepath = os.path.join(self.env.tmp_dir, test_name, "ss.png")
+        fig = plt.figure(figsize=(8, 6))
+        ax1 = fig.add_subplot(311)
+        ax1.plot(y_true, label="y_true")
+        ax1.legend()
+        ax1.set_title(test_name)
+        ax2 = fig.add_subplot(312)
+        ax2.plot(y_pred, label="y_pred")
+        ax2.legend()
+        ax3 = fig.add_subplot(313)
+        ax3.plot(y_true, label="y_true", alpha=0.4)
+        ax3.plot(y_pred, label="y_pred", alpha=0.4)
+        ax3.legend()
+        if not os.path.exists(os.path.split(filepath)[0]):
+            os.makedirs(os.path.split(filepath)[0])
+        plt.savefig(filepath)
+        plt.close()
+        return
+
+    def calc_metrics(self, cm: pd.DataFrame):
+        pass
 
 
 if __name__ == "__main__":
