@@ -112,16 +112,21 @@
   ],
   "ignoring_list": {
     "nr2_rate": [
-      "20200804_shiraishi",
-      "20200723_yamane",
       "141030_Kumazawa",
       "140819_Kumazawa",
-      "141001_Hayashi",
+      "140820_Yasuda",
       "140825_Kashiwazaki",
+      "140922_Kumazawa_M",
       "140925_Kashiwazaki",
+      "141001_Hayashi",
+      "141003_Kashiwazaki_F",
+      "141014_Kumazawa_F",
+      "151120_Tanaka",
       "151210_Hoshino",
       "151215_Ishii_Haruyuki",
-      "151209_Umenai"
+      "151209_Umenai",
+      "20200804_shiraishi",
+      "20200723_yamane"
     ]
   },
   "prev_sas_name": [
