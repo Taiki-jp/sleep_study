@@ -48,6 +48,18 @@ def main(
     # TODO: このコピーいる？
     evidence = model.predict(x=x_test, batch_size=batch_size)
     _, _, _, y_pred = utils.calc_enn_output_from_evidence(evidence)
+    acc = utils.calc_acc_from_pred(
+        y_true=y_test[0], y_pred=y_pred, log2wandb=False
+    )
+    # 一致率のログを保存
+    acc_df = pd.DataFrame(
+        acc,
+        index=[
+            "i",
+        ],
+    )
+    acc_outputpath = os.path.join(utils.env.tmp_dir, test_name, "acc.csv")
+    acc_df.to_csv(acc_outputpath)
     # 睡眠段階の比較
     utils.compare_ss(y_true=y_test[0], y_pred=y_pred, test_name=test_name)
     # 混合行列の作成
@@ -66,7 +78,6 @@ def main(
 
     ss_dict = Counter(y_test[0])
 
-    eps4zero_div = 0.001
     if __cm.shape[0] == 5:
         rec_log_dict = {
             "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
@@ -154,7 +165,7 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = True  # FIXME: always true so remove here
+    IS_ENN = False  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     HAS_DROPOUT = True

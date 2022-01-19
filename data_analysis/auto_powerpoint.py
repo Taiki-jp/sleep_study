@@ -14,22 +14,28 @@ utils = Utils(
     fit_pos="middle",
     stride="middle",
     kernel_size=128,
-    model_type="enn",
+    model_type="dnn",
     cleansing_type="noting",
 )
 tmp_dir = utils.env.tmp_dir
-filepath_list = [
+acc_filepath_list = [
     os.path.join(root_dir, filepath[0])
     for root_dir, _, filepath in os.walk(tmp_dir)
     if len(filepath) != 0
 ]
-metrics_filepath_list = [
+filepath_list = [
     os.path.join(root_dir, filepath[1])
     for root_dir, _, filepath in os.walk(tmp_dir)
     if len(filepath) != 0
 ]
-cm_filepath_list = [
+metrics_filepath_list = [
     os.path.join(root_dir, filepath[2])
+    for root_dir, _, filepath in os.walk(tmp_dir)
+    if len(filepath) != 0
+]
+
+cm_filepath_list = [
+    os.path.join(root_dir, filepath[3])
     for root_dir, _, filepath in os.walk(tmp_dir)
     if len(filepath) != 0
 ]
@@ -40,8 +46,8 @@ pptx_filepath = (
 prs = Presentation(pptx_filepath)
 
 title_slide_layout = prs.slide_layouts[3]
-for ss_filepath, cm_filepath, metrics in zip(
-    filepath_list, cm_filepath_list, metrics_filepath_list
+for acc_filepath, ss_filepath, cm_filepath, metrics in zip(
+    acc_filepath_list, filepath_list, cm_filepath_list, metrics_filepath_list
 ):
     slide = prs.slides.add_slide(title_slide_layout)
     left = Inches(0)
@@ -50,6 +56,19 @@ for ss_filepath, cm_filepath, metrics in zip(
     left = Inches(7)
     pic = slide.shapes.add_picture(cm_filepath, left, top)
     left, top, width, height = Inches(8), Inches(5), Inches(4), Inches(2)
+    acc_df = pd.read_csv(acc_filepath)
+    acc = acc_df.iloc[0, 1]
+    text_left, text_top, text_width, text_height = (
+        Inches(0),
+        Inches(0),
+        Inches(1),
+        Inches(1),
+    )
+    text_box = slide.shapes.add_textbox(
+        text_left, text_top, text_width, text_height
+    )
+    text_box_obj = text_box.text_frame
+    text_box_obj.text = f"{acc:.2f}"
     df = pd.read_csv(metrics)
     __row = int((df.shape[1] - 1) / 3)
     table = slide.shapes.add_table(3, __row, left, top, width, height).table
