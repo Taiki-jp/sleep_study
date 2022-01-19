@@ -6,32 +6,23 @@ from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
 
-import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.wandb_classification_callback import WandbClassificationCallback
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
 from pre_process.utils import set_seed
 
-# from wandb.keras import WandbCallback
-
 
 def main(
     dropout_rate: float,
     has_dropout: bool,
-    log_tf_projector: bool,
-    name: str,
-    project: str,
     train: List[Record],
     test: List[Record],
     pre_process: PreProcess,
     epochs: int = 1,
-    save_model: bool = False,
-    my_tags: List[str] = None,
     batch_size: int = 32,
     n_class: int = 5,
     pse_data: bool = False,
@@ -42,10 +33,8 @@ def main(
     data_type: str = None,
     sample_size: int = 0,
     is_enn: bool = True,
-    wandb_config: Dict[str, Any] = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
-    utils: Utils = None,
     is_under_4hz: bool = False,
 ):
 
@@ -69,30 +58,6 @@ def main(
     ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
 
     # config の追加
-    added_config = {
-        "attention": has_attention,
-        "inception": has_inception,
-        "test wake before replaced": ss_test_dict[4],
-        "test rem before replaced": ss_test_dict[3],
-        "test nr1 before replaced": ss_test_dict[2],
-        "test nr2 before replaced": ss_test_dict[1],
-        "test nr34 before replaced": ss_test_dict[0],
-        "train wake before replaced": ss_train_dict[4],
-        "train rem before replaced": ss_train_dict[3],
-        "train nr1 before replaced": ss_train_dict[2],
-        "train nr2 before replaced": ss_train_dict[1],
-        "train nr34 before replaced": ss_train_dict[0],
-    }
-    wandb_config.update(added_config)
-    # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
@@ -179,30 +144,10 @@ def main(
         epochs=epochs,
         callbacks=[
             tf_callback,
-            WandbClassificationCallback(
-                validation_data=(x_val, y_val[0]),
-                # validation_data=(x_test, y_test[0]),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            ),
             cp_callback,
         ],
         verbose=2,
     )
-    # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_val)
-    tuple_y = (y_train[0], y_val[0])
-    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = model.predict(_x)
-        utils.make_graphs(
-            y=_y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=date_id,
-            is_each_unc=True,
-        )
     # # tensorboardのログ
     # if log_tf_projector:
     #     utils.make_tf_projector(
@@ -214,8 +159,6 @@ def main(
     #         data_type=data_type,
     #         model=model,
     #     )
-
-    wandb.finish()
 
 
 if __name__ == "__main__":
@@ -233,7 +176,7 @@ if __name__ == "__main__":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    # tf.config.run_functions_eagerly(True)
+        # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # tf.config.run_functions_eagerly(True)
@@ -247,10 +190,10 @@ if __name__ == "__main__":
     IS_PREVIOUS = False
     IS_NORMAL = True
     HAS_DROPOUT = True
-    IS_ENN = True
+    IS_ENN = False
     # FIXME: 多層化はとりあえずいらない
     IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = False
+    HAS_NREM2_BIAS = True
     HAS_REM_BIAS = False
     DROPOUT_RATE = 0.2
     BATCH_SIZE = 512
@@ -269,7 +212,6 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -306,47 +248,14 @@ if __name__ == "__main__":
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
         # tagの設定
-        my_tags = [
-            test_name,
-            f"kernel:{KERNEL_SIZE}",
-            # f"stride:{STRIDE}",
-            # f"sample:{SAMPLE_SIZE}",
-            f"model:{ENN_TAG}",
-            # f"epoch:{EPOCHS}",
-            f"nrem2_bias:{HAS_NREM2_BIAS}",
-            f"rem_bias:{HAS_REM_BIAS}",
-            # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
-            f"under_4hz:{IS_UNDER_4HZ}",
-        ]
 
-        wandb_config = {
-            "test name": test_name,
-            "date id": date_id,
-            "sample_size": SAMPLE_SIZE,
-            "epochs": EPOCHS,
-            "kernel": KERNEL_SIZE,
-            "stride": STRIDE,
-            "fit_pos": FIT_POS,
-            "batch_size": BATCH_SIZE,
-            "n_class": N_CLASS,
-            "has_nrem2_bias": HAS_NREM2_BIAS,
-            "has_rem_bias": HAS_REM_BIAS,
-            "model_type": ENN_TAG,
-            "data_type": DATA_TYPE,
-            "under_4hz": IS_UNDER_4HZ,
-        }
         main(
             has_dropout=True,
-            log_tf_projector=True,
-            name=test_name,
-            project=WANDB_PROJECT,
             pre_process=pre_process,
             train=train,
             test=test,
             epochs=EPOCHS,
-            save_model=True,
             has_attention=HAS_ATTENTION,
-            my_tags=my_tags,
             date_id=date_id,
             pse_data=PSE_DATA,
             test_name=test_name,
@@ -356,19 +265,8 @@ if __name__ == "__main__":
             data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
             is_enn=IS_ENN,
-            # wandb_config=wandb_config,
             kernel_size=KERNEL_SIZE,
             is_mul_layer=IS_MUL_LAYER,
-            utils=Utils(
-                IS_NORMAL,
-                IS_PREVIOUS,
-                DATA_TYPE,
-                FIT_POS,
-                STRIDE,
-                KERNEL_SIZE,
-                model_type=ENN_TAG,
-                cleansing_type=CLEANSING_TYPE,
-            ),
             dropout_rate=DROPOUT_RATE,
             is_under_4hz=IS_UNDER_4HZ,
         )
