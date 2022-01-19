@@ -1,64 +1,36 @@
 import datetime
 import os
-import sys
 from collections import Counter
-from typing import Dict, Tuple
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+from sklearn.metrics import confusion_matrix
 
-import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
-from mywandb.utils import make_ss_dict4wandb
-from nn.losses import EDLLoss
-from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.utils import load_model, separate_unc_data
-from nn.wandb_classification_callback import WandbClassificationCallback
-from pre_process.json_base import JsonBase
+from nn.utils import load_model
 from pre_process.pre_process import PreProcess
 from pre_process.utils import set_seed
-from wandb.keras import WandbCallback
 
 
 # TODO: 使っていない引数の削除
 def main(
-    save_model: bool,
-    name: str,
-    project: str,
     train: list,
     test: list,
     pre_process: PreProcess,
-    my_tags: list = None,
     n_class: int = 5,
     pse_data: bool = False,
     test_name: str = None,
     date_id: dict = None,
-    has_attention: bool = False,
-    has_inception: bool = True,
-    data_type: str = None,
     sample_size: int = 0,
-    is_enn: bool = True,
-    wandb_config: dict = dict(),
-    kernel_size: int = 0,
-    is_mul_layer: bool = False,
     batch_size: int = 0,
-    unc_threthold: float = 0,
-    epochs: int = 1,
-    experiment_type: str = "",
-    saving_date_id: str = "",
-    has_dropout: bool = False,
-    dropout_rate: float = 0,
     utils: Utils = None,
     is_under_4hz: bool = False,
 ):
 
     # データセットの作成
-    (
-        (x_train, y_train),
-        (x_val, y_val),
-        (x_test, y_test),
-    ) = pre_process.make_dataset(
+    ((_, _), (_, _), (x_test, y_test),) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -67,54 +39,6 @@ def main(
         each_data_size=sample_size,
         is_under_4hz=is_under_4hz,
     )
-    # データセットの数を表示
-    print(f"training data : {x_train.shape}")
-    ss_train_dict: Dict[int, int] = Counter(y_train[0])
-    ss_test_dict: Dict[int, int] = Counter(y_test[0])
-
-    # config の追加
-    added_config = {
-        "attention": has_attention,
-        "inception": has_inception,
-        "test wake before replaced": ss_test_dict[4],
-        "test rem before replaced": ss_test_dict[3],
-        "test nr1 before replaced": ss_test_dict[2],
-        "test nr2 before replaced": ss_test_dict[1],
-        "test nr34 before replaced": ss_test_dict[0],
-        "train wake before replaced": ss_train_dict[4],
-        "train rem before replaced": ss_train_dict[3],
-        "train nr1 before replaced": ss_train_dict[2],
-        "train nr2 before replaced": ss_train_dict[1],
-        "train nr34 before replaced": ss_train_dict[0],
-    }
-    wandb_config.update(added_config)
-
-    # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
-
-    # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
-    # TODO: mypyでshapeが違うとエラーになる
-    if data_type == "spectrum" or data_type == "cepstrum":
-        shape: Tuple[int, int] = (int(kernel_size / 2), 1)
-    elif data_type == "spectrogram":
-        if is_under_4hz:
-            shape: Tuple[int, int, int] = (
-                (32, 30, 1) if kernel_size == 128 else (64, 30, 1)
-            )
-        else:
-            shape: Tuple[int, int, int] = (
-                (64, 30, 1) if kernel_size == 128 else (128, 30, 1)
-            )
-    else:
-        print("correct data_type based on your model")
-        sys.exit(1)
 
     model = load_model(
         loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=1
@@ -123,24 +47,87 @@ def main(
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
     evidence = model.predict(x=x_test, batch_size=batch_size)
-    evidence, alpha, unc, y_pred = utils.calc_enn_output_from_evidence(
-        evidence
+    _, _, _, y_pred = utils.calc_enn_output_from_evidence(evidence)
+    # 睡眠段階の比較
+    utils.compare_ss(y_true=y_test[0], y_pred=y_pred, test_name=test_name)
+    # 混合行列の作成
+    cm = utils.make_confusion_matrix(
+        y_true=y_test[0], y_pred=y_pred, n_class=5
     )
-    # 一致率のログ
-    acc = utils.calc_acc_from_pred(
-        y_true=y_test[0], y_pred=y_pred, log_label="test accuracy"
+    __cm = confusion_matrix(y_true=y_test[0], y_pred=y_pred)
+    utils.save_image2Wandb(
+        image=cm,
+        to_wandb=False,
+        is_specific_path=True,
+        specific_name=test_name,
     )
-    # 混合行列・不確かさ・ヒストグラムの作成
-    utils.make_graphs(
-        y=y_test[0],
-        evidence=evidence,
-        train_or_test="test",
-        graph_person_id=test_name,
-        calling_graph="all",
-        graph_date_id=date_id,
-        is_each_unc=True,
+    confdiag = np.eye(len(__cm)) * __cm
+    np.fill_diagonal(__cm, 0)
+
+    ss_dict = Counter(y_test[0])
+
+    eps4zero_div = 0.001
+    if __cm.shape[0] == 5:
+        rec_log_dict = {
+            "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
+            for (ss_label, i) in zip(
+                ["nr34", "nr2", "nr1", "rem", "wake"], range(5)
+            )
+        }
+        pre_log_dict = {
+            "pre_"
+            + ss_label: confdiag[i][i] / (sum(__cm[:, i]) + confdiag[i][i])
+            for (ss_label, i) in zip(
+                ["nr34", "nr2", "nr1", "rem", "wake"], range(5)
+            )
+        }
+        f_m_log_dict = {
+            "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+            for (rec, pre, ss_label) in zip(
+                rec_log_dict.values(),
+                pre_log_dict.values(),
+                ["nr34", "nr2", "nr1", "rem", "wake"],
+            )
+        }
+    elif __cm.shape[0] == 4:
+        rec_log_dict = {
+            "rec_" + ss_label: (confdiag[i][i]) / (ss_dict[i])
+            for (ss_label, i) in zip(["nr2", "nr1", "rem", "wake"], range(5))
+        }
+        pre_log_dict = {
+            "pre_"
+            + ss_label: (confdiag[i][i]) / (sum(__cm[i]) + confdiag[i][i])
+            for (ss_label, i) in zip(["nr2", "nr1", "rem", "wake"], range(5))
+        }
+        f_m_log_dict = {
+            "f_m_" + ss_label: rec * pre * 2 / (rec + pre)
+            for (rec, pre, ss_label) in zip(
+                rec_log_dict.values(),
+                pre_log_dict.values(),
+                ["nr2", "nr1", "rem", "wake"],
+            )
+        }
+    rec_df = pd.DataFrame(
+        rec_log_dict,
+        index=[
+            "i",
+        ],
     )
-    wandb.finish()
+    pre_df = pd.DataFrame(
+        pre_log_dict,
+        index=[
+            "i",
+        ],
+    )
+    f_df = pd.DataFrame(
+        f_m_log_dict,
+        index=[
+            "i",
+        ],
+    )
+    output_df = pd.concat([rec_df, pre_df, f_df], axis=0)
+    output_path = os.path.join(utils.env.tmp_dir, test_name, "metrics.csv")
+    output_df.to_csv(output_path)
 
 
 if __name__ == "__main__":
@@ -159,12 +146,10 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
-        # なんか下のやつ使えなくなっている、、
-        # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
     # TODO: jsonに移植
-    TEST_RUN = False
+    TEST_RUN = True
     EPOCHS = 50
     HAS_ATTENTION = True
     PSE_DATA = False
@@ -267,32 +252,15 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
-            save_model=True,
-            name=f"{test_name}",
-            project=WANDB_PROJECT,
             train=train,
             test=test,
             pre_process=pre_process,
-            my_tags=my_tags,
-            has_attention=HAS_ATTENTION,
             date_id=date_id,
             pse_data=PSE_DATA,
             test_name=test_name,
-            has_inception=HAS_INCEPTION,
             n_class=N_CLASS,
-            data_type=DATA_TYPE,
             sample_size=SAMPLE_SIZE,
-            is_enn=IS_ENN,
-            wandb_config=wandb_config,
-            kernel_size=KERNEL_SIZE,
-            is_mul_layer=IS_MUL_LAYER,
             batch_size=BATCH_SIZE,
-            unc_threthold=UNC_THRETHOLD,
-            experiment_type=EXPERIENT_TYPE,
-            epochs=EPOCHS,
-            saving_date_id=saving_date_id,
-            has_dropout=HAS_DROPOUT,
-            dropout_rate=DROPOUT_RATE,
             utils=Utils(
                 IS_NORMAL,
                 IS_PREVIOUS,
