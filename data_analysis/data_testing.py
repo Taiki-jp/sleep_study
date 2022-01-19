@@ -149,9 +149,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     # TODO: jsonに移植
-    TEST_RUN = True
-    EPOCHS = 50
-    HAS_ATTENTION = True
+    TEST_RUN = False
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
@@ -178,10 +176,8 @@ if __name__ == "__main__":
     )
     EXPERIENT_TYPE = "positive_cleansing"
     NORMAL_TAG = "normal" if IS_NORMAL else "sas"
-    ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -228,28 +224,6 @@ if __name__ == "__main__":
         date_id_saving_list.append(saving_date_id)
 
         # tagの設定
-        # TODO: wandb のutilsを作成する
-        my_tags = [
-            test_name,
-            f"kernel:{KERNEL_SIZE}",
-            f"stride:{STRIDE}",
-            f"sample:{SAMPLE_SIZE}",
-            f"model:{ENN_TAG}",
-            f"{EXPERIENT_TYPE}",
-            f"u_th:{UNC_THRETHOLD}",
-        ]
-        wandb_config = {
-            "test name": test_name,
-            "date id": date_id,
-            "sample_size": SAMPLE_SIZE,
-            "epochs": EPOCHS,
-            "kernel": KERNEL_SIZE,
-            "stride": STRIDE,
-            "fit_pos": FIT_POS,
-            "batch_size": BATCH_SIZE,
-            "n_class": N_CLASS,
-            "experiment": EXPERIENT_TYPE,
-        }
         # FIXME: name をコード名にする
         main(
             train=train,
