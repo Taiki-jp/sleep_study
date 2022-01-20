@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import random
 import sys
@@ -5,10 +6,9 @@ import sys
 import numpy as np
 import tensorflow as tf
 from numpy.lib.function_base import kaiser
-from __future__ import annotations
 
 import os
-from typing import Dict
+from typing import Dict, List
 
 import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
@@ -26,7 +26,7 @@ def load_bin_model(
     is_all: bool,
     ss_id: str,
     ss: str = "",
-) -> list:
+) -> List[tf.keras.Model]:
     # 表示するかどうか
     if verbose != 0:
         print(PyColor.GREEN, f"*** {loaded_name}のモデルを読み込みます ***", PyColor.END)

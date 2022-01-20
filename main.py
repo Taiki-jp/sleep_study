@@ -30,7 +30,6 @@ from pre_process.utils import set_seed
 
 
 def main(
-    is_simple_rnn: bool,
     test_run: bool,
     dropout_rate: float,
     has_dropout: bool,
@@ -137,7 +136,6 @@ def main(
             is_mul_layer=is_mul_layer,
             has_dropout=has_dropout,
             dropout_rate=dropout_rate,
-            is_simple_rnn=is_simple_rnn,
         )
     elif data_type == "spectrogram":
         outputs = edl_classifier_2d(
@@ -148,7 +146,6 @@ def main(
             is_mul_layer=is_mul_layer,
             has_dropout=has_dropout,
             dropout_rate=dropout_rate,
-            is_simple_rnn=is_simple_rnn,
         )
     if is_enn:
         model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
@@ -159,11 +156,10 @@ def main(
                 BinaryAccuracy(name="bn"),
                 Precision(name="precision"),
                 Recall(name="recall"),
-                TruePositives(name="tp"),
-                FalseNegatives(name="fn"),
-                TrueNegatives(name="tn"),
-                FalsePositives(name="fp"),
-                "mse",
+                # TruePositives(name="tp"),
+                # FalseNegatives(name="fn"),
+                # TrueNegatives(name="tn"),
+                # FalsePositives(name="fp"),
             ],
         )
 
@@ -187,14 +183,15 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
     cp_dir = pre_process.my_env.get_model_saved_path(
-        c_dir=test_name, model_id=date_id
+        c_dir=test_name, ss_dir=target_ss, model_id=date_id, 
     )
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
         filepath=cp_dir,
         verbose=1,
         period=1,
-        monitor="val_accuracy",
+        monitor="val_bn",
         save_best_only=True,
+        mode='max'
     )
 
     model.fit(
@@ -265,7 +262,7 @@ if __name__ == "__main__":
         tf.keras.backend.set_floatx("float32")
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    # tf.config.run_functions_eagerly(True)
+        # tf.config.run_functions_eagerly(True)
     else:
         print("*** cpuで計算します ***")
         # tf.config.run_functions_eagerly(True)
@@ -273,7 +270,7 @@ if __name__ == "__main__":
     # ハイパーパラメータの設定
     TEST_RUN = False
     EPOCHS = 10
-    HAS_ATTENTION = True
+    HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
@@ -289,10 +286,10 @@ if __name__ == "__main__":
     IS_SIMPLE_RNN = False
     DROPOUT_RATE = 0.2
     N_CLASS = 2
-    SAMPLE_SIZE = 1000
-    TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]
+    SAMPLE_SIZE = 2500
+    TARGET_SS = ["wake", "rem", "nr1", "nr2", "nr3"]  # target_ss としてpre_process.change_labelでnr3として扱いたいのでnr4, nr34とはしていない
     BATCH_SIZE = 512
-    KERNEL_SIZE = 512
+    KERNEL_SIZE = 128
     IS_UNDER_4HZ = False
     STRIDE = 16
     DATA_TYPE = "spectrogram"
@@ -302,7 +299,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
+    WANDB_PROJECT = "test" if TEST_RUN else "bin_enn"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -329,14 +326,11 @@ if __name__ == "__main__":
         load_all=True,
         pse_data=PSE_DATA,
     )
-    # モデルのidを記録するためのリスト
-    date_id_saving_list = list()
 
-    for target_ss in TARGET_SS:
-        date_id_saving_list = list()
-        for test_id, test_name in enumerate(pre_process.name_list):
+    for test_id, test_name in enumerate(pre_process.name_list):
+        # モデルのidを記録するためのリスト
+        for target_ss in TARGET_SS:
             date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            date_id_saving_list.append(date_id)
             (train, test) = pre_process.split_train_test_from_records(
                 datasets, test_id=test_id, pse_data=PSE_DATA
             )
@@ -370,6 +364,7 @@ if __name__ == "__main__":
                 "under_4hz": IS_UNDER_4HZ,
             }
             main(
+                test_run=TEST_RUN,
                 has_dropout=True,
                 log_tf_projector=True,
                 name=test_name,
@@ -409,11 +404,13 @@ if __name__ == "__main__":
             )
 
             # testの時は一人の被験者で止める
-            if TEST_RUN:
-                print(PyColor.RED_FLASH, "テストランのため睡眠段階のループを終了します", PyColor.END)
-                break
+            # if TEST_RUN:
+            #     print(PyColor.RED_FLASH, "テストランのため被験者のループを終了します", PyColor.END)
+            #     break
+
+            # json に書き込み
+            MI.dump(value=date_id, test_name=test_name, target_ss=target_ss)
+
         if TEST_RUN:
-            print(PyColor.RED_FLASH, "テストランのため被験者のループを終了します", PyColor.END)
+            print(PyColor.RED_FLASH, "テストランのため被験者ループを終了します", PyColor.END)
             break
-    # json に書き込み
-    MI.dump(value=date_id_saving_list)

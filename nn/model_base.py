@@ -526,7 +526,7 @@ class EDLModelBase(tf.keras.Model):
             y = tf.one_hot(y, depth=self.n_class)  # (32, 5)
             # Loss
             loss = self.compiled_loss(
-                y, evidence, regularization_losses=self.losses
+                y, y_pred, regularization_losses=self.losses
             )
 
         # Gradients
@@ -555,11 +555,11 @@ class EDLModelBase(tf.keras.Model):
         # Updates the metrics tracking the loss
         # yをone-hot表現にして送る
         y = tf.one_hot(y, depth=self.n_class)
-        y = tf.argmax(y, axis=1, output_type=tf.int32)
-        y_pred = tf.argmax(y_pred, axis=1, output_type=tf.int32)
         loss = self.compiled_loss(
             y, evidence, regularization_losses=self.losses
         )
+        y = tf.argmax(y, axis=1, output_type=tf.int32)
+        y_pred = tf.argmax(y_pred, axis=1, output_type=tf.int32)
         self.compiled_metrics.update_state(y, y_pred)
         metrics_dict = {m.name: m.result() for m in self.metrics}
         # metrics_dict.update(u_dict)

@@ -1,5 +1,6 @@
 import json
 import sys
+from typing import List, Any
 
 from data_analysis.py_color import PyColor
 from pre_process.json_base import JsonBase
@@ -20,6 +21,28 @@ class ModelId(JsonBase):
         return self.json_dict[self.hostkey][self.subject_type][
             self.model_type
         ][self.data_type][self.fit_pos][self.stride][self.kernel]
+
+    # 2クラス分類時の形式用のjson読み込みメソッド
+    def make_model_id_list4bin_format(self, *args) -> Any:
+        ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
+        mapper = lambda ss: self.json_dict[self.hostkey][self.subject_type][
+            self.model_type
+        ][self.data_type][self.fit_pos][self.stride][self.kernel][self.cleansing_type][ss]
+
+        nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
+            mapper, ss_list
+        )
+        mapped = map(
+            lambda nr1, nr2, nr3, rem, wake: dict(
+                nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
+            ),
+            nr1_list,
+            nr2_list,
+            nr3_list,
+            rem_list,
+            wake_list,
+        )
+        return list(mapped)
 
     def set_key(
         self,
@@ -55,13 +78,13 @@ class ModelId(JsonBase):
         else:
             raise Exception
 
-    def dump(self, value, is_pre_dump: bool = False) -> None:
+    def dump(self, value, is_pre_dump: bool = False, target_ss: str = "", test_name: str = "") -> None:
         def __dump():
             self.json_dict[self.hostkey][self.subject_type][self.model_type][
                 self.data_type
             ][self.fit_pos][self.stride][self.kernel][
                 self.cleansing_type
-            ] = value
+            ][test_name][target_ss] = value
             with open(self.json_file, "w") as f:
                 json.dump(self.json_dict, f, indent=2)
 

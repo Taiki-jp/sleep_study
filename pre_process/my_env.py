@@ -64,8 +64,8 @@ class MyEnv:
         return os.path.join(self.project_dir, p_dir, c_dir, model_id)
 
     # モデルの保存先を返すメソッド
-    def get_model_saved_path(self, c_dir: str, model_id: str):
-        return os.path.join(self.models_dir, c_dir, model_id)
+    def get_model_saved_path(self, c_dir: str, ss_dir: str, model_id: str):
+        return os.path.join(self.models_dir, c_dir, ss_dir, model_id)
 
     # set json_keys as its member variables
     def set_jsonkey(self):

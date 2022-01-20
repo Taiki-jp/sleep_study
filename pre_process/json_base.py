@@ -3,7 +3,7 @@ import os
 import pickle
 import socket
 import sys
-from typing import List
+from typing import Dict, List, Any
 
 from data_analysis.py_color import PyColor
 
@@ -25,147 +25,87 @@ class JsonBase(object):
         # 各json形式で共通のキーはクラスメンバとして定義
         self.os_version: list = ["win_249", "spica-2nd", "home-pc", "spica-4th"]
         self.dataset: list = [
-            "normal_prev",
+            # "normal_prev",
             "normal_follow",
-            "sas_prev",
-            "sas_follow",
+            # "sas_prev",
+            # "sas_follow",
         ]
-        self.preprocess_type: list = ["spectrum", "spectrogram", "cepstrum"]
-        self.ss_pos: list = ["bottom", "middle", "top"]
-        self.stride: list = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        self.kernel: list = ["kernel_" + str(i) for i in (128, 256, 512, 1024)]
+        self.ss_list : List[str] = ["wake", "rem", "nr1", "nr2", "nr3"]
+        self.preprocess_type: list = ["spectrogram"]
+        self.ss_pos: list = ["middle"]
+        self.stride: list = ["stride_16"]
+        self.kernel: list = ["kernel_" + str(i) for i in (128, 256)]
         self.added_key: list = ["birth", "sex", "sleeping_time"]
         self.subjects_list: list = [
-            "H_Li",
-            "H_Murakami",
-            "H_Yamamoto",
-            "H_Kumazawa",
-            "H_Hayashi",
-            "H_Kumazawa_F",
-            "H_Takadama",
-            "H_Hiromoto",
-            "H_Kashiwazaki",
-            "sas_5993",
-            "sas_30929",
-            "sas_33792",
-            "sas_35818",
-            "sas_35866",
-            "sas_35997",
-            "sas_36162",
-            "sas_36350",
-            "sas_36765",
-            "140703_Li",
-            "140711_Yamamoto",
-            "140819_Kumazawa",
-            "140820_Yasuda",
-            "140821_Murakami",
-            "140823_Murakami",
-            "140825_Kashiwazaki",
-            "140826_Ootsuji",
-            "140828_Otsuji",
-            "140830_Murakami",
-            "140922_Kumazawa_M",
-            "140925_Kashiwazaki",
-            "140929_Kumazawa",
-            "140930_Hayashi",
-            "141001_Hayashi",
-            "141002_Hayashi",
-            "141003_Kashiwazaki_F",
-            "141006_Hiromoto",
-            "141014_Kumazawa_F",
-            "141015_Hiromoto",
-            "141024_Kawasaki_F",
-            "141027_Kawasaki",
-            "141029_Umezawa",
-            "141030_Kumazawa",
-            "141104_Takadama",
-            "141124_Murata",
-            "141127_Tatsumi",
-            "141128_Sato_Minato",
-            "141204_Tatebe",
-            "141205_Fujitsuka",
-            "141217_Sugimoto",
-            "141219_Usui",
-            "151104_Nagae",
-            "151105_Nagae",
-            "151106_Nagae",
-            "151111_Kawasaki",
-            "151112_Kawasaki",
-            "151113_Kawasaki",
-            "151118_Tomoko_Nagae",
-            "151119_Tomoko_Nagae",
-            "151120_Tanaka",
-            "151126_Tanaka",
-            "151127_Tanaka",
-            "151201_Tomoko_Nagae",
-            "151204_Umenai",
-            "151207_Matsumoto",
-            "151209_Umenai",
-            "151210_Hoshino",
-            "151214_Matsumoto",
-            "151215_Ishii_Haruyuki",
-            "151217_Hoshino",
-            "151217_Ishii_Haruyuki",
-            "190000_takadama_aki",
-            "20190818_takano",
-            "20190819_kobayashi",
-            "20190820_murata",
-            "20200721_maesuke",
-            "20200723_yamane",
-            "20200804_shiraishi",
-            "20200814_shiraishi",
-            "20200818_shiraishi",
-            "20200819_maesuke",
-            "20200819_shiraishi",
-            "20200822_yamane",
-            "20210130_iei",
-            "20210131_ihou",
-            "20210201_isei",
-            "20210203_ihou",
-            "20210204_kenka",
-            "13724",
-            "3325",
-            "47328",
-            "48253",
-            "48797",
-            "48814",
-            "51443",
-            "52274",
-            "52345",
-            "52470",
-            "52819",
-            "52868",
-            "53224",
-            "53354",
-            "53420",
-            "53670",
-            "53776",
-            "53776_2",
-            "53788",
-            "53803",
-            "53805",
-            "53929",
-            "54083",
-            "54097",
-            "54185",
-            "54384",
-            "54448",
-            "54511",
-            "54532",
-            "54548",
-            "54560",
-            "54563",
-            "54668",
-            "54700",
-            "54817",
-            "54823",
-            "54838",
-            "55128",
-            "141010_Kashiwazaki_F",
-            "141022_Ishii",
-            "141212_Saito",
-            "141215_Tomura",
-            "151125_Umenai",
+                    "140703_Li",
+                    "140711_Yamamoto",
+                    "140819_Kumazawa",
+                    "140820_Yasuda",
+                    "140821_Murakami",
+                    "140823_Murakami",
+                    "140825_Kashiwazaki",
+                    "140826_Ootsuji",
+                    "140828_Otsuji",
+                    "140830_Murakami",
+                    "140922_Kumazawa_M",
+                    "140925_Kashiwazaki",
+                    "140929_Kumazawa",
+                    "140930_Hayashi",
+                    "141001_Hayashi",
+                    "141002_Hayashi",
+                    "141003_Kashiwazaki_F",
+                    "141006_Hiromoto",
+                    "141014_Kumazawa_F",
+                    "141015_Hiromoto",
+                    "141024_Kawasaki_F",
+                    "141027_Kawasaki",
+                    "141029_Umezawa",
+                    "141030_Kumazawa",
+                    "141104_Takadama",
+                    "141124_Murata",
+                    "141127_Tatsumi",
+                    "141128_Sato_Minato",
+                    "141204_Tatebe",
+                    "141205_Fujitsuka",
+                    "141217_Sugimoto",
+                    "141219_Usui",
+                    "151104_Nagae",
+                    "151105_Nagae",
+                    "151106_Nagae",
+                    "151111_Kawasaki",
+                    "151112_Kawasaki",
+                    "151113_Kawasaki",
+                    "151118_Tomoko_Nagae",
+                    "151119_Tomoko_Nagae",
+                    "151120_Tanaka",
+                    "151126_Tanaka",
+                    "151127_Tanaka",
+                    "151201_Tomoko_Nagae",
+                    "151204_Umenai",
+                    "151207_Matsumoto",
+                    "151209_Umenai",
+                    "151210_Hoshino",
+                    "151214_Matsumoto",
+                    "151215_Ishii_Haruyuki",
+                    "151217_Hoshino",
+                    "151217_Ishii_Haruyuki",
+                    "190910_takadama_aki",
+                    "20190818_takano",
+                    "20190819_kobayashi",
+                    "20190820_murata",
+                    "20200721_maesuke",
+                    "20200723_yamane",
+                    "20200804_shiraishi",
+                    "20200814_shiraishi",
+                    "20200818_shiraishi",
+                    "20200819_maesuke",
+                    "20200819_shiraishi",
+                    "20200822_yamane",
+                    "20210130_iei",
+                    "20210131_ihou",
+                    "20210201_isei",
+                    "20210203_ihou",
+                    "20210204_kenka"
         ]
         self.model_type: list = ["dnn", "enn"]
         self.cleansing_type: list = [
@@ -258,35 +198,6 @@ class JsonBase(object):
 
         return list(mapped)
 
-    # 2クラス分類時の形式用のjson読み込みメソッド
-    def make_model_id_list4bin_format(self, *args) -> list:
-        ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
-        mapper = lambda ss: self.json_dict[args[0]][args[1]][args[2]][args[3]][
-            args[4]
-        ][args[5]][args[6]][ss]
-
-        # これでもlambda関数と同じことが起こる
-        # def _mapper(ss) -> list:
-        #     return self.json_dict[args[0]][args[1]][args[2]][args[3]][args[4]][
-        #         args[5]r
-        #     ][ss]
-
-        # nr1_list = _mapper(ss_list[0])
-
-        nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
-            mapper, ss_list
-        )
-        mapped = map(
-            lambda nr1, nr2, nr3, rem, wake: dict(
-                nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
-            ),
-            nr1_list,
-            nr2_list,
-            nr3_list,
-            rem_list,
-            wake_list,
-        )
-        return list(mapped)
 
     # per_processed_id.jsonのフォーマット作成
     def make_pre_processed_id_format(self) -> None:
@@ -300,7 +211,7 @@ class JsonBase(object):
         # 辞書の初期値のみをループとは別に作成しておく
         kernel_d = {_kernel: "" for _kernel in kernel}
         list4loop = [stride, ss_pos, preprocess_type, dataset]
-    def make_deep_dict(self, list4loop: list, first_dict: dict) -> None:
+    def make_deep_dict(self, list4loop: List[Any], first_dict: Dict[str, List[Any]]) -> None:
         for _list4loop in list4loop:
             merged_d = {__list4loop: first_dict for __list4loop in _list4loop}
             first_dict = merged_d.copy()
@@ -314,48 +225,24 @@ class JsonBase(object):
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
 
-    # model_id.jsonのフォーマット作成
     def make_model_id_format(self) -> None:
-        # キーを指定して辞書を作成するために，同じ階層の辞書をとりあえず作る
-        dataset = [
-            "normal_prev",
-            "normal_follow",
-            "sas_prev",
-            "sas_normal",
-            "unused_set",
-        ]
-        model_type = ["dnn", "enn"]
-        preprocess_type = ["spectrum", "spectrogram"]
-        ss_pos = ["bottom", "middle", "top"]
-        stride = ["stride_" + str(i) for i in (1, 4, 16, 480, 1024)]
-        kernel = ["kernel_" + str(i) for i in (256, 512, 1024)]
-        cleansing_type = [
-            "no_cleansing",
-            "positive_cleansing",
-            "negative_cleansing",
-        ]
-        sleep_stage = ["wake", "rem", "nr1", "nr2", "nr3"]
-
         # 辞書の初期値のみをループとは別に作成しておく
-        # cleansing_type_d = {
-        #     _cleansing_type: [] for _cleansing_type in cleansing_type
-        # }
-        sleep_stage_d = {_sleep_stage: [] for _sleep_stage in sleep_stage}
+        init_d = {
+            _ss_list: [] for _ss_list in self.ss_list+["5stage"]
+        }
         list4loop = [
-            cleansing_type,
-            kernel,
-            stride,
-            ss_pos,
-            preprocess_type,
-            model_type,
-            dataset,
+            self.subjects_list,
+            self.cleansing_type,
+            self.kernel,
+            self.stride,
+            self.ss_pos,
+            self.preprocess_type,
+            self.model_type,
+            self.dataset,
+            self.os_version,
         ]
-        for _list4loop in list4loop:
-            merged_d = {
-                __list4loop: sleep_stage_d for __list4loop in _list4loop
-            }
-            sleep_stage_d = merged_d.copy()
-    # per_processed_id.jsonのフォーマット作成
+        self.make_deep_dict(list4loop, init_d)
+
     def make_pre_processed_id_format(self) -> None:
         # 辞書の初期値のみをループとは別に作成しておく
         kernel_d = {_kernel: "" for _kernel in self.kernel}
@@ -384,22 +271,6 @@ class JsonBase(object):
             print("jsonへの書き込みに失敗しました")
             sys.exit(1)
 
-    # model_id.jsonのフォーマット作成
-    def make_model_id_format(self) -> None:
-        # 辞書の初期値のみをループとは別に作成しておく
-        cleansing_type_d = {
-            _cleansing_type: [] for _cleansing_type in self.cleansing_type
-        }
-        list4loop = [
-            self.kernel,
-            self.stride,
-            self.ss_pos,
-            self.preprocess_type,
-            self.model_type,
-            self.dataset,
-            self.os_version,
-        ]
-        self.make_deep_dict(list4loop, cleansing_type_d)
 
     # フォーマット作成のメタメソッド
     def make_format(self, json: str) -> None:
@@ -453,7 +324,7 @@ class JsonBase(object):
 
 if __name__ == "__main__":
     filenames = [
-        "pre_processed_id.json",
+        # "pre_processed_id.json",
         "model_id.json",
         # "my_color.json",
         # "ss.json",
@@ -463,6 +334,5 @@ if __name__ == "__main__":
     for _filenames in filenames:
         jb = JsonBase(_filenames)
         jb.load()
-
         # フォーマット作成のテスト
         jb.make_format(json=_filenames.split(".")[0])

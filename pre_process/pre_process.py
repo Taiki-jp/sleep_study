@@ -182,12 +182,6 @@ class PreProcess:
                 Counter([record.ss for record in train]),
             )
 
-            if self.verbose == 0:
-                print(
-                    "訓練データの各睡眠段階（補正前）",
-                    Counter([record.ss for record in train]),
-                )
-
             def _storchastic_sampling(
                 data: Dict[int, int],
                 target_records: List[Record],
@@ -225,10 +219,16 @@ class PreProcess:
 
                     # 睡眠段階のラベルを知るために必要
                     ss = target_records[0].ss
-                    if ss != target_ss:
+                    ss_int_label_d = {"wake":5, "rem":4, "nr1":3, "nr2":2, "nr3":1}
+                    target_ss_as_int = ss_int_label_d[target_ss[0]]
+                    if ss != target_ss_as_int:
                         _selected_list = choices(target_records, k=data[ss])
-                    elif ss == target_ss:
-                        _selected_list = choices(target_records, k=data[ss])
+                    elif ss == target_ss_as_int:
+                        # かつnr2(2)であれば、8倍（つまり2倍の量）を作成する
+                        if ss == 2:
+                            _selected_list = choices(target_records, k=data[ss]*8)
+                        else:
+                            _selected_list = choices(target_records, k=data[ss]*4)
                     return _selected_list
 
                 # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
@@ -255,7 +255,7 @@ class PreProcess:
                 tmp = list(map(_sample, traindata))
                 # flatten 2d list
                 tmp = list(itertools.chain.from_iterable(tmp))
-                valdata = list(itertools.chain.from_iterable(valdata))
+                valdata = list(itertools.chain.from_iterable(valdata))  # 検証データの複製は不必要なので_sample methodを返さなくてよい
                 return tmp, valdata
 
             train, valdata = _storchastic_sampling(
@@ -309,6 +309,7 @@ class PreProcess:
             (y_train, y_val, y_test),
             (class_size, class_size, class_size),
             (target_ss, target_ss, target_ss),
+            (n_class_converted, n_class_converted, n_class_converted)
         )
 
         # inset_channel_axis based on data type

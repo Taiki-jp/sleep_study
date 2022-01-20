@@ -1,4 +1,5 @@
 import datetime
+from pre_process.utils import set_seed
 import os
 import sys
 from typing import List
@@ -15,6 +16,9 @@ from pre_process.pre_process import PreProcess
 
 
 def main(
+    pse_data: bool,
+    target_ss: str,
+    is_under_4hz: bool,
     name: str,
     train: list,
     test: list,
@@ -31,20 +35,28 @@ def main(
     log_all_in_one: bool = False,
 ):
 
-    # データセットの作成（睡眠段階は5段階のまま表示する）
-    (x_test, y_test) = pre_process.make_test_data(
+    # データセットの作成
+    (
+        (x_train, y_train),
+        (x_val, y_val),
+        (x_test, y_test),
+    ) = pre_process.make_dataset(
+        train=train,
         test=test,
-        normalize=True,
-        catch_none=True,
-        insert_channel_axis=True,
+        is_storchastic=False,
+        is_shuffle=False,
+        pse_data=pse_data,
         to_one_hot_vector=False,
-        class_size=5,  # 睡眠を扱っているときは常に5
+        each_data_size=sample_size,
+        class_size=5,  # ここは予測するラベル数ではなく，睡眠段階の数を指定している
         n_class_converted=n_class,
+        target_ss=[target_ss],
+        is_under_4hz=is_under_4hz,
     )
 
     # データクレンジングを行うベースとなるモデルを読み込む
     model = load_bin_model(
-        loaded_name=test_name, verbose=0, is_all=True, ss_id=date_id
+        loaded_name=test_name, verbose=0, is_all=False, ss_id=date_id
     )
     # モデルが一つでもない場合はreturn
     if any(model) is None:
@@ -131,6 +143,9 @@ def main(
 
 
 if __name__ == "__main__":
+    # シードの固定
+    set_seed(0)
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     # 環境設定
     CALC_DEVICE = "gpu"
     DEVICE_ID = "0"
@@ -140,13 +155,17 @@ if __name__ == "__main__":
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    BATCH_SIZE = 64
+    IS_NORMAL=True
+    HAS_NREM2_BIAS=True
+    HAS_REM_BIAS=False
+    IS_UNDER_4HZ=False
+    BATCH_SIZE = 512
     N_CLASS = 5
     STRIDE = 16
-    KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     SAMPLE_SIZE = 2000
     UNC_THRETHOLD = 0.3
     EXPERIMENT_TYPES = (
@@ -157,7 +176,10 @@ if __name__ == "__main__":
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     IS_PREVIOUS = False
-
+    IS_ENN=True
+    PSE_DATA=False
+    ENN_TAG = "enn" if IS_ENN else "dnn"
+    CLEANSING_TYPE = "no_cleansing"
     # オブジェクトの作成
     pre_process = PreProcess(
         data_type=DATA_TYPE,
@@ -166,25 +188,22 @@ if __name__ == "__main__":
         kernel_size=KERNEL_SIZE,
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
-        is_normal=True,
+        is_normal=IS_NORMAL,
+        has_nrem2_bias=HAS_NREM2_BIAS,
+        has_rem_bias=HAS_REM_BIAS,
+        model_type=ENN_TAG,
+        cleansing_type=CLEANSING_TYPE,
+        make_valdata=True,
+        has_ignored=True,
+        lsp_option="nr2",
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=False
     )
-    utils = Utils(catch_nrem2=CATCH_NREM2)
 
     # 読み込むモデルの日付リストを返す
-    JB = JsonBase("model_id.json")
-    JB.load()
-    model_date_list = JB.make_model_id_list4bin_format(
-        "normal_prev" if IS_PREVIOUS else "normal_follow",
-        "enn",
-        DATA_TYPE,
-        "middle",
-        f"stride_{STRIDE}",
-        f"kernel_{KERNEL_SIZE}",
-        "no_cleansing",
-    )
+    MI = pre_process.my_env.mi
+    model_date_list = MI.make_model_id_list4bin_format()
 
     # モデルのidを記録するためのリスト
     date_id_saving_list: List[str] = list()
@@ -192,10 +211,9 @@ if __name__ == "__main__":
     for test_id, (test_name, date_id) in enumerate(
         zip(pre_process.name_list, model_date_list)
     ):
-        test_name = test_name[7:] + "_" + test_name[:6]
         # 2クラス分類の時はこれで作ってしまっているのでこれに合わせるしかない
         (train, test) = pre_process.split_train_test_from_records(
-            datasets, test_id=test_id
+            datasets, test_id=test_id, pse_data=PSE_DATA
         )
 
         # 保存用の時間id
@@ -221,9 +239,22 @@ if __name__ == "__main__":
             saving_date_id=saving_date_id,
             log_all_in_one=True,
             sample_size=SAMPLE_SIZE,  # これがないとtrainの分割のところでデータがなくてエラーが起きてしまう
-            utils=utils,
+            utils=Utils(
+                IS_NORMAL,
+                IS_PREVIOUS,
+                DATA_TYPE,
+                FIT_POS,
+                STRIDE,
+                KERNEL_SIZE,
+                model_type=ENN_TAG,
+                cleansing_type=CLEANSING_TYPE,
+            ),
+            pse_data=PSE_DATA,
+            target_ss="wake",
+            is_under_4hz=IS_UNDER_4HZ
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
+            print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
