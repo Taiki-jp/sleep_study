@@ -23,7 +23,7 @@ class JsonBase(object):
         self.foll_names: list = []
         self.foll_sass: list = []
         # 各json形式で共通のキーはクラスメンバとして定義
-        self.os_version: list = ["win_249", "spica-2nd", "home-pc"]
+        self.os_version: list = ["win_249", "spica-2nd", "home-pc", "spica-4th"]
         self.dataset: list = [
             "normal_prev",
             "normal_follow",
@@ -350,6 +350,8 @@ class JsonBase(object):
             return "spica-2nd"
         elif self.hostname == "Castor-2nd":
             return "win_249"
+        elif self.hostname == "Spica-4th":
+            return "spica-4th"
 
     # pre_processの第一キーを返す
     def first_key_of_pre_process(self, is_normal: bool, is_prev: bool) -> str:
@@ -368,7 +370,7 @@ class JsonBase(object):
 
 if __name__ == "__main__":
     filenames = [
-        # "pre_processed_id.json",
+        "pre_processed_id.json",
         "model_id.json",
         # "my_color.json",
         # "ss.json",
