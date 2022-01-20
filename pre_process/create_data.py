@@ -1,17 +1,16 @@
 import datetime
 import sys
 from collections import Counter
-from typing import Callable
+from typing import Callable, List
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
 from scipy.signal import hamming
-from tqdm import tqdm
 
 from data_analysis.py_color import PyColor
-from pre_process.record import Record, multipleRecords
+from pre_process.record import Record, make_mul_records
 
 
 class CreateData(object):
@@ -140,25 +139,31 @@ class CreateData(object):
         elif mode == "spectrogram":
             end_point = start_point + kernel_size * ss_term - 1
             fit_index = set_fit_pos_func(start_point, end_point)
+            # 後に周波数変換後のデータを格納用のダミー配列
             spectrogram = np.array(
                 [i for i in range(kernel_size // 2)]
             ).reshape(kernel_size // 2, -1)
-            for _ss_term in range(int(ss_term * 16 / stride)):
+            # TODO: 何に基づいて下のループを回しているのか？
+            # スペクトログラム内で窓をずらしながらスペクトル作成(30回)＋結合
+            for _ss_term in range(ss_term):
+                # 0814_shiraishi のデータでtanita_data["ss"][...]のオブジェクトタイプがfloatと読み込まれず掛け算が出来ないので、numpyに変換したら大丈夫か検証中
                 try:
-                    amped = (
-                        hamming(
-                            len(
-                                tanita_data["ss"][
-                                    start_point
-                                    + _ss_term : end_point
-                                    + 1
-                                    + _ss_term
-                                ]
-                            )
+                    amped = hamming(
+                        len(
+                            tanita_data["ss"][
+                                start_point
+                                + _ss_term * 16 : start_point
+                                + _ss_term * 16
+                                + kernel_size  # 16は_ss_termの単位が秒なのでタニタのデータに関して16Hzなので16倍進める
+                            ]
                         )
-                        * tanita_data["ss"][
-                            start_point + _ss_term : end_point + 1 + _ss_term
-                        ]
+                    ) * tanita_data["ss"][
+                        start_point
+                        + _ss_term * 16 : start_point
+                        + _ss_term * 16
+                        + kernel_size  # 16は_ss_termの単位が秒なのでタニタのデータに関して16Hzなので16倍進める
+                    ].astype(
+                        np.float16
                     )
                 except IndexError:
                     print(f"{end_point+1}は tanita の長さを超えてます")
@@ -166,27 +171,36 @@ class CreateData(object):
                 fft = 20 * np.log10(np.abs(fft))
                 fft = fft[: int(kernel_size / 2)]
                 spectrogram = np.hstack(
-                    [spectrogram, fft.reshape(kernel_size // 2, -1)]
+                    [spectrogram, fft.reshape(kernel_size // 2, 1)]
                 )
             # 1列目はappendが出来るように入れていたダミーデータのため保存の前に除去（obj:0の要素，axis:1（列方向））
             spectrogram = np.delete(spectrogram, obj=0, axis=1)
             record.spectrogram = spectrogram
             record.time = tanita_data["time"].iloc[fit_index]
             # NOTE: 付け焼刃なので後で吟味
-            # もしtanitaの長さを超えていたらFalseを返す
-            if len(tanita_data) < end_point:
+            # もしtanitaの長さ以上を超えていたらFalseを返す
+            # tanitaが終了時刻まで取れてないのであれば終了
+            if len(tanita_data) <= end_point:
+                print("tanita_len", len(tanita_data), "end_point", end_point)
                 return False, None
+            # tanitaは取れてるけど、psgが取れてない時の終了条件が下
             _time_tanita = datetime.datetime.strptime(
                 tanita_data["time"].iloc[end_point], "%H:%M:%S"
             )
             # PSGの最後の時刻とFFT中のtanitaのデータを比較する
             _time_delta = time_psg - _time_tanita
+            # _time_delta = _time_tanita - time_psg
             # 以下2条件を同時に満たす場合はtanitaのデータがpsgのデータの最後の時刻を超えているため終了とする条件である
-            # 1. psgデータの方がtanitaデータの方よりも時刻が早い（min:0時00分00秒，max:23時59分59秒．）NOTE:日付があればこんな処理をする必要はないが、各データに入れるのがめんどくさいためこの方法で代替
+            # 1. psgデータの方がtanitaデータの方よりも時刻が低い（min:0時00分00秒，max:23時59分59秒．）NOTE:日付があればこんな処理をする必要はないが、各データに入れるのがめんどくさいためこの方法で代替
             # 2. 22時間以上離れている
+            # （ex. 0時をまたぐ場合にtanita: 23:59:59, psg: 00:00:00の場合、睡眠は続くので以降も前処理を続けるべきなので単純に_time_delta.days < 0 だけでは判断できない）
+            # そのためそのようなケースは22時間以上
+            # タニタとPSGの差が1時間以内 かつ経過方向が正（タニタの方が後の時刻）であれば終了とする
+            # if _time_delta.seconds / 60 / 60 < 1 and _time_delta.days == 0:
+            #     return False, None
             if _time_delta.days < 0 and _time_delta.seconds / 60 / 60 > 22:
                 return False, None
-            # psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
+            # tanitaの前処理の最終時刻がpsgの最終時刻より前でも、psgのデータサイズよりも大きいインデックスを指定していれば終了する（上でキャッチできない場合）
             elif psg_len <= fit_index // 16:
                 print(PyColor.RED_FLASH, "実装上あまりここには来てほしくない", PyColor.END)
                 return False, None
@@ -220,12 +234,17 @@ class CreateData(object):
                 PyColor.END,
             )
             sys.exit(1)
+        # 睡眠段階がNoneであればストップ
+        if record.ss is None:
+            print("stop")
 
     # スペクトルの作成などのメタメソッド
     def make_freq_transform(
         self,
         mode: str,
-    ) -> Callable:
+    ) -> Callable[
+        [pd.DataFrame, pd.DataFrame, int, int, str, int], List[Record]
+    ]:
         if mode == "spectrum":
             return self.make_spectrum
         elif mode == "spectrogram":
@@ -239,17 +258,18 @@ class CreateData(object):
     # ケプストラムの作成
     def make_cepstrum(
         self,
-        tanita_data: DataFrame,
-        psg_data: DataFrame,
+        tanita_data: pd.DataFrame,
+        psg_data: pd.DataFrame,
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
-    ) -> list:
+        ss_term: int = 0,
+    ) -> List[Record]:
         # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
         print(f"make {record_len} spectrum datas")
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
         # スタートポイントはストライドのサイズでずらして、
         # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
@@ -263,7 +283,7 @@ class CreateData(object):
         # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        for start_point, record in zip(start_points_list, records):
             (can_make, _fit_index) = self._make(
                 mode="cepstrum",
                 start_point=start_point,
@@ -297,12 +317,13 @@ class CreateData(object):
         kernel_size: int,
         stride: int,
         fit_pos: str = "middle",
-    ) -> list:
+        ss_term: int = 0,
+    ) -> List[Record]:
         # TODO: タニタのデータが22時間以上の長さがないことを確認（tanitaの初期化のときすればいいかも）
         # 一般的に畳み込みの回数は (data_len - kernel_len) / stride + 1
         record_len = int((len(tanita_data) - kernel_size) / stride) + 1
         print(f"make {record_len} spectrum datas")
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
         # スタートポイントはストライドのサイズでずらして、
         # データを作成する回数分のリストを確保する
         start_points_list = [i for i in range(0, stride * record_len, stride)]
@@ -316,7 +337,7 @@ class CreateData(object):
         # 窓関数のどの位置を睡眠段階としてとるか決める関数を設定
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        for start_point, record in zip(start_points_list, records):
             (can_make, _fit_index) = self._make(
                 mode="spectrum",
                 start_point=start_point,
@@ -346,17 +367,19 @@ class CreateData(object):
         self,
         tanita_data: DataFrame,
         psg_data: DataFrame,
+        kernel_size: int,
         stride: int,
         fit_pos: str,
-        kernel_size: int,
         ss_term: int = 30,
-    ):
+    ) -> List[Record]:
         # tanitaのデータからスペクトログラムの作成時のインデントを取得
         # NOTE: スペクトログラムに関して畳み込みができる回数をしっかり調べる必要がある
+        # recordオブジェクトの必要な数．タニタのデータから算出
         record_len = (
             int((len(tanita_data) - kernel_size) / ss_term / stride) + 1
         )
-        records = multipleRecords(record_len)
+        records = make_mul_records(record_len)
+        # stride * ss_term
         start_points_list = [
             i
             for i in range(0, stride * record_len * ss_term, stride * ss_term)
@@ -371,7 +394,11 @@ class CreateData(object):
         _set_fit_pos_func = self._set_fit_pos_function(fit_pos=fit_pos)
 
         # スペクトログラムの作成
-        for start_point, record in tqdm(zip(start_points_list, records)):
+        try:
+            assert len(start_points_list) == len(records)
+        except AssertionError as AE:
+            print(AE)
+        for start_point, record in zip(start_points_list, records):
             can_make, _fit_index = self._make(
                 mode="spectrogram",
                 start_point=start_point,
@@ -405,10 +432,10 @@ class CreateData(object):
         recordLen = int(
             loopLen / timeLen
         )  # record オブジェクトを作る回数（128回のfftに関して1回作る）
-        records = multipleRecords(recordLen)
+        records = make_mul_records(recordLen)
 
         def _make():
-            for i, record in enumerate(tqdm(records)):
+            for i, record in enumerate(records):
                 spectroGram = list()
                 stop = 0
                 for k in range(timeLen):

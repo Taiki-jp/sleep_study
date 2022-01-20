@@ -50,6 +50,7 @@ def main(
     has_dropout: bool = False,
     dropout_rate: float = 0,
     utils: Utils = None,
+    is_under_4hz: bool = False,
 ):
 
     # データセットの作成
@@ -64,7 +65,7 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
-        is_under_4hz=True,
+        is_under_4hz=is_under_4hz,
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
@@ -103,32 +104,17 @@ def main(
     if data_type == "spectrum" or data_type == "cepstrum":
         shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape: Tuple[int, int, int] = (128, 30, 1)
+        if is_under_4hz:
+            shape: Tuple[int, int, int] = (
+                (32, 30, 1) if kernel_size == 128 else (64, 30, 1)
+            )
+        else:
+            shape: Tuple[int, int, int] = (
+                (64, 30, 1) if kernel_size == 128 else (128, 30, 1)
+            )
     else:
         print("correct data_type based on your model")
         sys.exit(1)
-
-    inputs = tf.keras.Input(shape=shape)
-    if data_type == "spectrum" or data_type == "cepstrum":
-        outputs = edl_classifier_1d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
-    elif data_type == "spectrogram":
-        outputs = edl_classifier_2d(
-            x=inputs,
-            n_class=n_class,
-            has_attention=has_attention,
-            has_inception=has_inception,
-            is_mul_layer=is_mul_layer,
-            has_dropout=has_dropout,
-            dropout_rate=dropout_rate,
-        )
 
     model = load_model(
         loaded_name=test_name, model_id=date_id, n_class=n_class, verbose=1
@@ -136,105 +122,24 @@ def main(
 
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
-    x, y = (x_train, y_train)
-
-    # 訓練データのクレンジング
-    (_x, _y) = separate_unc_data(
-        x=x,
-        y=y,
-        model=model,
-        batch_size=batch_size,
-        n_class=n_class,
-        experiment_type=experiment_type,
-        unc_threthold=unc_threthold,
-        verbose=0,
+    evidence = model.predict(x=x_test, batch_size=batch_size)
+    evidence, alpha, unc, y_pred = utils.calc_enn_output_from_evidence(
+        evidence
     )
-    # テストデータのクレンジング
-    (_x_test, _y_test) = separate_unc_data(
-        x=x_test,
-        y=y_test,
-        model=model,
-        batch_size=batch_size,
-        n_class=n_class,
-        experiment_type=experiment_type,
-        unc_threthold=unc_threthold,
-        verbose=0,
+    # 一致率のログ
+    acc = utils.calc_acc_from_pred(
+        y_true=y_test[0], y_pred=y_pred, log_label="test accuracy"
     )
-
-    # データクレンジングされた後のデータ数をログにとる
-    wandb.log(make_ss_dict4wandb(_y, is_train=True), commit=False)
-    wandb.log(make_ss_dict4wandb(_y_test, is_train=False), commit=False)
-
-    # データが拾えなかった場合は終了
-    catching_flag_train = utils.stop_early(y=_y, mode="catching_assertion")
-    catching_flag_test = utils.stop_early(y=_y_test, mode="catching_assertion")
-    # 早期終了フラグが立った場合はそこで終了
-    if catching_flag_train or catching_flag_test:
-        return
-    # if _x.shape[0] == 0 or _x_test.shape[0] == 0:
-    #     return
-
-    _model = EDLModelBase(inputs=inputs, outputs=outputs)
-    # =================================================
-    # _model.summary()
-    # print(_model.layers[1].get_weights())
-    # sys.exit(1)
-    # =================================================
-    _model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss=EDLLoss(K=n_class, annealing=0.1),
-        metrics=[
-            "accuracy",
-        ],
-    )
-    log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id["nothing"]
-    )
-    tf_callback = tf.keras.callbacks.TensorBoard(
-        log_dir=log_dir, histogram_freq=1
-    )
-
-    _model.fit(
-        x=_x,
-        y=_y,
-        batch_size=batch_size,
-        validation_data=(_x_test, _y_test),
-        epochs=epochs,
-        callbacks=[
-            tf_callback,
-            WandbClassificationCallback(
-                validation_data=(_x_test, _y_test),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"],
-            ),
-        ],
-        verbose=2,
-    )
-
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (_x, _x_test)
-    tuple_y = (_y, _y_test)
-    # 混合行列をwandbに送信
-    for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = _model.predict(__x)
-        utils.make_graphs(
-            y=__y.numpy(),
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=saving_date_id,
-            is_each_unc=True,
-        )
-
-    if save_model:
-        # モデルの保存
-        path = os.path.join(
-            pre_process.my_env.models_dir, test_name, saving_date_id
-        )
-        print("モデルを保存します")
-        _model.save(path)
-    # wandb終了
+    utils.make_graphs(
+        y=y_test[0],
+        evidence=evidence,
+        train_or_test="test",
+        graph_person_id=test_name,
+        calling_graph="all",
+        graph_date_id=date_id,
+        is_each_unc=True,
+    )
     wandb.finish()
 
 
@@ -272,11 +177,13 @@ if __name__ == "__main__":
     HAS_DROPOUT = True
     BATCH_SIZE = 64
     N_CLASS = 5
-    KERNEL_SIZE = 256
+    # KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     STRIDE = 16
     SAMPLE_SIZE = 2000
     UNC_THRETHOLD = 0.3
     DROPOUT_RATE = 0.3
+    IS_UNDER_4HZ = False
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     EXPERIMENT_TYPES = (
@@ -289,7 +196,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "positive_cleansing"
+    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -304,11 +211,13 @@ if __name__ == "__main__":
         is_previous=IS_PREVIOUS,
         stride=STRIDE,
         is_normal=IS_NORMAL,
-        has_nrem2_bias=True,
+        has_nrem2_bias=False,
         has_rem_bias=False,
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
         make_valdata=True,
+        has_ignored=True,
+        lsp_option="nr2",
     )
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA
@@ -394,26 +303,10 @@ if __name__ == "__main__":
                 model_type=ENN_TAG,
                 cleansing_type=CLEANSING_TYPE,
             ),
+            is_under_4hz=IS_UNDER_4HZ,
         )
 
         # testの時は一人の被験者で止める
         if TEST_RUN:
             print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
-
-    # モデルを保存しないのでコメントアウト
-    # TODO: モデルの保存を行う変数に応じて場合分け
-    JB.dump(
-        keys=[
-            JB.first_key_of_pre_process(
-                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-            ),
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            f"{EXPERIENT_TYPE}",
-        ],
-        value=date_id_saving_list,
-    )

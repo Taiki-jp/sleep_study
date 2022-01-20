@@ -7,6 +7,7 @@ tmp_save/
 
 *.csv
 *.png
+*.pptx
 custom_model/
 
 model_saved_by_save_method/
@@ -17,3 +18,4 @@ logs/
 !*.ipynb
 
 pre_process/pre_processed_id.json
+.ipynb_checkpoints/

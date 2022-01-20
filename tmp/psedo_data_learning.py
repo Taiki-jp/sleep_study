@@ -1,17 +1,19 @@
-import random
-import tensorflow as tf
-import numpy as np
+import datetime
 import os
+import random
 import sys
+
+import matplotlib
+import numpy as np
+import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.keras_tensor import KerasTensor
 from tensorflow.python.ops.gen_batch_ops import batch
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
-from nn.losses import EDLLoss
-import datetime
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
-import matplotlib
+from nn.losses import EDLLoss
 
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
@@ -124,6 +126,7 @@ def main(
 
 if __name__ == "__main__":
     import datetime
+
     import wandb
 
     # 環境設定

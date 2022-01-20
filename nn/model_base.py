@@ -1,10 +1,35 @@
 import datetime
 import os
 import sys
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.framework.ops import Tensor
+from tensorflow.python.keras import optimizer_v2
 from tensorflow.python.keras.layers.core import Dense
+from tensorflow.python.keras.models import Model
+
+
+def classifier(latent: Tensor, output_dim: int):
+    x = tf.keras.layers.Dense(units=output_dim ** 2, activation="relu")(latent)
+    x = tf.keras.layers.Dense(units=output_dim, activation="relu")(latent)
+    return x
+
+
+def vdann_decorder(latent: Tensor):
+    x = tf.keras.layers.Dense(units=8 * 5 * 128, activation="relu")(latent)
+    x = tf.keras.layers.Reshape(target_shape=(8, 5, 288))
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=64, kernel_size=3, strides=2, padding="same"
+    )
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=32, kernel_size=3, strides=(4, 3), padding="same"
+    )
+    x = tf.keras.layers.Conv2DTranspose(
+        filters=1, kernel_size=3, strides=1, padding="same"
+    )
+    return x
 
 
 # =========================
@@ -532,8 +557,9 @@ class EDLModelBase(tf.keras.Model):
         y = tf.one_hot(y, depth=self.n_class)
         y = tf.argmax(y, axis=1, output_type=tf.int32)
         y_pred = tf.argmax(y_pred, axis=1, output_type=tf.int32)
-        # loss = self.compiled_loss(y, alpha)  # TODO : これいる？
-        # Update the metrics.
+        loss = self.compiled_loss(
+            y, evidence, regularization_losses=self.losses
+        )
         self.compiled_metrics.update_state(y, y_pred)
         metrics_dict = {m.name: m.result() for m in self.metrics}
         # metrics_dict.update(u_dict)
@@ -613,7 +639,390 @@ class H_EDLModelBase(tf.keras.Model):
         return metrics_dict
 
 
-# 睡眠データのモデルを返す
+class Sampling(tf.keras.layers.Layer):
+    def call(self, model: Model, eps: float = None):
+        # epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        if eps is None:
+            sys.exit(1)
+            # epsilon = tf.random.normal(shape=(batch, dim))
+        return model.decode(eps, apply_sigmoid=True)
+        # return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+
+class VDANN(tf.keras.Model):
+    def __init__(
+        self,
+        inputs: Tensor,
+        latent_dim: int,
+        alpha: float,
+        beta: float,
+        gamma: float,
+        target_dim: int,
+        subject_dim: int,
+        has_inception: bool,
+        has_attention: bool,
+        is_mnist: bool,
+        is_simple_arch: bool,
+    ):
+        super().__init__()
+        self.has_inception = has_inception
+        self.has_attention = has_attention
+        self.inputs = inputs
+        self.target_dim = target_dim
+        self.subject_dim = subject_dim
+        self.latent_dim = latent_dim
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.encoder = self.make_encoder(is_simple_arch=is_simple_arch)
+        self.decoder = self.make_decorder(
+            is_mnist=is_mnist, is_simple_arch=is_simple_arch
+        )
+        self.sbj_classifier = self.make_classifier(target="subjects")
+        self.tar_classifier = self.make_classifier(target="targets")
+        self.sample = Sampling()
+
+    def _conv2d_bn(
+        self,
+        x: Tensor,
+        filters: int,
+        num_row: int,
+        num_col: int,
+        padding: str = "same",
+        strides: Tuple[int, int] = (1, 1),
+        name=None,
+    ):
+        if name is not None:
+            bn_name = name + "_bn"
+            conv_name = name + "_conv"
+        else:
+            bn_name = None
+            conv_name = None
+        x = tf.keras.layers.Conv2D(
+            filters,
+            (num_row, num_col),
+            strides=strides,
+            padding=padding,
+            use_bias=False,
+            name=conv_name,
+        )(x)
+        x = tf.keras.layers.BatchNormalization(scale=False, name=bn_name)(x)
+        x = tf.keras.layers.Activation("relu", name=name)(x)
+        return x
+
+    def make_classifier(self, target: str = ""):
+        inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+        if target == "subjects":
+            latent_dim = self.subject_dim
+        elif target == "targets":
+            latent_dim = self.target_dim
+        else:
+            print("正しいターゲット引数を指定してください")
+            sys.exit(1)
+        outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
+        outputs = tf.keras.layers.Activation("relu")(outputs)
+        outputs = tf.keras.layers.Dropout(0.5)(outputs)
+        outputs = tf.keras.layers.Dense(latent_dim)(outputs)
+        outputs = tf.keras.layers.Activation("relu")(outputs)
+        return Model(inputs=inputs, outputs=outputs)
+
+    # def make_classifier(self, target: str = ""):
+    #     inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+    #     if target == "subjects":
+    #         latent_dim = self.subject_dim
+    #     elif target == "targets":
+    #         latent_dim = self.target_dim
+    #     else:
+    #         print("正しいターゲット引数を指定してください")
+
+    #     outputs = tf.keras.layers.Dense(latent_dim ** 2)(inputs)
+    #     outputs = tf.keras.layers.Activation("relu")(outputs)
+    #     outputs = tf.keras.layers.Dropout(0.2)(outputs)
+    #     outputs = tf.keras.layers.Dense(latent_dim)(outputs)
+    #     outputs = tf.keras.layers.Activation("relu")(outputs)
+    #     return Model(inputs=inputs, outputs=outputs)
+
+    def make_decorder(
+        self,
+        apply_sigmoid: bool = False,
+        is_simple_arch: bool = False,
+        is_mnist: bool = False,
+    ) -> Model:
+        if is_mnist:
+            units_0 = 7 * 7 * 32
+            reshaped = (7, 7, 32)
+            filter_1 = 64
+            kernel_1 = 3
+            strides_1 = 2
+            filter_2 = 32
+            kernel_2 = 3
+            strides_2 = 2
+            filter_3 = 1
+            kernel_3 = 3
+            strides_3 = 1
+        else:
+            units_0 = 8 * 5 * 32
+            reshaped = (8, 5, 32)
+            filter_1 = 64
+            kernel_1 = 3
+            strides_1 = 2
+            filter_2 = 32
+            kernel_2 = 3
+            strides_2 = (4, 3)
+            filter_3 = 1
+            kernel_3 = 3
+            strides_3 = 1
+        if is_simple_arch:
+            inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+            vae_out = tf.keras.layers.Dense(
+                units=units_0, activation=tf.nn.relu
+            )(inputs)
+            vae_out = tf.keras.layers.Reshape(target_shape=reshaped)(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_1,
+                kernel_size=kernel_1,
+                strides=strides_1,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_2,
+                kernel_size=kernel_2,
+                strides=strides_2,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_3,
+                kernel_size=kernel_3,
+                strides=strides_3,
+                padding="same",
+            )(vae_out)
+        # NOTE: 睡眠データに合わせてでコード部分を複雑化予定のため条件分岐
+        else:
+            inputs = tf.keras.Input(shape=(int(self.latent_dim / 2),))
+            vae_out = tf.keras.layers.Dense(
+                units=units_0, activation=tf.nn.relu
+            )(inputs)
+            vae_out = tf.keras.layers.Reshape(target_shape=reshaped)(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_1,
+                kernel_size=kernel_1,
+                strides=strides_1,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_2,
+                kernel_size=kernel_2,
+                strides=strides_2,
+                padding="same",
+                activation="relu",
+            )(vae_out)
+            vae_out = tf.keras.layers.Conv2DTranspose(
+                filters=filter_3,
+                kernel_size=kernel_3,
+                strides=strides_3,
+                padding="same",
+            )(vae_out)
+        if apply_sigmoid:
+            vae_out = tf.sigmoid(vae_out)
+        return Model(inputs=inputs, outputs=vae_out)
+
+    def make_encoder(self, is_simple_arch: bool) -> Model:
+
+        if is_simple_arch:
+            x = tf.keras.layers.Conv2D(
+                filters=32, kernel_size=3, strides=(2, 2), activation="relu"
+            )(self.inputs)
+            x = tf.keras.layers.Conv2D(
+                filters=64, kernel_size=3, strides=(2, 2), activation="relu"
+            )(x)
+            x = tf.keras.layers.Flatten()(x)
+            x = tf.keras.layers.Dense(self.latent_dim)(x)
+        else:
+            x = self._conv2d_bn(
+                self.inputs,
+                32,
+                3,
+                3,
+                strides=(2, 2),
+                padding="same",
+                name="first_layer",
+            )
+            x = self._conv2d_bn(x, 32, 3, 3, padding="same")
+            x = self._conv2d_bn(x, 64, 3, 3)
+            x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+            # 畳み込み開始02
+            x = self._conv2d_bn(x, 80, 1, 1, padding="same")
+            x = self._conv2d_bn(x, 192, 3, 3, padding="same")
+            x = tf.keras.layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+            if self.has_inception:
+                # mixed 1: 35 x 35 x 288
+                branch1x1 = self._conv2d_bn(x, 64, 1, 1)
+                branch5x5 = self._conv2d_bn(x, 48, 1, 1)
+                branch5x5 = self._conv2d_bn(branch5x5, 64, 5, 5)
+                branch3x3dbl = self._conv2d_bn(x, 64, 1, 1)
+                branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+                branch3x3dbl = self._conv2d_bn(branch3x3dbl, 96, 3, 3)
+                branch_pool = tf.keras.layers.AveragePooling2D(
+                    (3, 3), strides=(1, 1), padding="same"
+                )(x)
+                branch_pool = self._conv2d_bn(branch_pool, 64, 1, 1)
+                x = tf.keras.layers.concatenate(
+                    [branch1x1, branch5x5, branch3x3dbl, branch_pool],
+                    axis=-1,
+                    name="mixed1",
+                )  # (13, 13, 288)
+                if self.has_attention:
+                    attention = tf.keras.layers.Conv2D(
+                        1, kernel_size=3, padding="same"
+                    )(
+                        x
+                    )  # (13, 13, 1)
+                    attention = tf.keras.layers.Activation("sigmoid")(
+                        attention
+                    )
+                    x *= attention
+            x = tf.keras.layers.GlobalAveragePooling2D()(x)
+            x = tf.keras.layers.Dense(self.latent_dim)(x)
+        return Model(inputs=self.inputs, outputs=x)
+
+    @tf.function
+    def encode(self, x):
+        mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
+        return mean, logvar
+
+    @tf.function
+    def reparameterize(self, mean, logvar):
+        # NOTE: hard coding
+        eps = tf.random.normal(shape=mean.shape)
+        return eps * tf.exp(logvar * 0.5) + mean
+
+    @tf.function
+    def decode(self, z, apply_sigmoid=False):
+        logits = self.decoder(z)
+        if apply_sigmoid:
+            probs = tf.sigmoid(logits)
+            return probs
+        return logits
+
+    def log_normal_pdf(self, sample, mean, logvar, raxis=1):
+        log2pi = tf.math.log(2.0 * np.pi)
+        return tf.reduce_sum(
+            -0.5
+            * ((sample - mean) ** 2.0 * tf.exp(-logvar) + logvar + log2pi),
+            axis=raxis,
+        )
+
+    @tf.function
+    def compute_loss(self, x: Tensor, y: Tensor):
+        # vae loss
+        mean, logvar = self.encode(x)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z)
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=x_logit, labels=x
+        )
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        logqz_x = self.log_normal_pdf(z, mean, logvar)
+        vae_loss = -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+        # target_loss
+        output = self.tar_classifier(z)
+        target_loss = tf.keras.losses.sparse_categorical_crossentropy(
+            y_true=y, y_pred=output, from_logits=True
+        )
+
+        # subject_loss
+        # output = self.sbj_classifier(z)
+        # subject_loss = tf.keras.losses.sparse_categorical_crossentropy(
+        #     y_true=y_sub, y_pred=output, from_logits=True
+        # )
+
+        return (
+            self.gamma * vae_loss,
+            self.alpha * target_loss,
+            # +self.beta * subject_loss,
+        )
+
+    @tf.function
+    def train_step(self, data, vae_opt, tar_opt):
+        x, y = data
+        with tf.GradientTape(persistent=True) as tape:
+            losses = self.compute_loss(x, y)
+            # vae_loss, tar_loss, sbj_loss = losses
+            (vae_loss, tar_loss) = losses
+            # tmp = [var.name for var in tape.watched_variables()]
+            # mean, logvar = self.encode(x)
+            # mean, logvar = tf.split(
+            #     self.encoder(x), num_or_size_splits=2, axis=1
+            # )
+            # z = self.sample(inputs=(mean, logvar))
+            # eps = tf.random.normal(shape=(mean.shape))
+            # z = eps * tf.exp(logvar * 0.5) + mean
+            # z = self.reparameterize(mean, logvar)
+            # x_logit = self.decode(z)
+            # loss = self.compute_loss(x, x_logit, y_tar, y_sub)
+            # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+            #     logits=x_logit, labels=x
+            # )
+            # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+            # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+            # logqz_x = self.log_normal_pdf(z, mean, logvar)
+            # vae_loss = -(logpx_z + logpz - logqz_x)
+            # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+
+        # パラメータの取得
+        vae_vars = self.encoder.trainable_variables
+        tar_vars = vae_vars.copy()
+        # NOTE: コピーを取った後にデコーダ部分をマージする
+        vae_vars.extend(self.decoder.trainable_variables)
+        tar_vars.extend(self.tar_classifier.trainable_variables)
+
+        # NOTE: lossの中で演算をするとNoneが渡って自動勾配を計算できないので下の書き方は使わない
+        # vae_gradients = tape.gradient(self.gamma * vae_loss, enc_vars)
+        vae_gradients = tape.gradient(vae_loss, vae_vars)
+        tar_gradients = tape.gradient(tar_loss, tar_vars)
+        vae_opt.apply_gradients(zip(vae_gradients, vae_vars))
+        tar_opt.apply_gradients(zip(tar_gradients, tar_vars))
+        # self.optimizer.apply_gradients(zip(tar_gradients, tar_vars))
+        # accuracyのメトリクスにはy_predを入れる
+        # metrics.update_state(y_tar, tar_output)
+        # loss: edlのロス，accuracy: edlの出力が合っているか
+        # return {m.name: m.result() for m in self.metrics}
+        return (vae_loss, tar_loss)
+
+    @tf.function
+    def test_step(self, data):
+        x, y = data
+        losses = self.compute_loss(x, y)
+        # vae_loss, tar_loss, sbj_loss = losses
+        (vae_loss, tar_loss) = losses
+        # mean, logvar = self.encode(x)
+        # z = self.sample(inputs=(mean, logvar))
+        # x_logit = self.decode(z)
+        # cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
+        #     logits=x_logit, labels=x
+        # )
+        # logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        # logpz = self.log_normal_pdf(z, 0.0, 0.0)
+        # logqz_x = self.log_normal_pdf(z, mean, logvar)
+        # vae_loss = -(logpx_z + logpz - logqz_x)
+        # vae_loss = self.gamma * tf.reduce_mean(vae_loss)
+        return (vae_loss, tar_loss)
+
+    @tf.function
+    def call(self, inputs):
+        mean, logvar = self.encode(inputs)
+        z = self.reparameterize(mean, logvar)
+        x_logit = self.decode(z, apply_sigmoid=True)
+        # loss = self.compute_loss(inputs, y_tar, y_sub)
+        # loss = self.compute_loss(inputs)
+        # self.add_loss(loss)
+        return x_logit
+
 
 if __name__ == "__main__":
     import os

@@ -1,13 +1,37 @@
 import glob
 import os
+import pickle
 import sys
+from typing import List
 
 from data_analysis.py_color import PyColor
+from nn.model_id import ModelId
 from pre_process.pre_processed_id import PreProcessedId
+from pre_process.record import Record
+from pre_process.subjects_info import SubjectsInfo
+from pre_process.subjects_list import SubjectsList
 
 
 class MyEnv:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        is_normal,
+        is_previous,
+        data_type,
+        fit_pos,
+        stride,
+        kernel_size,
+        model_type: str = "",
+        cleansing_type: str = "",
+    ) -> None:
+        self.is_normal = is_normal
+        self.is_previous = is_previous
+        self.data_type = data_type
+        self.fit_pos = fit_pos
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.model_type = model_type
+        self.cleansing_type = cleansing_type
         self.project_dir: str = os.environ["sleep"]
         self.figure_dir: str = os.path.join(self.project_dir, "figures")
         self.video_dir: str = os.path.join(self.project_dir, "videos")
@@ -20,7 +44,49 @@ class MyEnv:
         )
         self.raw_dir: str = os.path.join(self.data_dir, "raw_data")
         self.ppi = PreProcessedId()
-        self.ppi.load()
+        self.mi = ModelId()
+        self.si = SubjectsInfo()
+        self.sl = SubjectsList()
+        # NOTE: SubjectsList は特別な変数を持つのでloadを明示的に呼ぶ
+        self.sl.load()
+        self.set_jsonkey()
+        self.name_list = self.get_namelist()
+
+    def get_namelist(self) -> List[str]:
+        # 一覧を返す
+        name_list = self.sl.set_name_list(
+            is_previous=self.is_previous, is_normal=self.is_normal
+        )
+        return name_list
+
+    # モデルの保存先を返すメソッド
+    def get_tf_board_saved_path(self, p_dir: str, c_dir: str, model_id: str):
+        return os.path.join(self.project_dir, p_dir, c_dir, model_id)
+
+    # モデルの保存先を返すメソッド
+    def get_model_saved_path(self, c_dir: str, model_id: str):
+        return os.path.join(self.models_dir, c_dir, model_id)
+
+    # set json_keys as its member variables
+    def set_jsonkey(self):
+        self.ppi.set_key(
+            is_normal=self.is_normal,
+            is_previous=self.is_previous,
+            data_type=self.data_type,
+            fit_pos=self.fit_pos,
+            stride=self.stride,
+            kernel=self.kernel_size,
+        )
+        self.mi.set_key(
+            is_normal=self.is_normal,
+            is_previous=self.is_previous,
+            data_type=self.data_type,
+            fit_pos=self.fit_pos,
+            stride=self.stride,
+            kernel=self.kernel_size,
+            model_type=self.model_type,
+            cleansing_type=self.cleansing_type,
+        )
 
     # 生データの被験者までのフォルダパスを指定する
     def set_raw_folder_path(self, is_normal: bool, is_previous: bool) -> list:
@@ -40,41 +106,43 @@ class MyEnv:
             sys.exit(2)
         return glob.glob(root_abs)
 
+    def get_ppi(self):
+        return self.ppi.get_dateid()
+
     # 前処理後のファイルを指定して読み込む
     def set_processed_filepath(
         self,
-        is_previous: bool,
         data_type: str,
         subject: str,
-        stride: int = 0,
         fit_pos: str = "",
-        kernel_size: int = 0,
     ) -> str:
-        # TODO: sasデータ未対応
-        if is_previous:
-            date_id = self.ppi.normal_prev_datasets[data_type][fit_pos][
-                f"stride_{stride}"
-            ][f"kernel_{kernel_size}"]
-            path = os.path.join(
-                self.pre_processed_dir,
-                data_type,
-                fit_pos,
-                f"{subject}_{date_id}.sav",
-            )
-        else:
-            date_id = self.ppi.normal_follow_datasets[data_type][fit_pos][
-                f"stride_{stride}"
-            ][f"kernel_{kernel_size}"]
-            path = os.path.join(
-                self.pre_processed_dir,
-                data_type,
-                fit_pos,
-                f"{subject}_{date_id}.sav",
-            )
+        date_id = self.get_ppi()
+        path = os.path.join(
+            self.pre_processed_dir,
+            data_type,
+            fit_pos,
+            f"{subject}_{date_id}.sav",
+        )
         if not os.path.exists(path):
             print(PyColor.RED_FLASH, f"{path}が存在しません", PyColor.END)
             sys.exit(3)
         return path
+
+    def dump_with_pickle(
+        self,
+        data: List[Record],
+        file_name: str,
+        data_type: str,
+        fit_pos: str,
+        date_id: str,
+    ):
+
+        file_path = os.path.join(self.pre_processed_dir, data_type, fit_pos)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        file_path = os.path.join(file_path, file_name + "_" + date_id + ".sav")
+        print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
+        pickle.dump(data, open(file_path, "wb"))
 
 
 if __name__ == "__main__":

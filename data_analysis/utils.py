@@ -6,11 +6,14 @@ import sys
 from collections import Counter
 from typing import Any, Dict, List
 
+import imageio
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 import numpy as np
 import pandas as pd
+import PIL
+import plotly.express as px
 import seaborn as sns
 import tensorflow as tf
 
@@ -28,26 +31,44 @@ from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
+# import tensorflow_docs.vis.embed as embed
 import wandb
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
-from pre_process.file_reader import FileReader
-from pre_process.load_sleep_data import LoadSleepData
 from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
 
 # 便利な関数をまとめたもの
 class Utils:
-    def __init__(self, ss_list=None, catch_nrem2: bool = False) -> None:
+    def __init__(
+        self,
+        is_normal,
+        is_previous,
+        data_type,
+        fit_pos,
+        stride,
+        kernel_size,
+        model_type,
+        cleansing_type,
+        ss_list=None,
+        catch_nrem2: bool = False,
+    ) -> None:
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.fr = FileReader()
-        self.env = self.fr.my_env
-        # self.name_list = self.fr.sl.name_list
-        # self.name_dict = self.fr.sl.name_dict
+        self.env = MyEnv(
+            is_normal=is_normal,
+            is_previous=is_previous,
+            data_type=data_type,
+            fit_pos=fit_pos,
+            stride=stride,
+            kernel_size=kernel_size,
+            model_type=model_type,
+            cleansing_type=cleansing_type,
+        )
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
+        self.my_color = MyColor()
 
     # tensorboard のプロジェクタの作成
     def make_tf_projector(
@@ -177,19 +198,19 @@ class Utils:
                 unc_threthold=unc_threthold,
                 evidence_positive=evidence_positive,
             )
+            # 全時間のスペクトログラムをログに送る
+            # self.make_time_series_prediction(y=y, evidence=evidence)
         else:
             print("全てのグラフを作成する引数'all'を指定してください")
 
-    def dump_with_pickle(self, data, file_name, data_type, fit_pos):
-
-        file_path = os.path.join(
-            self.env.pre_processed_dir, data_type, fit_pos
-        )
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        file_path = os.path.join(file_path, file_name + "_" + self.id + ".sav")
-        print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
-        pickle.dump(data, open(file_path, "wb"))
+    def make_time_series_prediction(
+        self, y: ndarray, evidence: tf.Tensor
+    ) -> None:
+        _, _, _, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot(y)
+        ax.plot(y_pred)
 
     def showSpectrogram(self, *datas, num=4, path=False):
         fig = plt.figure()
@@ -245,14 +266,65 @@ class Utils:
         return returned_dict
 
     # グラフを並べて表示する
-    def plot_images(self, images_arr):
-        fig, axes = plt.subplots(1, 5, figsize=(20, 20))
+    def plot_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        fig, axes = plt.subplots(5, num_plot, figsize=(16, 16))
         axes = axes.flatten()
-        for img, ax in zip(images_arr, axes):
+        for img, title, ax in zip(images_arr, title_arr, axes):
             ax.imshow(img)
             ax.axis("off")
+            # ax.set_title(f"ss:{title}")
         plt.tight_layout()
         plt.show()
+
+    # グラフを並べて表示する
+    def plot_ss_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        row_num = 5
+        fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        for row, images in enumerate(ss_array):
+            for col in range(num_plot):
+                try:
+                    axes[row, col].imshow(images[col])
+
+                    axes[row, col].axis("off")
+                except:
+                    continue
+        plt.tight_layout()
+        plt.show()
+
+    # グラフをplotlyで表示
+    def plotly_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        fig = px.imshow(wake_arr[0].reshape(-1, 30))
+        fig.show()
+        # row_num = 5
+        # fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        # ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        # for row, images in enumerate(ss_array):
+        #     for col in range(num_plot):
+        #         try:
+        #             axes[row, col].imshow(images[col])
+
+        #             axes[row, col].axis("off")
+        #         except:
+        #             continue
+        # plt.tight_layout()
+        # plt.show()
 
     # wandbに画像のログを送る
     def save_image2Wandb(
@@ -265,6 +337,8 @@ class Utils:
         test_label=None,
         date_id=None,
         norm_cm: bool = False,
+        is_specific_path: bool = False,
+        specific_name: str = "",
     ):
         if norm_cm:
             sns.heatmap(image, annot=True, cmap="Blues", fmt="f")
@@ -272,17 +346,21 @@ class Utils:
             sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
         plt.xlabel("pred")
         plt.ylabel("actual")
-        # 保存するフォルダ名を取得
-        path = os.path.join(
-            self.env.figure_dir, dir2, test_label, train_or_test
-        )
-        # パスを通す
-        self.check_path_auto(path=path)
-        if not os.path.exists(path):
-            print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
-            os.makedirs(path)
-        # ファイル名を指定して保存
-        plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        if not is_specific_path:
+            # 保存するフォルダ名を取得
+            path = os.path.join(
+                self.env.figure_dir, dir2, test_label, train_or_test
+            )
+            # パスを通す
+            if not os.path.exists(path):
+                print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
+                os.makedirs(path)
+            # ファイル名を指定して保存
+            plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        else:
+            plt.savefig(
+                os.path.join(self.env.tmp_dir, specific_name, "cm.png")
+            )
 
         if to_wandb:
             im_read = plt.imread(
@@ -435,7 +513,28 @@ class Utils:
         else:
             cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
-        df = pd.DataFrame(cm)
+        if n_class == 5:
+            labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+            # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
+            if (
+                len(Counter(y_true)) == 4
+                and len(Counter(y_pred)) == 4
+                and min(y_true) == 1
+                and min(y_pred) == 1
+            ):
+                # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
+                labels.pop(0)
+
+        elif n_class == 4:
+            labels = ["nr34", "nr12", "rem", "wake"]
+        elif n_class == 3:
+            labels = ["nrem", "rem", "wake"]
+        elif n_class == 2:
+            labels = ["non-target", "target"]
+        try:
+            df = pd.DataFrame(cm, columns=labels, index=labels)
+        except:
+            df = pd.DataFrame(cm)
         return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas=False):
@@ -468,10 +567,10 @@ class Utils:
         file_name: str,
         train_or_test: str,
         test_label: str,
+        colors: list,
         date_id: str = "",
         hist_label: list = None,
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
-        color_obj: MyColor = MyColor(),
     ) -> None:
         plt.style.use("default")
         sns.set()
@@ -480,12 +579,7 @@ class Utils:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         target_len = len(target_array)
-        try:
-            assert len(color_obj.__dict__) > target_len
-        except:
-            print("your color is smaller than target array")
-            sys.exit(1)
-        colors = list(color_obj.__dict__.values())[11 : 11 + target_len]
+        ss_list = ["nrem1", "nrem2", "nrem34", "rem", "wake"]
         ax.hist(
             target_array, bins=10, label=hist_label, stacked=True, color=colors
         )
@@ -525,7 +619,9 @@ class Utils:
             date_id=date_id,
             hist_label=hist_label,
             axis_label=axis_label,
-            color_obj=color_obj,
+            colors=[
+                self.my_color.color[key] for key in ["TRUE_BLUE", "FALSE_RED"]
+            ],
         )
 
     # NOTE: 5クラス分類用の設定になっている
@@ -567,8 +663,7 @@ class Utils:
         n_class: int = 5,
         norm_cm: bool = False,
     ):
-        # TODO: calc_enn_outputで計算するようにまとめる
-        evidence, _, unc, y_pred = self.calc_enn_output_from_evidence(
+        evidence, alpha, unc, y_pred = self.calc_enn_output_from_evidence(
             evidence=evidence
         )
         # 不確かさによる閾値に応じて混合マトリクスを作成する
@@ -742,6 +837,7 @@ class Utils:
                 test_label=test_label,
                 date_id=date_id,
                 hist_label=hist_label,
+                colors=[self.my_color.color[key] for key in hist_label],
             )
 
         file_path = os.path.join(
@@ -1232,6 +1328,130 @@ class Utils:
         )
         acc = sum(y_pred == y.numpy()) / len(y)
         wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
+
+    def generate_and_save_images(
+        self,
+        model: tf.keras.Model,
+        epoch: int,
+        test_sample: tf.Tensor,
+        filename: str = "",
+    ):
+        mean, logvar = model.encode(test_sample)
+        z = model.reparameterize(mean, logvar)
+        predictions = model.sample(model, z)
+        fig = plt.figure(figsize=(4, 4))
+
+        for i in range(predictions.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(predictions[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        # tight_layout minimizes the overlap between 2 sub-plots
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+
+        plt.savefig(filepath)
+        plt.close()
+
+    def show_true_image(self, x: tf.Tensor, filename: str = ""):
+        fig = plt.figure(figsize=(4, 4))
+        for i in range(x.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(x[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"original_image_of_mine")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        plt.show()
+
+    def display_image(self, epoch_no: int, filename: str = ""):
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch_no:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        # plt.show()
+        return PIL.Image.open(filepath)
+
+    def create_gif(self, outputfile: str = "vdann.gif") -> None:
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        outputfile = os.path.join(file_dir, outputfile)
+        with imageio.get_writer(outputfile, mode="I") as writer:
+            filenames = glob.glob(os.path.join(file_dir, "image*.png"))
+            filenames = sorted(filenames)
+            for filename in filenames:
+                image = imageio.imread(os.path.join(file_dir, filename))
+                writer.append_data(image)
+            image = imageio.imread(filename)
+            writer.append_data(image)
+        embed.embed_file(outputfile)
+
+    def drow_latent_space(
+        self,
+        model: tf.keras.Model,
+        x: tf.Tensor,
+        y: tf.Tensor,
+        filename: str = "",
+    ):
+        data = x[::10], y[::10]
+        mean, logvar = model.encode(data[0])
+        z = model.reparameterize(mean, logvar)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        im = ax.scatter(z[:, 0], z[:, 1], c=data[1])
+        cbar = fig.colorbar(im)
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"vae_latent_space.png")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+
+    def compare_ss(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        test_name: str,
+    ) -> None:
+        filepath = os.path.join(self.env.tmp_dir, test_name, "ss.png")
+        fig = plt.figure(figsize=(8, 6))
+        ax1 = fig.add_subplot(311)
+        ax1.plot(y_true, label="y_true")
+        ax1.legend()
+        ax1.set_title(test_name)
+        ax2 = fig.add_subplot(312)
+        ax2.plot(y_pred, label="y_pred")
+        ax2.legend()
+        ax3 = fig.add_subplot(313)
+        ax3.plot(y_true, label="y_true", alpha=0.4)
+        ax3.plot(y_pred, label="y_pred", alpha=0.4)
+        ax3.legend()
+        if not os.path.exists(os.path.split(filepath)[0]):
+            os.makedirs(os.path.split(filepath)[0])
+        plt.savefig(filepath)
+        plt.close()
+        return
+
+    def calc_metrics(self, cm: pd.DataFrame):
+        pass
 
 
 if __name__ == "__main__":
