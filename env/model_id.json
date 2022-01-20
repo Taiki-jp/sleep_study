@@ -7,71 +7,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -487,7 +423,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -616,46 +552,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -665,71 +561,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1145,7 +977,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1274,46 +1106,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1323,71 +1115,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1803,7 +1531,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1932,46 +1660,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -1983,71 +1671,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -2463,7 +2087,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -2592,46 +2216,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -2641,71 +2225,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3121,7 +2641,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3250,46 +2770,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3299,71 +2779,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3779,7 +3195,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3908,46 +3324,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -3967,71 +3343,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -4447,7 +3759,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -4576,46 +3888,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -4625,71 +3897,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5105,7 +4313,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5234,46 +4442,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5283,71 +4451,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5763,7 +4867,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5892,46 +4996,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -5943,71 +5007,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -6423,7 +5423,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -6552,46 +5552,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -6601,71 +5561,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7081,7 +5977,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7210,46 +6106,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7259,71 +6115,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7739,7 +6531,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7868,46 +6660,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -7931,71 +6683,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -8411,7 +7099,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -8540,46 +7228,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -8589,71 +7237,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9069,7 +7653,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9198,46 +7782,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9247,71 +7791,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9727,7 +8207,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9856,46 +8336,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -9907,71 +8347,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -10387,7 +8763,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -10516,46 +8892,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -10565,71 +8901,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11045,7 +9317,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11174,46 +9446,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11223,71 +9455,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11703,7 +9871,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11832,46 +10000,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -11891,71 +10019,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -12371,7 +10435,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -12500,46 +10564,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -12549,71 +10573,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13029,7 +10989,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13158,46 +11118,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13207,71 +11127,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13687,7 +11543,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13816,46 +11672,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -13867,71 +11683,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -14347,7 +12099,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -14476,46 +12228,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -14525,71 +12237,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15005,7 +12653,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15134,46 +12782,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15183,71 +12791,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15663,7 +13207,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15792,46 +13336,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -15855,71 +13359,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -16335,7 +13775,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -16464,46 +13904,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -16513,71 +13913,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -16993,7 +14329,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -17122,46 +14458,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -17171,71 +14467,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -17651,7 +14883,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -17780,46 +15012,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -17831,71 +15023,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -18311,7 +15439,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -18440,46 +15568,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -18489,71 +15577,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -18969,7 +15993,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -19098,46 +16122,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -19147,71 +16131,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -19627,7 +16547,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -19756,46 +16676,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -19815,71 +16695,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -20295,7 +17111,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -20424,46 +17240,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -20473,71 +17249,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -20953,7 +17665,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -21082,46 +17794,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -21131,71 +17803,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -21611,7 +18219,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -21740,46 +18348,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -21791,71 +18359,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -22271,7 +18775,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -22400,46 +18904,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -22449,71 +18913,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -22929,7 +19329,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -23058,46 +19458,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -23107,71 +19467,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -23587,7 +19883,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -23716,46 +20012,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -23779,71 +20035,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -24259,7 +20451,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -24388,46 +20580,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -24437,71 +20589,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -24917,7 +21005,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -25046,46 +21134,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -25095,71 +21143,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -25575,7 +21559,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -25704,46 +21688,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -25755,71 +21699,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -26235,7 +22115,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -26364,46 +22244,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -26413,71 +22253,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -26893,7 +22669,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -27022,46 +22798,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -27071,71 +22807,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -27551,7 +23223,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -27680,46 +23352,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -27739,71 +23371,7 @@
             "stride_16": {
               "kernel_128": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -28219,7 +23787,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -28348,46 +23916,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -28397,71 +23925,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -28877,7 +24341,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -29006,46 +24470,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -29055,71 +24479,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -29535,7 +24895,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -29664,46 +25024,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -29715,71 +25035,7 @@
               },
               "kernel_256": {
                 "no_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -30195,7 +25451,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -30324,46 +25580,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -30373,71 +25589,7 @@
                   }
                 },
                 "positive_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -30853,7 +26005,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -30982,46 +26134,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -31031,71 +26143,7 @@
                   }
                 },
                 "negative_cleansing": {
-                  "H_Li": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Murakami": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Yamamoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hayashi": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kumazawa_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Takadama": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Hiromoto": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "H_Kashiwazaki": {
+                  "140703_Li": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -31511,7 +26559,7 @@
                     "nr34": [],
                     "5stage": []
                   },
-                  "190000_takadama_aki": {
+                  "190910_takadama_aki": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
@@ -31640,46 +26688,6 @@
                     "5stage": []
                   },
                   "20210204_kenka": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141010_Kashiwazaki_F": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141022_Ishii": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141212_Saito": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "141215_Tomura": {
-                    "wake": [],
-                    "rem": [],
-                    "nr1": [],
-                    "nr2": [],
-                    "nr34": [],
-                    "5stage": []
-                  },
-                  "151125_Umenai": {
                     "wake": [],
                     "rem": [],
                     "nr1": [],
