@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 from typing import List
 
 import tensorflow as tf
@@ -31,16 +32,23 @@ def main(
     unc_threthold: float = 0,
     saving_date_id: str = "",
     log_all_in_one: bool = False,
+    is_under_4hz: bool = False,
+    pse_data: bool = False,
 ):
 
     # データセットの作成
-    (_, _), (x_test, y_test) = pre_process.make_dataset(
+    (
+        (x_train, y_train),
+        (x_val, y_val),
+        (x_test, y_test),
+    ) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
-        pse_data=False,
+        pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
+        is_under_4hz=is_under_4hz,
     )
 
     # config の追加
@@ -68,7 +76,7 @@ def main(
     # データがキャッチできていない場合はreturn
     if model is None:
         print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
-        return
+        sys.exit(1)
     # ポジティブクレンジングを行ったモデルを読み込む
     positive_model = load_model(
         loaded_name=test_name,
