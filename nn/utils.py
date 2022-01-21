@@ -34,11 +34,12 @@ def load_bin_model(
     # モデルの読み込みメソッド
     def _load_model(ss):
         filepath = os.path.join(
-            os.environ["sleep"], "models", loaded_name, ss_id[ss]
+            os.environ["sleep"], "models", loaded_name, ss, ss_id[ss]
         )
         if not os.path.exists(filepath):
             print(PyColor.RED_FLASH, f"{filepath}は存在しません", PyColor.END)
             sys.exit(1)
+        print(PyColor.GREEN_FLASH, f"{filepath}を読み込みます", PyColor.END)
         model = tf.keras.models.load_model(
             filepath, custom_objects={"EDLLoss": EDLLoss(K=2, annealing=0.1)}
         )

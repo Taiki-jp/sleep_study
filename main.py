@@ -15,12 +15,12 @@ from tensorflow.keras.metrics import (
     TruePositives,
 )
 
-import wandb
+# import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.wandb_classification_callback import WandbClassificationCallback
+# from nn.wandb_classification_callback import WandbClassificationCallback
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
@@ -35,7 +35,7 @@ def main(
     has_dropout: bool,
     log_tf_projector: bool,
     name: str,
-    project: str,
+    # project: str,
     train: List[Record],
     test: List[Record],
     pre_process: PreProcess,
@@ -52,7 +52,7 @@ def main(
     data_type: str = None,
     sample_size: int = 0,
     is_enn: bool = True,
-    wandb_config: Dict[str, Any] = dict(),
+    # wandb_config: Dict[str, Any] = dict(),
     kernel_size: int = 0,
     is_mul_layer: bool = False,
     utils: Utils = None,
@@ -98,16 +98,16 @@ def main(
         "train nr2 before replaced": ss_train_dict[1],
         "train nr34 before replaced": ss_train_dict[0],
     }
-    wandb_config.update(added_config)
+    # wandb_config.update(added_config)
     # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
+    # wandb.init(
+    #     name=name,
+    #     project=project,
+    #     tags=my_tags,
+    #     config=wandb_config,
+    #     sync_tensorboard=True,
+    #     dir=pre_process.my_env.project_dir,
+    # )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
@@ -203,35 +203,35 @@ def main(
         epochs=epochs,
         callbacks=[
             # tf_callback,
-            WandbClassificationCallback(
-                validation_data=(x_val, y_val[0]),
-                # validation_data=(x_test, y_test[0]),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"]
-                if n_class == 5
-                else ["non_target", "target"],
-            ),
+            # WandbClassificationCallback(
+            #     validation_data=(x_val, y_val[0]),
+            #     # validation_data=(x_test, y_test[0]),
+            #     log_confusion_matrix=True,
+            #     labels=["nr34", "nr2", "nr1", "rem", "wake"]
+            #     if n_class == 5
+            #     else ["non_target", "target"],
+            # ),
             cp_callback,
         ],
         verbose=2,
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_val)
-    tuple_y = (y_train[0], y_val[0])
-    for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = model.predict(_x)
-        utils.make_graphs(
-            y=_y,
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=date_id,
-            is_each_unc=False,
-            n_class=n_class,
-            norm_cm=True,
-            is_joinplot=False,
-        )
+    # tuple_x = (x_train, x_val)
+    # tuple_y = (y_train[0], y_val[0])
+    # for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
+    #     evidence = model.predict(_x)
+    #     utils.make_graphs(
+    #         y=_y,
+    #         evidence=evidence,
+    #         train_or_test=train_or_test,
+    #         graph_person_id=test_name,
+    #         calling_graph="all",
+    #         graph_date_id=date_id,
+    #         is_each_unc=False,
+    #         n_class=n_class,
+    #         norm_cm=True,
+    #         is_joinplot=False,
+    #     )
     # # tensorboardのログ
     # if log_tf_projector:
     #     utils.make_tf_projector(
@@ -244,7 +244,7 @@ def main(
     #         model=model,
     #     )
 
-    wandb.finish()
+    # wandb.finish()
 
 
 if __name__ == "__main__":
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "bin_enn"
+    # WANDB_PROJECT = "test" if TEST_RUN else "bin_enn"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -348,28 +348,28 @@ if __name__ == "__main__":
                 # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
                 f"under_4hz:{IS_UNDER_4HZ}",
             ]
-            wandb_config = {
-                "test name": test_name,
-                "date id": date_id,
-                "sample_size": SAMPLE_SIZE,
-                "epochs": EPOCHS,
-                "kernel": KERNEL_SIZE,
-                "stride": STRIDE,
-                "fit_pos": FIT_POS,
-                "batch_size": BATCH_SIZE,
-                "n_class": N_CLASS,
-                "has_nrem2_bias": HAS_NREM2_BIAS,
-                "has_rem_bias": HAS_REM_BIAS,
-                "model_type": ENN_TAG,
-                "data_type": DATA_TYPE,
-                "under_4hz": IS_UNDER_4HZ,
-            }
+            # wandb_config = {
+            #     "test name": test_name,
+            #     "date id": date_id,
+            #     "sample_size": SAMPLE_SIZE,
+            #     "epochs": EPOCHS,
+            #     "kernel": KERNEL_SIZE,
+            #     "stride": STRIDE,
+            #     "fit_pos": FIT_POS,
+            #     "batch_size": BATCH_SIZE,
+            #     "n_class": N_CLASS,
+            #     "has_nrem2_bias": HAS_NREM2_BIAS,
+            #     "has_rem_bias": HAS_REM_BIAS,
+            #     "model_type": ENN_TAG,
+            #     "data_type": DATA_TYPE,
+            #     "under_4hz": IS_UNDER_4HZ,
+            # }
             main(
                 test_run=TEST_RUN,
                 has_dropout=True,
                 log_tf_projector=True,
                 name=test_name,
-                project=WANDB_PROJECT,
+                # project=WANDB_PROJECT,
                 pre_process=pre_process,
                 train=train,
                 test=test,

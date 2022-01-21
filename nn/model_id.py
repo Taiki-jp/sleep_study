@@ -23,26 +23,27 @@ class ModelId(JsonBase):
         ][self.data_type][self.fit_pos][self.stride][self.kernel]
 
     # 2クラス分類時の形式用のjson読み込みメソッド
-    def make_model_id_list4bin_format(self, *args) -> Any:
-        ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
-        mapper = lambda ss: self.json_dict[self.hostkey][self.subject_type][
-            self.model_type
-        ][self.data_type][self.fit_pos][self.stride][self.kernel][self.cleansing_type][ss]
+    def make_model_id_list4bin_format(self) -> Any:
+        # ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
+        # mapper = lambda ss: self.json_dict[self.hostkey][self.subject_type][
+        #     self.model_type
+        # ][self.data_type][self.fit_pos][self.stride][self.kernel][self.cleansing_type]
 
-        nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
-            mapper, ss_list
-        )
-        mapped = map(
-            lambda nr1, nr2, nr3, rem, wake: dict(
-                nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
-            ),
-            nr1_list,
-            nr2_list,
-            nr3_list,
-            rem_list,
-            wake_list,
-        )
-        return list(mapped)
+        # nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
+        #     mapper, ss_list
+        # )
+        # mapped = map(
+        #     lambda nr1, nr2, nr3, rem, wake: dict(
+        #         nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
+        #     ),
+        #     nr1_list,
+        #     nr2_list,
+        #     nr3_list,
+        #     rem_list,
+        #     wake_list,
+        # )
+        # return list(mapped)
+        return self.json_dict[self.hostkey][self.subject_type][self.model_type][self.data_type][self.fit_pos][self.stride][self.kernel][self.cleansing_type]
 
     def set_key(
         self,

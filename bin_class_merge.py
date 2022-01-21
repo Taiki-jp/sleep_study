@@ -13,9 +13,11 @@ from data_analysis.utils import Utils
 from nn.utils import load_bin_model, separate_unc_data
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
+from collections import Counter
 
 
 def main(
+    is_enn: bool,
     pse_data: bool,
     target_ss: str,
     is_under_4hz: bool,
@@ -31,14 +33,13 @@ def main(
     sample_size: int = 0,
     batch_size: int = 0,
     unc_threthold: float = 0,
-    saving_date_id: str = "",
     log_all_in_one: bool = False,
 ):
 
     # データセットの作成
     (
-        (x_train, y_train),
-        (x_val, y_val),
+        (_),
+        (_),
         (x_test, y_test),
     ) = pre_process.make_dataset(
         train=train,
@@ -56,12 +57,14 @@ def main(
 
     # データクレンジングを行うベースとなるモデルを読み込む
     model = load_bin_model(
-        loaded_name=test_name, verbose=0, is_all=False, ss_id=date_id
+        loaded_name=test_name, verbose=0, is_all=True, ss_id=date_id
     )
+    print(model[0].summary())
+    return
     # モデルが一つでもない場合はreturn
     if any(model) is None:
         print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
-        return
+        sys.exit(1)
 
     # 5つのモデルでevidenceを出力
     evd_list = list()
@@ -69,22 +72,35 @@ def main(
     unc_list = list()
     y_pred_list = list()
     for _model in model:
-        _evd = _model.predict(x_test, batch_size=batch_size)
-        evd_list.append(_evd)
-        _alp, _, _unc, _y_pred = utils.calc_enn_output_from_evidence(
-            evidence=_evd
-        )
-        alp_list.append(_alp)
-        unc_list.append(_unc)
-        y_pred_list.append(_y_pred)
+        # ennの時はevidenceから計算する
+        if is_enn:
+            _evd = _model.predict(x_test, batch_size=batch_size)
+            evd_list.append(_evd)
+            _alp, _, _unc, _y_pred = utils.calc_enn_output_from_evidence(
+                evidence=_evd
+            )
+            alp_list.append(_alp)
+            unc_list.append(_unc)
+            y_pred_list.append(_y_pred)
+        # dnnの時は直接確率を計算する
+        else:
+            y_pred = _model.predict(x_test, batch_size = batch_size)
+            y_pred_list.append(y_pred)
 
-    # y_test, y_pred, uncの順に結合する
-    y_pred_list.extend(unc_list)
-    y_pred_list.append(list(y_test))
+    if is_enn:
+        # y_test, y_pred, uncの順に結合する
+        y_pred_list.extend(unc_list)
+    y_pred_list.append(list(y_test[0]))
+    # 時刻を取り出す
+    time_list = [__time.time for __time in test]
+    # 先頭に時刻を挿入
+    y_pred_list.insert(0, time_list)
     # 行列方向を入れ替える
-    output_df = pd.DataFrame(y_pred_list).T
-    # csv出力
-    # test_nameのNone check
+    if is_enn:
+        output_df = pd.DataFrame(y_pred_list, index=["time", "nr1_pred", "nr2_pred", "nr34_pred", "rem_pred", "wake_pred", "nr1_unc", "nr2_unc", "nr34_unc", "rem_unc", "wake_unc", "y_true"]).T
+    else:
+        output_df = pd.DataFrame(y_pred_list, index=["time", "nr1_pred", "nr2_pred", "nr34_pred", "rem_pred", "wake_pred", "y_true"]).T
+
     try:
         assert test_name is not None
     except AssertionError("testname is none"):
@@ -176,7 +192,7 @@ if __name__ == "__main__":
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     IS_PREVIOUS = False
-    IS_ENN=True
+    IS_ENN=False
     PSE_DATA=False
     ENN_TAG = "enn" if IS_ENN else "dnn"
     CLEANSING_TYPE = "no_cleansing"
@@ -203,22 +219,18 @@ if __name__ == "__main__":
 
     # 読み込むモデルの日付リストを返す
     MI = pre_process.my_env.mi
+    # ここでは69名全員が呼ばれるが，後のpreprocess.namelistで被験者が絞られるので大丈夫
     model_date_list = MI.make_model_id_list4bin_format()
 
     # モデルのidを記録するためのリスト
     date_id_saving_list: List[str] = list()
 
-    for test_id, (test_name, date_id) in enumerate(
-        zip(pre_process.name_list, model_date_list)
-    ):
+    for test_id, test_name in enumerate(pre_process.name_list):
+        date_id = model_date_list[test_name]
         # 2クラス分類の時はこれで作ってしまっているのでこれに合わせるしかない
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )
-
-        # 保存用の時間id
-        saving_date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        # date_id_saving_list.append(saving_date_id)
 
         # tagの設定
         my_tags = [
@@ -226,6 +238,7 @@ if __name__ == "__main__":
         ]
         # FIXME: name をコード名にする
         main(
+            is_enn = IS_ENN,
             name=f"{test_name}",
             train=train,
             test=test,
@@ -236,7 +249,6 @@ if __name__ == "__main__":
             n_class=N_CLASS,
             batch_size=BATCH_SIZE,
             unc_threthold=UNC_THRETHOLD,
-            saving_date_id=saving_date_id,
             log_all_in_one=True,
             sample_size=SAMPLE_SIZE,  # これがないとtrainの分割のところでデータがなくてエラーが起きてしまう
             utils=Utils(
