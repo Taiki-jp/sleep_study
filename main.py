@@ -273,9 +273,9 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     EPOCHS = 10
-    HAS_ATTENTION = True
+    HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
@@ -363,6 +363,7 @@ if __name__ == "__main__":
                 f"rem_bias:{HAS_REM_BIAS}",
                 # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
                 f"under_4hz:{IS_UNDER_4HZ}",
+                target_ss,
             ]
             wandb_config = {
                 "test name": test_name,
