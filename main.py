@@ -327,7 +327,8 @@ if __name__ == "__main__":
         pse_data=PSE_DATA,
     )
 
-    for test_id, test_name in enumerate(pre_process.name_list):
+    start = 0
+    for test_id, test_name in zip(range(start, len(pre_process.name_list)), pre_process.name_list[start:]):
         # モデルのidを記録するためのリスト
         for target_ss in TARGET_SS:
             date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
