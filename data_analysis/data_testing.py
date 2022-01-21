@@ -6,6 +6,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 import tensorflow as tf
+from pyexpat import model
 
 import wandb
 from data_analysis.py_color import PyColor
@@ -127,19 +128,7 @@ def main(
         evidence
     )
     # 一致率のログ
-    acc = utils.calc_acc_from_pred(
-        y_true=y_test[0], y_pred=y_pred, log_label="test accuracy"
-    )
-    # 混合行列・不確かさ・ヒストグラムの作成
-    utils.make_graphs(
-        y=y_test[0],
-        evidence=evidence,
-        train_or_test="test",
-        graph_person_id=test_name,
-        calling_graph="all",
-        graph_date_id=date_id,
-        is_each_unc=True,
-    )
+    utils.calc_unc_under_given_threthold(unc, 0.5)
     wandb.finish()
 
 
@@ -196,7 +185,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
+    WANDB_PROJECT = "test" if TEST_RUN else "20220121_unc_rate_tmp01"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -231,9 +220,14 @@ if __name__ == "__main__":
     # モデルのidを記録するためのリスト
     date_id_saving_list = list()
 
-    for (test_id, test_name), date_id in zip(
-        enumerate(pre_process.name_list), model_date_list
+    start = 29
+    for test_id, test_name, date_id in zip(
+        range(start, len(pre_process.name_list)),
+        pre_process.name_list[start:],
+        model_date_list[start:],
     ):
+        # print(test_id, test_name, date_id)
+        # continue
         (train, test) = pre_process.split_train_test_from_records(
             datasets, test_id=test_id, pse_data=PSE_DATA
         )

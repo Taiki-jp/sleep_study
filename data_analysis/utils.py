@@ -1418,6 +1418,19 @@ class Utils:
     def calc_metrics(self, cm: pd.DataFrame):
         pass
 
+    def calc_unc_under_given_threthold(
+        self, unc: List[float], threthold: float
+    ) -> None:
+        unc = np.array(unc)
+        for _threthold in range(10):
+            _threthold *= 0.1
+            over_unc = len(unc[unc > _threthold])
+            wandb.log(
+                {"unc_rate" + str(_threthold): over_unc / len(unc)},
+                commit=False,
+            )
+        return
+
 
 if __name__ == "__main__":
     utils = Utils()
