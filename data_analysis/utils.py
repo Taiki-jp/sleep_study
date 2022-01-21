@@ -818,10 +818,11 @@ class Utils:
         )
 
     # 予測ラベルから一致率の計算
-    def calc_acc_from_pred(self, y_true, y_pred, log_label):
+    def calc_acc_from_pred(self, y_true, y_pred, log_label, log2wandb):
         # 一致率の計算
         acc = sum(y_pred == y_true) / len(y_true)
-        wandb.log({log_label: acc}, commit=False)
+        if log2wandb:
+            wandb.log({log_label: acc}, commit=False)
         return acc
 
     # ENN の計算(evidence => unc, pred, alpha)
@@ -1279,6 +1280,7 @@ class Utils:
         n_class: int = 5,
         batch_size: int = 32,
         base_or_positive: str = "",
+        log2wandb: bool = True,
     ):
         if len(base_or_positive) == 0:
             print(
@@ -1292,7 +1294,9 @@ class Utils:
             model.predict(x, batch_size=batch_size), axis=1
         )
         acc = sum(y_pred == y.numpy()) / len(y)
-        wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
+        if log2wandb:
+            wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
+        return acc
 
     def generate_and_save_images(
         self,

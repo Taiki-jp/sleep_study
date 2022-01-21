@@ -201,7 +201,7 @@ def main(
         log_dir=log_dir, histogram_freq=1
     )
     cp_dir = pre_process.my_env.get_model_saved_path(
-        c_dir=test_name, model_id=date_id
+        c_dir=test_name, model_id=saving_date_id
     )
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
         filepath=cp_dir,
@@ -230,20 +230,20 @@ def main(
     )
 
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (_x, _x_test)
-    tuple_y = (_y, _y_test)
+    # tuple_x = (_x, _x_test)
+    # tuple_y = (_y, _y_test)
     # 混合行列をwandbに送信
-    for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
-        evidence = _model.predict(__x)
-        utils.make_graphs(
-            y=__y.numpy(),
-            evidence=evidence,
-            train_or_test=train_or_test,
-            graph_person_id=test_name,
-            calling_graph="all",
-            graph_date_id=saving_date_id,
-            is_each_unc=True,
-        )
+    # for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
+    #     evidence = _model.predict(__x)
+    #     utils.make_graphs(
+    #         y=__y.numpy(),
+    #         evidence=evidence,
+    #         train_or_test=train_or_test,
+    #         graph_person_id=test_name,
+    #         calling_graph="all",
+    #         graph_date_id=saving_date_id,
+    #         is_each_unc=True,
+    #     )
     # wandb終了
     wandb.finish()
 
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_prj"
+    WANDB_PROJECT = "test" if TEST_RUN else "20220121_nidan_02"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -415,5 +415,5 @@ if __name__ == "__main__":
             print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
 
-    if not TEST_RUN:
-        MI.dump(value=date_id_saving_list)
+    # if not TEST_RUN:
+    MI.dump(value=date_id_saving_list, cleansing_type="positive_cleansing")
