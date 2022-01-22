@@ -1,9 +1,10 @@
 import datetime
-from pre_process.utils import set_seed
 import os
 import sys
+from collections import Counter
 from typing import List
 
+import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.python.ops.numpy_ops.np_math_ops import positive
@@ -13,7 +14,7 @@ from data_analysis.utils import Utils
 from nn.utils import load_bin_model, separate_unc_data
 from pre_process.json_base import JsonBase
 from pre_process.pre_process import PreProcess
-from collections import Counter
+from pre_process.utils import set_seed
 
 
 def main(
@@ -37,11 +38,7 @@ def main(
 ):
 
     # データセットの作成
-    (
-        (_),
-        (_),
-        (x_test, y_test),
-    ) = pre_process.make_dataset(
+    ((_), (_), (x_test, y_test),) = pre_process.make_dataset(
         train=train,
         test=test,
         is_storchastic=False,
@@ -59,8 +56,6 @@ def main(
     model = load_bin_model(
         loaded_name=test_name, verbose=0, is_all=True, ss_id=date_id
     )
-    print(model[0].summary())
-    return
     # モデルが一つでもない場合はreturn
     if any(model) is None:
         print(PyColor.RED_FLASH, "modelが空です", PyColor.END)
@@ -84,8 +79,8 @@ def main(
             y_pred_list.append(_y_pred)
         # dnnの時は直接確率を計算する
         else:
-            y_pred = _model.predict(x_test, batch_size = batch_size)
-            y_pred_list.append(y_pred)
+            y_pred = _model.predict(x_test, batch_size=batch_size)
+            y_pred_list.append(np.argmax(y_pred, axis=1).tolist())
 
     if is_enn:
         # y_test, y_pred, uncの順に結合する
@@ -97,9 +92,36 @@ def main(
     y_pred_list.insert(0, time_list)
     # 行列方向を入れ替える
     if is_enn:
-        output_df = pd.DataFrame(y_pred_list, index=["time", "nr1_pred", "nr2_pred", "nr34_pred", "rem_pred", "wake_pred", "nr1_unc", "nr2_unc", "nr34_unc", "rem_unc", "wake_unc", "y_true"]).T
+        output_df = pd.DataFrame(
+            y_pred_list,
+            index=[
+                "time",
+                "nr1_pred",
+                "nr2_pred",
+                "nr34_pred",
+                "rem_pred",
+                "wake_pred",
+                "nr1_unc",
+                "nr2_unc",
+                "nr34_unc",
+                "rem_unc",
+                "wake_unc",
+                "y_true",
+            ],
+        ).T
     else:
-        output_df = pd.DataFrame(y_pred_list, index=["time", "nr1_pred", "nr2_pred", "nr34_pred", "rem_pred", "wake_pred", "y_true"]).T
+        output_df = pd.DataFrame(
+            y_pred_list,
+            index=[
+                "time",
+                "nr1_pred",
+                "nr2_pred",
+                "nr34_pred",
+                "rem_pred",
+                "wake_pred",
+                "y_true",
+            ],
+        ).T
 
     try:
         assert test_name is not None
@@ -171,13 +193,13 @@ if __name__ == "__main__":
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = True
+    TEST_RUN = False
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
-    IS_NORMAL=True
-    HAS_NREM2_BIAS=True
-    HAS_REM_BIAS=False
-    IS_UNDER_4HZ=False
+    IS_NORMAL = True
+    HAS_NREM2_BIAS = True
+    HAS_REM_BIAS = False
+    IS_UNDER_4HZ = False
     BATCH_SIZE = 512
     N_CLASS = 5
     STRIDE = 16
@@ -192,8 +214,8 @@ if __name__ == "__main__":
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     IS_PREVIOUS = False
-    IS_ENN=False
-    PSE_DATA=False
+    IS_ENN = False
+    PSE_DATA = False
     ENN_TAG = "enn" if IS_ENN else "dnn"
     CLEANSING_TYPE = "no_cleansing"
     # オブジェクトの作成
@@ -238,7 +260,7 @@ if __name__ == "__main__":
         ]
         # FIXME: name をコード名にする
         main(
-            is_enn = IS_ENN,
+            is_enn=IS_ENN,
             name=f"{test_name}",
             train=train,
             test=test,
@@ -263,7 +285,7 @@ if __name__ == "__main__":
             ),
             pse_data=PSE_DATA,
             target_ss="wake",
-            is_under_4hz=IS_UNDER_4HZ
+            is_under_4hz=IS_UNDER_4HZ,
         )
 
         # testの時は一人の被験者で止める
