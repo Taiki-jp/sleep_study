@@ -132,7 +132,7 @@ def main(
         "log",
         "bin_merge",
         "1_1",
-        f"output_{test_name}.csv",
+        f"{test_name}.csv",
     )
     # path check
     filedir, _ = os.path.split(filepath)
