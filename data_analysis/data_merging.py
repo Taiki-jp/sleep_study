@@ -123,6 +123,9 @@ def main(
     # 不確実性の高いデータのみで一致率を計算
     evidence_base = model.predict(_x_test, batch_size=batch_size)
     evidence_positive = positive_model.predict(_x_test)
+    # データセット全体に対して一致率を計算
+    evidence_all_base = model.predict(x_test, batch_size=batch_size)
+    evidence_all_sub = positive_model.predict(x_test, batch_size=batch_size)
 
     # 睡眠段階の予測
     (
@@ -137,6 +140,19 @@ def main(
         unc_pos,
         y_pred_pos,
     ) = utils.calc_enn_output_from_evidence(evidence=evidence_positive)
+    (
+        evi__all_base,
+        alp_all_base,
+        unc_all_base,
+        y_pred_all_base,
+    ) = utils.calc_enn_output_from_evidence(evidence=evidence_all_base)
+    (
+        evi__all_sub,
+        alp_all_sub,
+        unc_all_sub,
+        y_pred_all_sub,
+    ) = utils.calc_enn_output_from_evidence(evidence=evidence_all_sub)
+
     # 一致率の計算
     acc_base = utils.calc_acc_from_pred(
         y_true=_y_test.numpy(),
@@ -150,20 +166,77 @@ def main(
         log_label="sub",
         log2wandb=False,
     )
+    acc_all_base = utils.calc_acc_from_pred(
+        y_true=y_test[0],
+        y_pred=y_pred_all_base,
+        log_label="all_base",
+        log2wandb=False,
+    )
+    acc_all_sub = utils.calc_acc_from_pred(
+        y_true=y_test[0],
+        y_pred=y_pred_all_sub,
+        log_label="all_sub",
+        log2wandb=False,
+    )
+    # 不確実性によるマージ
+    y_pred_all_list = list()
+    for __base_pred, __sub_pred, __unc_base in zip(
+        y_pred_all_base, y_pred_all_sub, unc_all_base
+    ):
+        if __unc_base < unc_threthold:
+            y_pred_all_list.append(__base_pred)
+        else:
+            y_pred_all_list.append(__sub_pred)
+    # データセット全体の一致率を計算J
+    acc_all_merged = utils.calc_acc_from_pred(
+        y_true=y_test[0],
+        y_pred=y_pred_all_list,
+        log_label="all_merged",
+        log2wandb=False,
+    )
     # 一致率のcsv出力
     output_path = os.path.join(
         utils.env.tmp_dir, test_name, "acc_of_high_unc_datas.csv"
     )
     df_acc = pd.DataFrame(
-        np.array([acc_base, acc_sub]).reshape(1, 2),
-        columns=["acc_base", "acc_sub"],
+        np.array(
+            [acc_base, acc_sub, acc_all_base, acc_all_sub, acc_all_merged]
+        ).reshape(1, 5),
+        columns=[
+            "acc_base",
+            "acc_sub",
+            "acc_all_base",
+            "acc_all_sub",
+            "acc_all_merged",
+        ],
     )
     df_acc.to_csv(output_path)
-    # 睡眠段階，不確実性のcsv出力
+    # # 不確実性の高い睡眠段階，不確実性のcsv出力
+    # output_path = os.path.join(utils.env.tmp_dir, test_name, "ss_and_unc.csv")
+    # df_result = pd.DataFrame(
+    #     np.array(
+    #         [_y_test.numpy(), y_pred_base, y_pred_pos, unc_base, unc_pos]
+    #     ).T,
+    #     columns=[
+    #         "y_true",
+    #         "base_pred",
+    #         "positive_pred",
+    #         "unc_base",
+    #         "unc_pos",
+    #     ],
+    # )
+    # df_result.to_csv(output_path)
+    # データセット全体の睡眠段階，不確実性のcsv出力
     output_path = os.path.join(utils.env.tmp_dir, test_name, "ss_and_unc.csv")
     df_result = pd.DataFrame(
         np.array(
-            [_y_test.numpy(), y_pred_base, y_pred_pos, unc_base, unc_pos]
+            [
+                y_test[0],
+                y_pred_all_base,
+                y_pred_all_sub,
+                unc_all_base,
+                unc_all_sub,
+            ]
         ).T,
         columns=[
             "y_true",
@@ -178,6 +251,18 @@ def main(
     # utils.compare_ss(y_true=y_test[0], y_pred=y_pred_pos, test_name=test_name)
     # wandb終了
     # wandb.finish()
+    # マージの結果を出力
+    output_path = os.path.join(
+        utils.env.tmp_dir, test_name, "merged_result.csv"
+    )
+    df_result = pd.DataFrame(
+        np.array([y_test[0], y_pred_all_list]).T,
+        columns=[
+            "y_true",
+            "y_pred",
+        ],
+    )
+    df_result.to_csv(output_path)
 
 
 if __name__ == "__main__":
@@ -194,7 +279,7 @@ if __name__ == "__main__":
     # WANDB_PROJECT = "test" if TEST_RUN else "20220121_nidan_merge"
     IS_MUL_LAYER = False
     IS_NORMAL = True
-    IS_ENN = False
+    IS_ENN = True
     ENN_TAG = "enn" if IS_ENN else "dnn"
     CATCH_NREM2 = True
     BATCH_SIZE = 512
@@ -202,7 +287,7 @@ if __name__ == "__main__":
     STRIDE = 16
     KERNEL_SIZE = 128
     SAMPLE_SIZE = 2000
-    UNC_THRETHOLD = 0.3
+    UNC_THRETHOLD = 0.2
     PSE_DATA = False
     CLEANSING_TYPE = "no_cleansing"
     EXPERIMENT_TYPES = (

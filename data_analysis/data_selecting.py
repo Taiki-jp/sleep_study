@@ -230,20 +230,20 @@ def main(
     )
 
     # 混合行列・不確かさ・ヒストグラムの作成
-    # tuple_x = (_x, _x_test)
-    # tuple_y = (_y, _y_test)
+    tuple_x = (_x, _x_test)
+    tuple_y = (_y, _y_test)
     # 混合行列をwandbに送信
-    # for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
-    #     evidence = _model.predict(__x)
-    #     utils.make_graphs(
-    #         y=__y.numpy(),
-    #         evidence=evidence,
-    #         train_or_test=train_or_test,
-    #         graph_person_id=test_name,
-    #         calling_graph="all",
-    #         graph_date_id=saving_date_id,
-    #         is_each_unc=True,
-    #     )
+    for train_or_test, __x, __y in zip(["train", "test"], tuple_x, tuple_y):
+        evidence = _model.predict(__x)
+        utils.make_graphs(
+            y=__y.numpy(),
+            evidence=evidence,
+            train_or_test=train_or_test,
+            graph_person_id=test_name,
+            calling_graph="all",
+            graph_date_id=saving_date_id,
+            is_each_unc=True,
+        )
     # wandb終了
     wandb.finish()
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     # ハイパーパラメータの設定
     # TODO: jsonに移植
     TEST_RUN = False
-    EPOCHS = 10
+    EPOCHS = 25
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     KERNEL_SIZE = 128
     STRIDE = 16
     SAMPLE_SIZE = 10000
-    UNC_THRETHOLD = 0.5
+    UNC_THRETHOLD = 0.2
     DROPOUT_RATE = 0.3
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "20220121_nidan_02"
+    WANDB_PROJECT = "test" if TEST_RUN else "20220124_nidan"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"

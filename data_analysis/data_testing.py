@@ -171,7 +171,7 @@ if __name__ == "__main__":
     HAS_INCEPTION = True
     IS_PREVIOUS = False
     IS_NORMAL = True
-    IS_ENN = True  # FIXME: always true so remove here
+    IS_ENN = False  # FIXME: always true so remove here
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     HAS_DROPOUT = True

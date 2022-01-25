@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = False
-    EPOCHS = 10
+    EPOCHS = 25
     HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
