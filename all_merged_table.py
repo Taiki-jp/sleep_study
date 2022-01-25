@@ -42,13 +42,14 @@ p4_nr2_f_list = list()
 p4_nr1_f_list = list()
 p4_rem_f_list = list()
 p4_wake_f_list = list()
+p5_acc_f_list = [[], [], [], [], [], []]
 
 # 2段ENNの一致率の結果のパス
-nidan_dir = os.path.join(os.environ["git"], "sleep_study", "enn_all_result")
+nidan_dir = os.path.join(os.environ["sleep"], "tmps")
 
 for bin_file in bin_filelist:
     bin_df = pd.read_csv(bin_file)
-    # 0, 4, 8, 12番目を取り出す
+    # 0, 4, 8, 12, 16番目を取り出す
     accuracy = bin_df.loc[:, "accuracy"]
     ss = bin_df.loc[:, ["nr34", "nr2", "nr1", "rem", "wake"]]
     # print(accuracy)
@@ -59,6 +60,7 @@ for bin_file in bin_filelist:
             p1_acc_list,
             p2_acc_list,
             p3_acc_list,
+            p5_acc_f_list[0],
             enn_acc_list,
             p1_nr34_f_list,
             p1_nr2_f_list,
@@ -75,6 +77,11 @@ for bin_file in bin_filelist:
             p3_nr1_f_list,
             p3_rem_f_list,
             p3_wake_f_list,
+            p5_acc_f_list[1],
+            p5_acc_f_list[2],
+            p5_acc_f_list[3],
+            p5_acc_f_list[4],
+            p5_acc_f_list[5],
             p4_nr34_f_list,
             p4_nr2_f_list,
             p4_nr1_f_list,
@@ -86,6 +93,7 @@ for bin_file in bin_filelist:
             accuracy[4],
             accuracy[8],
             accuracy[12],
+            accuracy[16],
             ss.iloc[2, 0],
             ss.iloc[2, 1],
             ss.iloc[2, 2],
@@ -106,6 +114,11 @@ for bin_file in bin_filelist:
             ss.iloc[14, 2],
             ss.iloc[14, 3],
             ss.iloc[14, 4],
+            ss.iloc[18, 0],
+            ss.iloc[18, 1],
+            ss.iloc[18, 2],
+            ss.iloc[18, 3],
+            ss.iloc[18, 4],
         ],
     )
     # tmp
@@ -141,11 +154,17 @@ bin_df = pd.DataFrame(
         "22_f_rem": p2_rem_f_list,
         "22_f_wake": p2_wake_f_list,
         "32_acc": p3_acc_list,
-        "32_f_nr34": p3_nr34_f_list,
-        "32_f_nr2": p3_nr2_f_list,
-        "32_f_nr1": p3_nr1_f_list,
-        "32_f_rem": p3_rem_f_list,
-        "32_f_wake": p3_wake_f_list,
+        "32_00_f_nr34": p3_nr34_f_list,
+        "32_00_f_nr2": p3_nr2_f_list,
+        "32_00_f_nr1": p3_nr1_f_list,
+        "32_00_f_rem": p3_rem_f_list,
+        "32_00_f_wake": p3_wake_f_list,
+        "32_01_acc": p5_acc_f_list[0],
+        "32_01_f_nr34": p5_acc_f_list[1],
+        "32_01_f_nr2": p5_acc_f_list[2],
+        "32_01_f_nr1": p5_acc_f_list[3],
+        "32_01_f_rem": p5_acc_f_list[4],
+        "32_01_f_wake": p5_acc_f_list[5],
         "42_acc": enn_acc_list,
         "42_f_nr34": p4_nr34_f_list,
         "42_f_nr2": p4_nr2_f_list,

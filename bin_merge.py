@@ -32,9 +32,11 @@ def merge_rule_a(series: pd.Series):
     ]
     bin_pred = bin_pred.to_numpy()
 
+    # 一つ目のルール
     if sum(bin_pred) == 1:
         return np.argmax(bin_pred)
 
+    # 二つ目のルール
     elif sum(bin_pred) > 1:
         flag_unc = series[
             ["nr34_unc", "nr2_unc", "nr1_unc", "rem_unc", "wake_unc"]
@@ -46,6 +48,7 @@ def merge_rule_a(series: pd.Series):
         #             print(np.argmax(flag_unc == np.min(flag_unc[np.nonzero(flag)])))
         return np.argmax(flag_unc == np.min(flag_unc[np.nonzero(bin_pred)]))
 
+    # 三つ目のルール
     else:
         assert sum(bin_pred) == 0
         # NR2を返す
@@ -104,11 +107,11 @@ def merge_rule_c(attn_df: pd.DataFrame, no_attn_df: pd.DataFrame):
         # 0. ひとつだけPositiveならそのクラス
         array4case_1 = np.array(
             [
-                _bin_pred_no_attn[0],
+                _bin_pred_attn[0],
                 _bin_pred_no_attn[1],
-                _bin_pred_attn[2],
-                _bin_pred_no_attn[3],
-                _bin_pred_attn[4],
+                _bin_pred_no_attn[2],
+                _bin_pred_attn[3],
+                _bin_pred_no_attn[4],
             ]
         )
         if sum(array4case_1) == 1:
@@ -148,6 +151,68 @@ def merge_rule_c(attn_df: pd.DataFrame, no_attn_df: pd.DataFrame):
     return pd.DataFrame(y_pred, columns=["y_pred"])
 
 
+def merge_rule_d(attn_df: pd.DataFrame, no_attn_df: pd.DataFrame):
+    y_pred = list()
+    bin_pred_attn = attn_df[
+        ["nr34_pred", "nr2_pred", "nr1_pred", "rem_pred", "wake_pred"]
+    ]
+    bin_pred_no_attn = no_attn_df[
+        ["nr34_pred", "nr2_pred", "nr1_pred", "rem_pred", "wake_pred"]
+    ]
+    for (_, _bin_pred_attn), (_, _bin_pred_no_attn) in zip(
+        bin_pred_attn.iterrows(), bin_pred_no_attn.iterrows()
+    ):
+        # print(_bin_pred_attn)
+        # print(_bin_pred_no_attn)
+        # continue
+        # 0. ひとつだけPositiveならそのクラス
+        array4case_1 = np.array(
+            [
+                _bin_pred_attn[0],
+                _bin_pred_no_attn[1],
+                _bin_pred_no_attn[2],
+                _bin_pred_attn[3],
+                _bin_pred_no_attn[4],
+            ]
+        )
+        if sum(array4case_1) == 1:
+            y_pred.append(np.argmax(_bin_pred_attn))
+        elif (
+            _bin_pred_attn[0] == 1
+            or _bin_pred_no_attn[1] == 1
+            or _bin_pred_attn[3] == 1
+        ):
+            y_pred.append(np.argmax(array4case_1))
+
+        elif (
+            _bin_pred_no_attn[2] == 1
+            or _bin_pred_attn[4] == 1
+            and pd.concat([_bin_pred_no_attn, _bin_pred_attn], axis=0).sum()
+            == 2
+        ):
+            y_pred.append(4)
+        elif (
+            pd.concat([_bin_pred_no_attn, _bin_pred_attn], axis=0).sum() > 1
+            and sum(array4case_1) > 1
+        ):
+            if array4case_1[1] == 1:
+                y_pred.append(1)
+            elif array4case_1[3] == 1:
+                y_pred.append(3)
+            elif array4case_1[2] == 1:
+                y_pred.append(2)
+            elif array4case_1[4] == 1:
+                y_pred.append(4)
+            elif array4case_1[0] == 1:
+                y_pred.append(0)
+            else:
+                raise AssertionError
+        else:
+            y_pred.append(0)
+    return pd.DataFrame(y_pred, columns=["y_pred"])
+
+
+# 提案手法4
 for enn_file in enn_filelist:
     print(f"load {enn_file}")
     df = pd.read_csv(enn_file)
@@ -164,56 +229,92 @@ for enn_file in enn_filelist:
     output_filepath = os.path.join(output_dir, filename)
     new_df.to_csv(output_filepath, index=False)
 
-# for cnn_file in cnn_filelist:
-#     print(f"load {cnn_file}")
-#     df = pd.read_csv(cnn_file)
-#     # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
-#     y_pred_merged_by_b = df.apply(merge_rule_b, axis=1)
-#     # new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
-#     new_df = pd.concat([df, y_pred_merged_by_b], axis=1)
-#     # new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
-#     new_df = new_df.rename(columns={0: "rule_b"})
-#     new_df = new_df.drop(columns="Unnamed: 0")
-#     output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_01")
-#     if not os.path.exists(output_dir):
-#         print(f"{output_dir}を作成します")
-#         os.makedirs(output_dir)
-#     filename = os.path.split(cnn_file)[1]
-#     output_filepath = os.path.join(output_dir, filename)
-#     new_df.to_csv(output_filepath, index=False)
+# 提案手法1
+for cnn_file in cnn_filelist:
+    print(f"load {cnn_file}")
+    df = pd.read_csv(cnn_file)
+    # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
+    y_pred_merged_by_b = df.apply(merge_rule_b, axis=1)
+    # new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
+    new_df = pd.concat([df, y_pred_merged_by_b], axis=1)
+    # new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
+    new_df = new_df.rename(columns={0: "rule_b"})
+    new_df = new_df.drop(columns="Unnamed: 0")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_01")
+    if not os.path.exists(output_dir):
+        print(f"{output_dir}を作成します")
+        os.makedirs(output_dir)
+    filename = os.path.split(cnn_file)[1]
+    output_filepath = os.path.join(output_dir, filename)
+    new_df.to_csv(output_filepath, index=False)
 
-# for cnn_attn_file in cnn_attn_filelist:
-#     print(f"load {cnn_attn_file}")
-#     df = pd.read_csv(cnn_attn_file)
-#     # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
-#     y_pred_merged_by_b = df.apply(merge_rule_b, axis=1)
-#     # new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
-#     new_df = pd.concat([df, y_pred_merged_by_b], axis=1)
-#     # new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
-#     new_df = new_df.rename(columns={0: "rule_b"})
-#     new_df = new_df.drop(columns="Unnamed: 0")
-#     output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_02")
-#     if not os.path.exists(output_dir):
-#         print(f"{output_dir}を作成します")
-#         os.makedirs(output_dir)
-#     filename = os.path.split(cnn_attn_file)[1]
-#     output_filepath = os.path.join(output_dir, filename)
-#     new_df.to_csv(output_filepath, index=False)
+# 提案手法2
+for cnn_attn_file in cnn_attn_filelist:
+    print(f"load {cnn_attn_file}")
+    df = pd.read_csv(cnn_attn_file)
+    # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
+    y_pred_merged_by_b = df.apply(merge_rule_b, axis=1)
+    # new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
+    new_df = pd.concat([df, y_pred_merged_by_b], axis=1)
+    # new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
+    new_df = new_df.rename(columns={0: "rule_b"})
+    new_df = new_df.drop(columns="Unnamed: 0")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_02")
+    if not os.path.exists(output_dir):
+        print(f"{output_dir}を作成します")
+        os.makedirs(output_dir)
+    filename = os.path.split(cnn_attn_file)[1]
+    output_filepath = os.path.join(output_dir, filename)
+    new_df.to_csv(output_filepath, index=False)
 
-# for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
-#     print(f"load {cnn_attn_file}")
-#     print(f"load {cnn_file}")
-#     attn_df = pd.read_csv(cnn_attn_file)
-#     no_attn_df = pd.read_csv(cnn_file)
-#     new_df = merge_rule_c(attn_df=attn_df, no_attn_df=no_attn_df)
-#     # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
-#     new_df = pd.concat([attn_df, no_attn_df, new_df], axis=1)
-#     new_df = new_df.rename(columns={0: "rule_c"})
-#     new_df = new_df.drop(columns="Unnamed: 0")
-#     output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_03")
-#     if not os.path.exists(output_dir):
-#         print(f"{output_dir}を作成します")
-#         os.makedirs(output_dir)
-#     filename = os.path.split(cnn_attn_file)[1]
-#     output_filepath = os.path.join(output_dir, filename)
-#     new_df.to_csv(output_filepath, index=False)
+# 旧提案手法3
+for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
+    print(f"load {cnn_attn_file}")
+    print(f"load {cnn_file}")
+    # 同じ被験者データを読み込んでいることを確認
+    try:
+        assert os.path.split(cnn_attn_file)[1] == os.path.split(cnn_file)[1]
+    except AssertionError as AE:
+        print(f"assertion error: {AE}")
+        sys.exit(1)
+
+    attn_df = pd.read_csv(cnn_attn_file)
+    no_attn_df = pd.read_csv(cnn_file)
+    new_df = merge_rule_c(attn_df=attn_df, no_attn_df=no_attn_df)
+    # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
+    new_df = pd.concat([attn_df, no_attn_df, new_df], axis=1)
+    new_df = new_df.rename(columns={0: "rule_c"})
+    new_df = new_df.drop(columns="Unnamed: 0")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_03")
+    if not os.path.exists(output_dir):
+        print(f"{output_dir}を作成します")
+        os.makedirs(output_dir)
+    filename = os.path.split(cnn_attn_file)[1]
+    output_filepath = os.path.join(output_dir, filename)
+    new_df.to_csv(output_filepath, index=False)
+
+# 提案手法3
+for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
+    print(f"load {cnn_attn_file}")
+    print(f"load {cnn_file}")
+    # 同じ被験者データを読み込んでいることを確認
+    try:
+        assert os.path.split(cnn_attn_file)[1] == os.path.split(cnn_file)[1]
+    except AssertionError as AE:
+        print(f"assertion error: {AE}")
+        sys.exit(1)
+
+    attn_df = pd.read_csv(cnn_attn_file)
+    no_attn_df = pd.read_csv(cnn_file)
+    new_df = merge_rule_d(attn_df=attn_df, no_attn_df=no_attn_df)
+    # y_pred_merged_by_a = df.apply(merge_rule_a, axis=1)
+    new_df = pd.concat([attn_df, no_attn_df, new_df], axis=1)
+    new_df = new_df.rename(columns={0: "rule_d"})
+    new_df = new_df.drop(columns="Unnamed: 0")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "proposed_04")
+    if not os.path.exists(output_dir):
+        print(f"{output_dir}を作成します")
+        os.makedirs(output_dir)
+    filename = os.path.split(cnn_attn_file)[1]
+    output_filepath = os.path.join(output_dir, filename)
+    new_df.to_csv(output_filepath, index=False)
