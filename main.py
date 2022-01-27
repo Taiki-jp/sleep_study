@@ -20,11 +20,13 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-# from nn.wandb_classification_callback import WandbClassificationCallback
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
 from pre_process.utils import set_seed
+
+# from nn.wandb_classification_callback import WandbClassificationCallback
+
 
 # from wandb.keras import WandbCallback
 
