@@ -190,8 +190,8 @@ def main(
         verbose=2,
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_val)
-    tuple_y = (y_train[0], y_val[0])
+    tuple_x = (x_train, x_test)
+    tuple_y = (y_train[0], y_test[0])
     for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
         evidence = model.predict(_x)
         utils.make_graphs(
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
+    TEST_RUN = True
     EPOCHS = 25
     HAS_ATTENTION = False
     PSE_DATA = False
