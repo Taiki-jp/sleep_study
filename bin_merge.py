@@ -168,9 +168,9 @@ def merge_rule_d(attn_df: pd.DataFrame, no_attn_df: pd.DataFrame):
         # 0. ひとつだけPositiveならそのクラス
         array4case_1 = np.array(
             [
-                _bin_pred_attn[0],
+                _bin_pred_no_attn[0],
                 _bin_pred_no_attn[1],
-                _bin_pred_no_attn[2],
+                _bin_pred_attn[2],
                 _bin_pred_attn[3],
                 _bin_pred_no_attn[4],
             ]
