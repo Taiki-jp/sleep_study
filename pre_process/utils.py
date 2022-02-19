@@ -25,4 +25,9 @@ def set_seed(seed=200):
     random.seed(seed)
     # for hash seed
     os.environ["PYTHONHASHSEED"] = str(seed)
+    os.environ["TF_DETERMINSTIC_OPS"] = "true"
+    os.environ["TF_CUDNN_DETERMINSTIC"] = "true"
+    # session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=32, inter_op_parallelism_threads=32)
+    # tf.compat.v1.set_random_seed(seed)
+    # sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     return

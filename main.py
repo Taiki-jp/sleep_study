@@ -5,8 +5,8 @@ from collections import Counter
 from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
-
 import wandb
+
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -223,8 +223,8 @@ if __name__ == "__main__":
     set_seed(0)
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     # 環境設定
-    CALC_DEVICE = "gpu"
-    # CALC_DEVICE = "cpu"
+    # CALC_DEVICE = "gpu"
+    CALC_DEVICE = "cpu"
     # NOTE: set here to specify which gpu you use
     DEVICE_ID = "0" if CALC_DEVICE == "gpu" else "-1"
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE_ID
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
     # ハイパーパラメータの設定
     TEST_RUN = True
-    EPOCHS = 25
+    EPOCHS = 10
     HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     # KERNEL_SIZE = 128
     STRIDE = 16
     # STRIDE = 16
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 1000
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
     CLEANSING_TYPE = "no_cleansing"
