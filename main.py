@@ -1,9 +1,13 @@
 import datetime
 import os
+
+# from wandb.keras import WandbCallback
+import random
 import sys
 from collections import Counter
 from typing import Any, Dict, List, Tuple
 
+import numpy as np
 import tensorflow as tf
 import wandb
 
@@ -17,7 +21,17 @@ from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.pre_process import PreProcess, Record
 from pre_process.utils import set_seed
 
-# from wandb.keras import WandbCallback
+seed = 10
+tf.random.set_seed(seed)
+# optional
+# for numpy.random
+np.random.seed(seed)
+# for built-in random
+random.seed(seed)
+# for hash seed
+os.environ["PYTHONHASHSEED"] = str(seed)
+os.environ["TF_DETERMINSTIC_OPS"] = "true"
+os.environ["TF_CUDNN_DETERMINSTIC"] = "true"
 
 
 def main(
