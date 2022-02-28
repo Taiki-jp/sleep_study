@@ -14,7 +14,7 @@ class PreProcessedId(JsonBase):
         self.fit_pos = ""
         self.stride = ""
         self.kernel = ""
-        self.load()
+        # self.__load()
 
     def get_dateid(self):
         return self.json_dict[self.hostkey][self.subject_type][self.data_type][

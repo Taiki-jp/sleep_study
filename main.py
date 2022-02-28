@@ -2,24 +2,21 @@ import datetime
 import os
 import sys
 from collections import Counter
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 import tensorflow as tf
 from tensorflow.keras.metrics import (
-    BinaryAccuracy,
-    FalseNegatives,
-    FalsePositives,
-    Precision,
-    Recall,
-    TrueNegatives,
-    TruePositives,
+    BinaryAccuracy,  # TrueNegatives,  # TN; TruePositives,  # TP; FalseNegatives,  # FN; FalsePositives,  # FP; 一致率
 )
+from tensorflow.keras.metrics import Precision  # Precision
+from tensorflow.keras.metrics import Recall  # Recall
 
 # import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from pre_process.main_param_reader import MainParamReader
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
@@ -273,27 +270,37 @@ if __name__ == "__main__":
     else:
         print("*** cpuで計算します ***")
         # tf.config.run_functions_eagerly(True)
+    # 実験用パラメータを読み込む
+    MPR = MainParamReader()
 
-    # ハイパーパラメータの設定
-    TEST_RUN = True
-    EPOCHS = 10
-    HAS_ATTENTION = True
-    PSE_DATA = False
-    HAS_INCEPTION = True
-    IS_PREVIOUS = False
-    IS_NORMAL = True
-    HAS_DROPOUT = True
-    IS_ENN = False
-    # FIXME: 多層化はとりあえずいらない
-    IS_MUL_LAYER = True
-    HAS_NREM2_BIAS = False
-    HAS_REM_BIAS = False
-    SAVE_MODEL = False
-    IS_TIME_SERIES = False
-    IS_SIMPLE_RNN = False
-    DROPOUT_RATE = 0.2
-    N_CLASS = 2
-    SAMPLE_SIZE = 2500
+    BATCH_SIZE = MPR.main_setting["batch_size"]
+    CLEANSING_TYPE = MPR.main_setting["cleansing_type"]
+    DATA_TYPE = MPR.main_setting["data_type"]
+    DROPOUT_RATE = MPR.main_setting["dropout_rate"]
+    EPOCHS = MPR.main_setting["epochs"]
+    FIT_POS = MPR.main_setting["fit_pos"]
+    HAS_ATTENTION = MPR.main_setting["has_attention"]
+    HAS_DROPOUT = MPR.main_setting["has_dropout"]
+    HAS_INCEPTION = MPR.main_setting["has_inception"]
+    HAS_NREM2_BIAS = MPR.main_setting["has_nrem2_bias"]
+    HAS_REM_BIAS = MPR.main_setting["has_rem_bias"]
+    IS_ENN = MPR.main_setting["is_enn"]
+    IS_MUL_LAYER = MPR.main_setting["is_mul_layer"]
+    IS_NORMAL = MPR.main_setting["is_normal"]
+    IS_PREVIOUS = MPR.main_setting["is_previous"]
+    IS_SIMPLE_RNN = MPR.main_setting["is_simple_rnn"]
+    IS_TIME_SERIES = MPR.main_setting["is_time_series"]
+    IS_UNDER_4HZ = MPR.main_setting["is_under_4hz"]
+    KERNEL_SIZE = MPR.main_setting["kernel_size"]
+    N_CLASS = MPR.main_setting["n_class"]
+    PSE_DATA = MPR.main_setting["pse_data"]
+    SAMPLE_SIZE = MPR.main_setting["sample_size"]
+    SAVE_MODEL = MPR.main_setting["save_model"]
+    STRIDE = MPR.main_setting["stride"]
+    TEST_RUN = MPR.main_setting["test_run"]
+    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
+    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
+    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     TARGET_SS = [
         "wake",
         "rem",
@@ -301,17 +308,7 @@ if __name__ == "__main__":
         "nr2",
         "nr3",
     ]  # target_ss としてpre_process.change_labelでnr3として扱いたいのでnr4, nr34とはしていない
-    BATCH_SIZE = 512
-    KERNEL_SIZE = 128
-    IS_UNDER_4HZ = False
-    STRIDE = 16
-    DATA_TYPE = "spectrogram"
-    FIT_POS = "middle"
-    CLEANSING_TYPE = "no_cleansing"
-    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
-    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     if IS_ENN:
         WANDB_PROJECT = "test" if TEST_RUN else "bin_enn_attn"
     else:

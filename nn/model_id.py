@@ -15,7 +15,7 @@ class ModelId(JsonBase):
         self.fit_pos = ""
         self.stride = ""
         self.kernel = ""
-        self.load()
+        # self.load()
 
     def get_ppi(self):
         return self.json_dict[self.hostkey][self.subject_type][
