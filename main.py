@@ -2,7 +2,7 @@ import datetime
 import os
 import sys
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
 from tensorflow.keras.metrics import (
@@ -11,52 +11,50 @@ from tensorflow.keras.metrics import (
 from tensorflow.keras.metrics import Precision  # Precision
 from tensorflow.keras.metrics import Recall  # Recall
 
-# import wandb
+import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
+from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.main_param_reader import MainParamReader
 
 # from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
 from pre_process.utils import set_seed
 
-# from nn.wandb_classification_callback import WandbClassificationCallback
-
-
 # from wandb.keras import WandbCallback
 
 
 def main(
-    test_run: bool,
+    project: str,
+    wandb_config: Dict[str, Any],
+    batch_size: int,
+    data_type: str,
+    date_id: str,
     dropout_rate: float,
+    epochs: int,
+    has_attention: bool,
     has_dropout: bool,
+    has_inception: bool,
+    is_enn: bool,
+    is_mul_layer: bool,
+    is_under_4hz: bool,
+    kernel_size: int,
     log_tf_projector: bool,
+    my_tags: List[str],
+    n_class: int,
     name: str,
-    # project: str,
-    train: List[Record],
-    test: List[Record],
     pre_process: PreProcess,
-    epochs: int = 1,
-    save_model: bool = False,
-    my_tags: List[str] = None,
-    batch_size: int = 32,
-    n_class: int = 5,
-    pse_data: bool = False,
-    test_name: str = None,
-    date_id: str = None,
-    has_attention: bool = False,
-    has_inception: bool = True,
-    data_type: str = None,
-    sample_size: int = 0,
-    is_enn: bool = True,
-    # wandb_config: Dict[str, Any] = dict(),
-    kernel_size: int = 0,
-    is_mul_layer: bool = False,
-    utils: Utils = None,
-    target_ss: str = "",
-    is_under_4hz: bool = False,
+    pse_data: bool,
+    sample_size: int,
+    save_model: bool,
+    target_ss: str,
+    test: List[Record],
+    test_name: str,
+    test_run: bool,
+    train: List[Record],
+    utils: Utils,
 ):
 
     # データセットの作成
@@ -65,23 +63,23 @@ def main(
         (x_val, y_val),
         (x_test, y_test),
     ) = pre_process.make_dataset(
-        train=train,
-        test=test,
-        is_storchastic=False,
-        is_shuffle=False,
-        pse_data=pse_data,
-        to_one_hot_vector=False,
+        class_size=5,  # NOTE: ここは予測するラベル数ではなく，睡眠段階の数を指定している
         each_data_size=sample_size,
-        class_size=5,  # ここは予測するラベル数ではなく，睡眠段階の数を指定している
-        n_class_converted=n_class,
-        target_ss=[target_ss],
+        is_shuffle=False,
+        is_storchastic=False,
         is_under_4hz=is_under_4hz,
+        n_class_converted=n_class,
+        pse_data=pse_data,
+        target_ss=[target_ss],  # FIXME: ここをリストで指定する必要ある？
+        test=test,
+        to_one_hot_vector=False,
+        train=train,
     )
     # データセットの数を表示
+    # TODO: データセットを表示するメソッド呼び出しを実装
     print(f"training data : {x_train.shape}")
     ss_train_dict: Dict[int, int] = Counter(y_train[0, :])
     ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
-
     # config の追加
     added_config = {
         "attention": has_attention,
@@ -97,19 +95,20 @@ def main(
         "train nr2 before replaced": ss_train_dict[1],
         "train nr34 before replaced": ss_train_dict[0],
     }
-    # wandb_config.update(added_config)
+    wandb_config.update(added_config)
     # wandbの初期化
-    # wandb.init(
-    #     name=name,
-    #     project=project,
-    #     tags=my_tags,
-    #     config=wandb_config,
-    #     sync_tensorboard=True,
-    #     dir=pre_process.my_env.project_dir,
-    # )
+    wandb.init(
+        name=name,
+        project=project,
+        tags=my_tags,
+        config=wandb_config,
+        sync_tensorboard=True,
+        dir=pre_process.my_env.project_dir,
+    )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
+    # TODO: メソッド化
     if data_type == "spectrum" or data_type == "cepstrum":
         shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
@@ -125,6 +124,7 @@ def main(
         print("correct data_type based on your model")
         sys.exit(1)
 
+    # TODO: メソッド化
     inputs = tf.keras.Input(shape=shape)
     if data_type == "spectrum" or data_type == "cepstrum":
         outputs = edl_classifier_1d(
@@ -177,12 +177,12 @@ def main(
         monitoring = "val_accuracy"
 
     # tensorboard, model保存のコールバック作成
-    # log_dir = pre_process.my_env.get_tf_board_saved_path(
-    #     p_dir="logs", c_dir=test_name, model_id=date_id
-    # )
-    # tf_callback = tf.keras.callbacks.TensorBoard(
-    #     log_dir=log_dir, histogram_freq=1
-    # )
+    log_dir = pre_process.my_env.get_tf_board_saved_path(
+        p_dir="logs", c_dir=test_name, model_id=date_id
+    )
+    tf_callback = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir, histogram_freq=1
+    )
     cp_dir = pre_process.my_env.get_model_saved_path(
         c_dir=test_name,
         ss_dir=target_ss,
@@ -204,15 +204,15 @@ def main(
         validation_data=(x_val, y_val[0]),
         epochs=epochs,
         callbacks=[
-            # tf_callback,
-            # WandbClassificationCallback(
-            #     validation_data=(x_val, y_val[0]),
-            #     # validation_data=(x_test, y_test[0]),
-            #     log_confusion_matrix=True,
-            #     labels=["nr34", "nr2", "nr1", "rem", "wake"]
-            #     if n_class == 5
-            #     else ["non_target", "target"],
-            # ),
+            tf_callback,
+            WandbClassificationCallback(
+                validation_data=(x_val, y_val[0]),
+                # validation_data=(x_test, y_test[0]),
+                log_confusion_matrix=True,
+                labels=["nr34", "nr2", "nr1", "rem", "wake"]
+                if n_class == 5
+                else ["non_target", "target"],
+            ),
             cp_callback,
         ],
         verbose=2,
@@ -237,18 +237,18 @@ def main(
             )
 
     # # tensorboardのログ
-    # if log_tf_projector:
-    #     utils.make_tf_projector(
-    #         x=x_test,
-    #         y=y_test,
-    #         batch_size=batch_size,
-    #         hidden_layer_id=-7,
-    #         log_dir=log_dir,
-    #         data_type=data_type,
-    #         model=model,
-    #     )
+    if log_tf_projector:
+        utils.make_tf_projector(
+            x=x_val,
+            y=y_val[0],
+            batch_size=batch_size,
+            hidden_layer_id=-7,
+            log_dir=log_dir,
+            data_type=data_type,
+            model=model,
+        )
 
-    # wandb.finish()
+    wandb.finish()
 
 
 if __name__ == "__main__":
@@ -284,6 +284,7 @@ if __name__ == "__main__":
     HAS_INCEPTION = MPR.main_setting["has_inception"]
     HAS_NREM2_BIAS = MPR.main_setting["has_nrem2_bias"]
     HAS_REM_BIAS = MPR.main_setting["has_rem_bias"]
+    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
     IS_ENN = MPR.main_setting["is_enn"]
     IS_MUL_LAYER = MPR.main_setting["is_mul_layer"]
     IS_NORMAL = MPR.main_setting["is_normal"]
@@ -292,15 +293,14 @@ if __name__ == "__main__":
     IS_TIME_SERIES = MPR.main_setting["is_time_series"]
     IS_UNDER_4HZ = MPR.main_setting["is_under_4hz"]
     KERNEL_SIZE = MPR.main_setting["kernel_size"]
+    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     N_CLASS = MPR.main_setting["n_class"]
     PSE_DATA = MPR.main_setting["pse_data"]
+    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     SAMPLE_SIZE = MPR.main_setting["sample_size"]
     SAVE_MODEL = MPR.main_setting["save_model"]
     STRIDE = MPR.main_setting["stride"]
     TEST_RUN = MPR.main_setting["test_run"]
-    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
-    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
     TARGET_SS = [
         "wake",
         "rem",
@@ -321,20 +321,20 @@ if __name__ == "__main__":
 
     # オブジェクトの作成
     pre_process = PreProcess(
+        cleansing_type=CLEANSING_TYPE,
         data_type=DATA_TYPE,
         fit_pos=FIT_POS,
-        verbose=0,
-        kernel_size=KERNEL_SIZE,
-        is_previous=IS_PREVIOUS,
-        stride=STRIDE,
-        is_normal=IS_NORMAL,
+        has_ignored=True,
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
-        model_type=ENN_TAG,
-        cleansing_type=CLEANSING_TYPE,
-        make_valdata=True,
-        has_ignored=True,
+        is_normal=IS_NORMAL,
+        is_previous=IS_PREVIOUS,
+        kernel_size=KERNEL_SIZE,
         lsp_option="nr2",
+        make_valdata=True,
+        model_type=ENN_TAG,
+        stride=STRIDE,
+        verbose=0,
     )
     # 記録用のjsonファイルを読み込む
     MI = pre_process.my_env.mi
@@ -366,47 +366,50 @@ if __name__ == "__main__":
                 # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
                 f"under_4hz:{IS_UNDER_4HZ}",
             ]
-            # wandb_config = {
-            #     "test name": test_name,
-            #     "date id": date_id,
-            #     "sample_size": SAMPLE_SIZE,
-            #     "epochs": EPOCHS,
-            #     "kernel": KERNEL_SIZE,
-            #     "stride": STRIDE,
-            #     "fit_pos": FIT_POS,
-            #     "batch_size": BATCH_SIZE,
-            #     "n_class": N_CLASS,
-            #     "has_nrem2_bias": HAS_NREM2_BIAS,
-            #     "has_rem_bias": HAS_REM_BIAS,
-            #     "model_type": ENN_TAG,
-            #     "data_type": DATA_TYPE,
-            #     "under_4hz": IS_UNDER_4HZ,
-            # }
+            wandb_config = {
+                "batch_size": BATCH_SIZE,
+                "data_type": DATA_TYPE,
+                "date id": date_id,
+                "epochs": EPOCHS,
+                "fit_pos": FIT_POS,
+                "has_nrem2_bias": HAS_NREM2_BIAS,
+                "has_rem_bias": HAS_REM_BIAS,
+                "kernel": KERNEL_SIZE,
+                "model_type": ENN_TAG,
+                "n_class": N_CLASS,
+                "sample_size": SAMPLE_SIZE,
+                "stride": STRIDE,
+                "test name": test_name,
+                "under_4hz": IS_UNDER_4HZ,
+            }
             main(
-                test_run=TEST_RUN,
-                has_dropout=True,
-                log_tf_projector=True,
-                name=test_name,
-                # project=WANDB_PROJECT,
-                pre_process=pre_process,
-                train=train,
-                test=test,
-                epochs=EPOCHS,
-                save_model=True,
-                has_attention=HAS_ATTENTION,
-                my_tags=my_tags,
-                date_id=date_id,
-                pse_data=PSE_DATA,
-                test_name=test_name,
-                has_inception=HAS_INCEPTION,
                 batch_size=BATCH_SIZE,
-                n_class=N_CLASS,
                 data_type=DATA_TYPE,
-                sample_size=SAMPLE_SIZE,
+                date_id=date_id,
+                dropout_rate=DROPOUT_RATE,
+                epochs=EPOCHS,
+                has_attention=HAS_ATTENTION,
+                has_dropout=True,
+                has_inception=HAS_INCEPTION,
                 is_enn=IS_ENN,
-                # wandb_config=wandb_config,
-                kernel_size=KERNEL_SIZE,
                 is_mul_layer=IS_MUL_LAYER,
+                is_under_4hz=IS_UNDER_4HZ,
+                kernel_size=KERNEL_SIZE,
+                log_tf_projector=True,
+                my_tags=my_tags,
+                n_class=N_CLASS,
+                name=test_name,
+                pre_process=pre_process,
+                project=WANDB_PROJECT,
+                pse_data=PSE_DATA,
+                sample_size=SAMPLE_SIZE,
+                save_model=True,
+                target_ss=target_ss,
+                test=test,
+                test_name=test_name,
+                test_run=TEST_RUN,
+                train=train,
+                wandb_config=wandb_config,
                 utils=Utils(
                     IS_NORMAL,
                     IS_PREVIOUS,
@@ -417,15 +420,7 @@ if __name__ == "__main__":
                     model_type=ENN_TAG,
                     cleansing_type=CLEANSING_TYPE,
                 ),
-                dropout_rate=DROPOUT_RATE,
-                is_under_4hz=IS_UNDER_4HZ,
-                target_ss=target_ss,
             )
-
-            # testの時は一人の被験者で止める
-            # if TEST_RUN:
-            #     print(PyColor.RED_FLASH, "テストランのため被験者のループを終了します", PyColor.END)
-            #     break
 
             # json に書き込み
             MI.dump(value=date_id, test_name=test_name, target_ss=target_ss)
