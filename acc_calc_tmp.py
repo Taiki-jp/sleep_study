@@ -10,23 +10,23 @@ import seaborn as sns
 from cv2 import sort
 from sklearn.metrics import classification_report, confusion_matrix
 
-# 提案手法1のパス
+# 提案手法1（AECNN）のパス
 proposed01_pathlist = os.path.join(
     os.environ["sleep"], "logs", "proposed_01", "*.csv"
 )
-# 提案手法2のパス
+# 提案手法2(ECNN)のパス
 proposed02_pathlist = os.path.join(
     os.environ["sleep"], "logs", "proposed_02", "*.csv"
 )
-# 旧提案手法3のパス
+# 旧提案手法3(CCNN_ver1)のパス
 proposed03_pathlist = os.path.join(
     os.environ["sleep"], "logs", "proposed_03", "*.csv"
 )
-# 新提案手法3のパス
+# 新提案手法3(CCNN_ver1)のパス
 proposed04_pathlist = os.path.join(
     os.environ["sleep"], "logs", "proposed_04", "*.csv"
 )
-# ennのパス
+# enn(ECNN)のパス
 enn_pathlist = os.path.join(
     os.environ["sleep"], "logs", "bin_enn_output", "*.csv"
 )
@@ -86,6 +86,7 @@ for pp01, pp02, pp03, pp04, enn in zip(
     # pp01_cm = confusion_matrix(y_true=y_tue_series, y_pred=pp01_pred)
     # print(pp01_cm)
     # 試す
+    # TODO: map関数で書く
     try:
         pp01_report = classification_report(
             y_true=y_tue_series,
@@ -156,6 +157,7 @@ for pp01, pp02, pp03, pp04, enn in zip(
             target_names=["nr2", "nr1", "rem", "wake"],
             output_dict=True,
         )
+    # TODO: map関数で書く
     pp01_df = pd.DataFrame(pp01_report)
     # print(pp01_df.head())
     metrics = ["precision", "recall", "f1-score", "support"]
