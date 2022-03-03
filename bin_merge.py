@@ -9,15 +9,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-# ennのパス
+# ennのパス(eenn)
 enn_filedir = os.path.join(
     os.environ["git"], "sleep_study", "bin_enn", "*.csv"
 )
-# cnn+attnのパス
+# cnn+attnのパス(aecnn)
 cnn_attn_filedir = os.path.join(
     os.environ["git"], "sleep_study", "cnn_attn", "*.csv"
 )
-# cnnのパス
+# cnnのパス(ecnn)
 cnn_filedir = os.path.join(
     os.environ["git"], "sleep_study", "cnn_no_attn", "*.csv"
 )
