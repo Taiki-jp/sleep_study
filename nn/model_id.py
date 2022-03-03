@@ -55,13 +55,26 @@ class ModelId(JsonBase):
         else:
             raise Exception
 
-    def dump(self, value, is_pre_dump: bool = False) -> None:
+    def dump(
+        self, value, is_pre_dump: bool = False, cleansing_type: str = ""
+    ) -> None:
         def __dump():
-            self.json_dict[self.hostkey][self.subject_type][self.model_type][
-                self.data_type
-            ][self.fit_pos][self.stride][self.kernel][
-                self.cleansing_type
-            ] = value
+            assert isinstance(cleansing_type, str)
+            if len(cleansing_type) == 0:
+                self.json_dict[self.hostkey][self.subject_type][
+                    self.model_type
+                ][self.data_type][self.fit_pos][self.stride][self.kernel][
+                    self.cleansing_type
+                ] = value
+            # cleansingタイプをpositiveみたいにしたいときにはこっち
+            # TODO: 応急処置のため後で修正
+            else:
+                self.json_dict[self.hostkey][self.subject_type][
+                    self.model_type
+                ][self.data_type][self.fit_pos][self.stride][self.kernel][
+                    cleansing_type
+                ] = value
+
             with open(self.json_file, "w") as f:
                 json.dump(self.json_dict, f, indent=2)
 

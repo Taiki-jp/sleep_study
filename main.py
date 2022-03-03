@@ -190,8 +190,8 @@ def main(
         verbose=2,
     )
     # 混合行列・不確かさ・ヒストグラムの作成
-    tuple_x = (x_train, x_val)
-    tuple_y = (y_train[0], y_val[0])
+    tuple_x = (x_train, x_test)
+    tuple_y = (y_train[0], y_test[0])
     for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
         evidence = model.predict(_x)
         utils.make_graphs(
@@ -239,9 +239,9 @@ if __name__ == "__main__":
         # tf.config.run_functions_eagerly(True)
 
     # ハイパーパラメータの設定
-    TEST_RUN = False
-    EPOCHS = 10
-    HAS_ATTENTION = True
+    TEST_RUN = True
+    EPOCHS = 25
+    HAS_ATTENTION = False
     PSE_DATA = False
     HAS_INCEPTION = True
     IS_PREVIOUS = False
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "main_project"
+    WANDB_PROJECT = "test" if TEST_RUN else "20220121_enn_normal"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 

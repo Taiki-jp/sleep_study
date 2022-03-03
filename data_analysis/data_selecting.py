@@ -50,6 +50,7 @@ def main(
     has_dropout: bool = False,
     dropout_rate: float = 0,
     utils: Utils = None,
+    is_under_4hz: bool = False,
 ):
 
     # データセットの作成
@@ -64,7 +65,7 @@ def main(
         pse_data=pse_data,
         to_one_hot_vector=False,
         each_data_size=sample_size,
-        is_under_4hz=True,
+        is_under_4hz=is_under_4hz,
     )
     # データセットの数を表示
     print(f"training data : {x_train.shape}")
@@ -100,14 +101,21 @@ def main(
 
     # NOTE: earernel_size の半分が入力のサイズになる（fft をかけているため）
     # TODO: mypyでshapeが違うとエラーになる
+
     if data_type == "spectrum" or data_type == "cepstrum":
         shape: Tuple[int, int] = (int(kernel_size / 2), 1)
     elif data_type == "spectrogram":
-        shape: Tuple[int, int, int] = (128, 30, 1)
+        if is_under_4hz:
+            shape: Tuple[int, int, int] = (
+                (32, 30, 1) if kernel_size == 128 else (64, 30, 1)
+            )
+        else:
+            shape: Tuple[int, int, int] = (
+                (64, 30, 1) if kernel_size == 128 else (128, 30, 1)
+            )
     else:
         print("correct data_type based on your model")
         sys.exit(1)
-
     inputs = tf.keras.Input(shape=shape)
     if data_type == "spectrum" or data_type == "cepstrum":
         outputs = edl_classifier_1d(
@@ -136,12 +144,11 @@ def main(
 
     # NOTE : そのためone-hotの状態でデータを読み込む必要がある
     # TODO: このコピーいる？
-    x, y = (x_train, y_train)
 
     # 訓練データのクレンジング
     (_x, _y) = separate_unc_data(
-        x=x,
-        y=y,
+        x=x_train,
+        y=y_train[0],
         model=model,
         batch_size=batch_size,
         n_class=n_class,
@@ -152,7 +159,7 @@ def main(
     # テストデータのクレンジング
     (_x_test, _y_test) = separate_unc_data(
         x=x_test,
-        y=y_test,
+        y=y_test[0],
         model=model,
         batch_size=batch_size,
         n_class=n_class,
@@ -187,11 +194,21 @@ def main(
             "accuracy",
         ],
     )
-    log_dir = os.path.join(
-        pre_process.my_env.project_dir, "my_edl", test_name, date_id["nothing"]
+    log_dir = pre_process.my_env.get_tf_board_saved_path(
+        p_dir="logs", c_dir=test_name, model_id=date_id
     )
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir, histogram_freq=1
+    )
+    cp_dir = pre_process.my_env.get_model_saved_path(
+        c_dir=test_name, model_id=saving_date_id
+    )
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=cp_dir,
+        verbose=1,
+        period=1,
+        monitor="val_accuracy",
+        save_best_only=True,
     )
 
     _model.fit(
@@ -207,6 +224,7 @@ def main(
                 log_confusion_matrix=True,
                 labels=["nr34", "nr2", "nr1", "rem", "wake"],
             ),
+            cp_callback,
         ],
         verbose=2,
     )
@@ -226,14 +244,6 @@ def main(
             graph_date_id=saving_date_id,
             is_each_unc=True,
         )
-
-    if save_model:
-        # モデルの保存
-        path = os.path.join(
-            pre_process.my_env.models_dir, test_name, saving_date_id
-        )
-        print("モデルを保存します")
-        _model.save(path)
     # wandb終了
     wandb.finish()
 
@@ -260,7 +270,7 @@ if __name__ == "__main__":
     # ハイパーパラメータの設定
     # TODO: jsonに移植
     TEST_RUN = False
-    EPOCHS = 50
+    EPOCHS = 25
     HAS_ATTENTION = True
     PSE_DATA = False
     HAS_INCEPTION = True
@@ -270,12 +280,13 @@ if __name__ == "__main__":
     IS_MUL_LAYER = False
     CATCH_NREM2 = True
     HAS_DROPOUT = True
-    BATCH_SIZE = 64
+    IS_UNDER_4HZ = False
+    BATCH_SIZE = 512
     N_CLASS = 5
-    KERNEL_SIZE = 256
+    KERNEL_SIZE = 128
     STRIDE = 16
-    SAMPLE_SIZE = 2000
-    UNC_THRETHOLD = 0.3
+    SAMPLE_SIZE = 10000
+    UNC_THRETHOLD = 0.2
     DROPOUT_RATE = 0.3
     DATA_TYPE = "spectrogram"
     FIT_POS = "middle"
@@ -289,7 +300,7 @@ if __name__ == "__main__":
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
     INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
-    WANDB_PROJECT = "test" if TEST_RUN else "positive_cleansing"
+    WANDB_PROJECT = "test" if TEST_RUN else "20220124_nidan"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     CATCH_NREM2_TAG = "catch_nrem2" if CATCH_NREM2 else "catch_nrem34"
@@ -309,13 +320,15 @@ if __name__ == "__main__":
         model_type=ENN_TAG,
         cleansing_type=CLEANSING_TYPE,
         make_valdata=True,
+        has_ignored=True,
+        lsp_option="nr2",
     )
+    # 記録用のjsonファイルを読み込む
+    MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA
     )
 
-    # 読み込むモデルの日付リストを返す
-    MI = pre_process.my_env.mi
     model_date_d = MI.get_ppi()
     model_date_list = model_date_d[CLEANSING_TYPE]
 
@@ -358,7 +371,7 @@ if __name__ == "__main__":
         }
         # FIXME: name をコード名にする
         main(
-            save_model=True,
+            save_model=False,
             name=f"{test_name}",
             project=WANDB_PROJECT,
             train=train,
@@ -394,6 +407,7 @@ if __name__ == "__main__":
                 model_type=ENN_TAG,
                 cleansing_type=CLEANSING_TYPE,
             ),
+            is_under_4hz=IS_UNDER_4HZ,
         )
 
         # testの時は一人の被験者で止める
@@ -401,19 +415,5 @@ if __name__ == "__main__":
             print(PyColor.RED_FLASH, "testランのため終了します", PyColor.END)
             break
 
-    # モデルを保存しないのでコメントアウト
-    # TODO: モデルの保存を行う変数に応じて場合分け
-    JB.dump(
-        keys=[
-            JB.first_key_of_pre_process(
-                is_normal=IS_NORMAL, is_prev=IS_PREVIOUS
-            ),
-            ENN_TAG,
-            DATA_TYPE,
-            FIT_POS,
-            f"stride_{str(STRIDE)}",
-            f"kernel_{str(KERNEL_SIZE)}",
-            f"{EXPERIENT_TYPE}",
-        ],
-        value=date_id_saving_list,
-    )
+    # if not TEST_RUN:
+    MI.dump(value=date_id_saving_list, cleansing_type="positive_cleansing")
