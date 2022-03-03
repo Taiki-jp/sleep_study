@@ -1,4 +1,9 @@
+from __future__ import annotations
+
 import json
+from ctypes import ArgumentError
+from typing import List
+
 from pre_process.json_base import JsonBase
 
 
@@ -15,7 +20,7 @@ class SubjectsList(JsonBase):
         self.foll_sass = self.json_dict["following_sas_name"]
 
     # 名前のリストを返す
-    def set_name_list(self, is_previous: bool, is_normal: bool) -> list:
+    def set_name_list(self, is_previous: bool, is_normal: bool) -> List[str]:
         if is_previous:
             if is_normal:
                 names = self.prev_names
@@ -26,6 +31,14 @@ class SubjectsList(JsonBase):
                 names = self.foll_names
             else:
                 names = self.foll_sass
+        return names
+
+    # 無視する名前のリストを返す
+    def get_ignoring_list(self, option) -> List[str]:
+        if option == "nr2":
+            names = self.json_dict["ignoring_list"]["nr2_rate"]
+        else:
+            raise ArgumentError
         return names
 
 

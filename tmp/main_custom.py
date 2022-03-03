@@ -1,23 +1,25 @@
-import sys
 import os
+import sys
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 import tensorflow as tf
 
 tf.random.set_seed(0)  # TODO: モジュールのインポートの部分から他の部分に移行する
+import datetime
+from collections import Counter
+
+import numpy as np
+import wandb
 from tensorflow.python.data.ops.dataset_ops import DatasetV2
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.ops.array_ops import boolean_mask
+
 from data_analysis.py_color import PyColor
-import datetime
-import wandb
-from collections import Counter
-from pre_process.pre_process import PreProcess
-from nn.model_base import classifier4enn, spectrum_conv
-from nn.losses import EDLLoss
-from pre_process.json_base import JsonBase
-import numpy as np
 from data_analysis.utils import Utils
+from nn.losses import EDLLoss
+from nn.model_base import classifier4enn, spectrum_conv
+from pre_process.json_base import JsonBase
+from pre_process.pre_process import PreProcess
 
 
 def main(

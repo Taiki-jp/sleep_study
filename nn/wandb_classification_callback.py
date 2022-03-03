@@ -1,12 +1,14 @@
-import numpy as np
 import sys
+from collections import Counter
+
+import numpy as np
+import plotly.graph_objs as go
+import tensorflow.python.keras.backend as K
+from plotly.subplots import make_subplots
+from sklearn.metrics import confusion_matrix
+
 import wandb
 from wandb.keras import WandbCallback
-from sklearn.metrics import confusion_matrix
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-from collections import Counter
-import tensorflow.python.keras.backend as K
 
 
 class WandbClassificationCallback(WandbCallback):
@@ -185,14 +187,14 @@ class WandbClassificationCallback(WandbCallback):
             # y_val = np.argmax(y_val, axis=0)
             rec_log_dict = {
                 "rec_"
-                + ss_label: (confdiag[i][i]
-                + eps4zero_div) / (ss_dict[i] + eps4zero_div)
+                + ss_label: (confdiag[i][i] + eps4zero_div)
+                / (ss_dict[i] + eps4zero_div)
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             pre_log_dict = {
                 "pre_"
-                + ss_label: (confdiag[i][i]
-                + eps4zero_div) / (sum(confmatrix[i]) + confdiag[i][i] + eps4zero_div)
+                + ss_label: (confdiag[i][i] + eps4zero_div)
+                / (sum(confmatrix[i]) + confdiag[i][i] + eps4zero_div)
                 for (ss_label, i) in zip(self.labels, range(len(self.labels)))
             }
             f_m_log_dict = {
@@ -208,15 +210,16 @@ class WandbClassificationCallback(WandbCallback):
             # nrem34がないときの処理
             rec_log_dict = {
                 "rec_"
-                + self.labels[i + 1]: (confdiag[i + 1][i + 1]
-                + eps4zero_div) / (ss_dict[i + 1] + eps4zero_div)
+                + self.labels[i + 1]: (confdiag[i + 1][i + 1] + eps4zero_div)
+                / (ss_dict[i + 1] + eps4zero_div)
                 for i in range(4)
             }
             pre_log_dict = {
                 "pre_"
-                + self.labels[i + 1]: (confdiag[i + 1][i + 1]
-                + eps4zero_div)
-                / sum(confmatrix[i + 1] + confdiag[i + 1][i + 1] + eps4zero_div)
+                + self.labels[i + 1]: (confdiag[i + 1][i + 1] + eps4zero_div)
+                / sum(
+                    confmatrix[i + 1] + confdiag[i + 1][i + 1] + eps4zero_div
+                )
                 for i in range(4)
             }
             f_m_log_dict = {

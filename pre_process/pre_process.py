@@ -1,15 +1,22 @@
 import datetime
-import sys
+import itertools
 import os
-import numpy as np
-from imblearn.over_sampling import SMOTE
+import sys
 from collections import Counter
-from random import shuffle, choices, seed
+from random import choice, choices, seed, shuffle
+from typing import Dict, List, Tuple, Union
+
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras.preprocessing.image as tf_image
+from imblearn.over_sampling import SMOTE
+from numpy import ndarray
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from pre_process.load_sleep_data import LoadSleepData
+
+from data_analysis.py_color import PyColor
+from pre_process.load_sleep_data import LoadSleepData, MyEnv, Record
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 
@@ -24,10 +31,14 @@ class PreProcess:
         is_previous: bool,
         stride: int,
         is_normal: bool,
+        cleansing_type: str,
         has_nrem2_bias: bool = False,
         has_rem_bias: bool = False,
+        model_type: str = "",
+        make_valdata: bool = False,
+        has_ignored: bool = False,
+        lsp_option: str = "",
     ):
-        seed(0)
         self.date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.data_type = data_type
         self.fit_pos = fit_pos
@@ -35,8 +46,10 @@ class PreProcess:
         self.kernel_size = kernel_size
         self.is_previous = is_previous
         self.stride = stride
+        self.model_type = model_type
         self.is_normal = is_normal
-        self.load_sleep_data = LoadSleepData(
+        self.make_valdata = make_valdata
+        self.load_sleep_data: LoadSleepData = LoadSleepData(
             data_type=self.data_type,
             fit_pos=self.fit_pos,
             verbose=self.verbose,
@@ -44,22 +57,82 @@ class PreProcess:
             is_previous=self.is_previous,
             stride=self.stride,
             is_normal=self.is_normal,
+            model_type=self.model_type,
+            cleansing_type=cleansing_type,
+            has_ignored=has_ignored,
+            option=lsp_option,
         )
         self.has_nrem2_bias = has_nrem2_bias
         self.has_rem_bias = has_rem_bias
         # LoadSleepData の参照を作成
-        self.fr = self.load_sleep_data.fr
         self.sl = self.load_sleep_data.sl
-        self.my_env = self.load_sleep_data.my_env
+        self.my_env: MyEnv = self.load_sleep_data.my_env
         # その他よく使うものをメンバに持っておく
-        self.name_list = self.sl.set_name_list(
-            is_previous=self.is_previous, is_normal=self.is_normal
-        )
+        self.name_list = self.load_sleep_data.name_list
+        # self.list2sub method 用の登録辞書とカウンタ
+        self.has_catched_name = dict()
+        self.subject_counter = 0
 
     # データセットの作成（この中で出来るだけ正規化なども含めて終わらせる）
     # TODO: データ選択方法の見直し
+    def make_test_data(
+        self,
+        test: list,
+        normalize: bool,
+        catch_none: bool,
+        insert_channel_axis: bool,
+        to_one_hot_vector: bool,
+        class_size: int,
+        n_class_converted: int,
+    ):
+        y_test = self.list2SS(test)
+        if self.data_type == "spectrum":
+            x_test = self.list2Spectrum(test)
+        elif self.data_type == "spectrogram":
+            x_test = self.list2Spectrogram(test)
+        elif self.data_type == "cepstrum":
+            x_test = self.list2Cepstrum(test)
+        else:
+            print("spectrum or spectrogram or cepstrumを指定してください")
+            sys.exit(1)
+        # Noneの処理をするかどうか
+        if catch_none is True:
+            print("- noneの処理を行います")
+            x_test, y_test = self.catch_none(x_test, y_test)
+
+        # max正規化をするかどうか
+        if normalize is True:
+            print("- max正規化を行います")
+            self.max_norm(x_test)
+
+        # 睡眠段階のラベルを0 -（クラス数-1）にする
+        # クラスサイズに合わせて処理を変更する
+        y_test = self.change_label(
+            y_data=y_test,
+            n_class=class_size,
+            n_class_converted=n_class_converted,
+        )
+
+        # inset_channel_axis based on data type
+        if self.data_type == "spectrum" or self.data_type == "cepstrum":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_test = x_test[:, :, np.newaxis]  # .astype('float32')
+        elif self.data_type == "spectrogram":
+            if insert_channel_axis:
+                print("- チャンネル方向に軸を追加します")
+                x_test = x_test[:, :, :, np.newaxis]  # .astype('float32')
+
+        # convert to one-hot vector
+        if to_one_hot_vector:
+            print("- one-hotベクトルを出力します")
+            y_test = tf.one_hot(y_test, class_size)
+
+        return (x_test, y_test)
+
     def make_dataset(
         self,
+        is_under_4hz: bool,
         train=None,
         test=None,
         is_set_data_size=True,
@@ -73,9 +146,10 @@ class PreProcess:
         normalize=True,
         catch_none=True,
         insert_channel_axis=True,
-        to_one_hot_vector=True,
+        to_one_hot_vector=False,  # NOTE: yの次元は複数の時はone-hotではvstack出来ないのでTrueを使わないように注意
         pse_data=False,
-    ):
+        n_class_converted: int = 5,
+    ) -> Tuple[Tuple[ndarray, ndarray], Tuple[ndarray, ndarray]]:
         # NOTE : when true, make pse_data based on the data type
         # which specified in load_sleep_data object
         if pse_data:
@@ -86,32 +160,36 @@ class PreProcess:
                 to_one_hot_vector=to_one_hot_vector,
             )
 
-        if is_set_data_size:
+        if is_set_data_size is False and self.verbose == 0:
+            print("データサイズをそろえずにデータセットを作成します")
 
-            if self.verbose == 0:
-                print("- 訓練データのサイズを揃えます")
+        if self.verbose == 0:
+            print("- 訓練データのサイズを揃えます")
 
-            # 各睡眠段階のサイズを決定する
-            ss_dict_train = self.set_datasize(
-                train,
-                target_ss=target_ss,
-                isStorchastic=is_storchastic,
-                each_data_size=each_data_size,
-                class_size=class_size,
+        # 各睡眠段階のサイズを訓練データのために決定する
+        ss_dict_train = self.set_datasize(
+            train,
+            target_ss=target_ss,
+            isStorchastic=is_storchastic,
+            each_data_size=each_data_size,
+            class_size=class_size,
+        )
+
+        # 補正前の各睡眠段階のクラス数の表示
+        if self.verbose == 0:
+            print(
+                "訓練データの各睡眠段階（補正前）",
+                Counter([record.ss for record in train]),
             )
-            ss_dict_test = Counter([record.ss for record in test])
 
-            if self.verbose == 0:
-                print(
-                    "訓練データの各睡眠段階（補正前）",
-                    Counter([record.ss for record in train]),
-                )
-                print("訓練データの各睡眠段階（補正後）", ss_dict_train)
-
-            def _storchastic_sampling(data, target_records, is_test):
+            def _storchastic_sampling(
+                data: Dict[int, int],
+                target_records: List[Record],
+                is_test: bool,
+            ) -> Tuple[List[Record], List[Record]]:
                 tmp = list()
 
-                def _splitEachSleepStage():
+                def _splitEachSleepStage() -> List[List[Record]]:
                     each_stage_list = list()
 
                     for ss in data.keys():
@@ -129,144 +207,183 @@ class PreProcess:
                         )
                     return each_stage_list
 
+                # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
+                def _sample(target_records: List[Record]) -> List[Record]:
+                    if is_test:
+                        print(
+                            PyColor.RED_FLASH,
+                            f"廃止しました。テスト時は{sys._getframe().f_code.co_name}を使用しないようにしてください",
+                            PyColor.END,
+                        )
+                        sys.exit(1)
+
+                    # 睡眠段階のラベルを知るために必要
+                    ss = target_records[0].ss
+                    ss_int_label_d = {"wake":5, "rem":4, "nr1":3, "nr2":2, "nr3":1}
+                    target_ss_as_int = ss_int_label_d[target_ss[0]]
+                    if ss != target_ss_as_int:
+                        _selected_list = choices(target_records, k=data[ss])
+                    elif ss == target_ss_as_int:
+                        # かつnr2(2)であれば、8倍（つまり2倍の量）を作成する
+                        if ss == 2:
+                            _selected_list = choices(target_records, k=data[ss]*8)
+                        else:
+                            _selected_list = choices(target_records, k=data[ss]*4)
+                    return _selected_list
+
                 # record を各睡眠段階ごとにわけているもの（長さ５とは限らない（nr3がない場合））
                 ss_list = _splitEachSleepStage()
-                for records in ss_list:
-                    if len(records) == 0:
-                        print("睡眠段階が存在しないため飛ばします")
-                        continue
-                    # 各睡眠段階がある間はその睡眠段階に対してランダムサンプリングを行う
-                    else:
 
-                        def _sample(target_records):
-                            # 睡眠段階のラベルを知るために必要
-                            if is_test:
-                                ss = target_records[0].ss
-                                _selected_list = choices(
-                                    target_records, k=data[ss]
-                                )
-                            else:
-                                ss = target_records[0].ss
-                                if ss != target_ss:
-                                    try:
-                                        # target_recordsからdata[ss]個取ってくる感じ
-                                        # >>> len(target_records)
-                                        # >>> 1019（各睡眠段階のrecordオブジェクトが入っている
-                                        # >>> data[4]
-                                        # >>> 睡眠段階が4のもの（REM）の数を返す
-                                        # （正確にはCounterの辞書の4に対応するvalueのこと）
-                                        if is_multiply:
-                                            _selected_list = choices(
-                                                target_records, k=400
-                                            )
-                                        else:
-                                            if mul_num is not None:
-                                                _selected_list = choices(
-                                                    target_records,
-                                                    k=data[ss] * mul_num,
-                                                )
-                                            else:
-                                                _selected_list = choices(
-                                                    target_records, k=data[ss]
-                                                )
-                                    except Exception:
-                                        if is_multiply:
-                                            # print("データを複製する必要があるので、random.choices()を用います")
-                                            _selected_list = choices(
-                                                target_records, k=400
-                                            )
-                                        else:
-                                            if mul_num is not None:
-                                                _selected_list = choices(
-                                                    target_records,
-                                                    k=data[ss] * mul_num,
-                                                )
-                                            else:
-                                                _selected_list = choices(
-                                                    target_records, k=data[ss]
-                                                )
-                                elif ss == target_ss:
-                                    _selected_list = choices(
-                                        target_records, k=data[ss]
-                                    )
-                            return _selected_list
+                def __split_train_val_data(
+                    ratio: Tuple[int, int]
+                ) -> Tuple[List[List[Record]], List[List[Record]]]:
+                    traindata, valdata = list(), list()
+                    for ss_array in ss_list:
+                        # シャッフルしてからss_arrayを前半・後半を分ける
+                        # NOTE: 時系列データにするときはこの処理を入れられないのでどうしようか
+                        shuffle(ss_array)
+                        traindata.append(ss_array[: int(0.8 * len(ss_array))])
+                        valdata.append(ss_array[int(0.8 * len(ss_array)) :])
+                    return traindata, valdata
 
-                    tmp.extend(_sample(target_records=records))
-                return tmp
+                # TODO: ここで分割する
+                if self.make_valdata:
+                    traindata, valdata = __split_train_val_data(ratio=(8, 2))
+                else:
+                    traindata, valdata = ss_list, None
 
-            train = _storchastic_sampling(
+                tmp = list(map(_sample, traindata))
+                # flatten 2d list
+                tmp = list(itertools.chain.from_iterable(tmp))
+                valdata = list(itertools.chain.from_iterable(valdata))  # 検証データの複製は不必要なので_sample methodを返さなくてよい
+                return tmp, valdata
+
+            train, valdata = _storchastic_sampling(
                 data=ss_dict_train, target_records=train, is_test=False
-            )
-            test = _storchastic_sampling(
-                data=ss_dict_test, target_records=test, is_test=True
             )
 
             if is_shuffle:
                 print("- 訓練データをシャッフルします")
                 shuffle(train)
 
-        else:
-            if self.verbose == 0:
-                print("データサイズをそろえずにデータセットを作成します")
-
         # TODO : スペクトログラムかスペクトラム化によって呼び出す関数を場合分け
-        y_train = self.list2SS(train)
-        y_test = self.list2SS(test)
+        datasets = (train, valdata, test)
+        y_train, y_val, y_test = map(self.list2SS, datasets)
+        y_train_subject, y_val_subject, y_test_subject = map(
+            self.list2sub, datasets
+        )
         if self.data_type == "spectrum":
-            x_train = self.list2Spectrum(train)
-            x_test = self.list2Spectrum(test)
+            converter = self.list2Spectrum
         elif self.data_type == "spectrogram":
-            x_train = self.list2Spectrogram(train)
-            x_test = self.list2Spectrogram(test)
+            converter = self.list2Spectrogram
+        elif self.data_type == "cepstrum":
+            converter = self.list2Cepstrum
         else:
-            print("spectrum or spectrogramを指定してください")
+            print("spectrum or spectrogram or cepstrumを指定してください")
             sys.exit(1)
+        x_train, x_val, x_test = map(converter, datasets)
 
         # Noneの処理をするかどうか
-        if catch_none is True:
+        if catch_none:
             print("- noneの処理を行います")
-            x_train, y_train = self.catch_none(x_train, y_train)
-            x_test, y_test = self.catch_none(x_test, y_test)
+            x_train, y_train, y_train_subject = self.catch_none(
+                x_train, y_train, y_train_subject
+            )
+            x_val, y_val, y_val_subject = self.catch_none(
+                x_val, y_val, y_val_subject
+            )
+            x_test, y_test, y_test_subject = self.catch_none(
+                x_test, y_test, y_test_subject
+            )
 
         # max正規化をするかどうか
-        if normalize is True:
+        if normalize:
             print("- max正規化を行います")
-            self.max_norm(x_train)
-            self.max_norm(x_test)
+            # 3次元配列の標準化の方法
+            # https://stackoverflow.com/questions/50125844/how-to-standard-scale-a-3d-matrix
+            map(self.max_norm, (x_train, x_val, x_test))
 
         # 睡眠段階のラベルを0 -（クラス数-1）にする
-        y_train = self.change_label(
-            y_data=y_train, n_class=class_size, target_class=target_ss
-        )
-        y_test = self.change_label(
-            y_data=y_test, n_class=class_size, target_class=target_ss
+        (y_train, y_val, y_test) = map(
+            self.change_label,
+            (y_train, y_val, y_test),
+            (class_size, class_size, class_size),
+            (target_ss, target_ss, target_ss),
+            (n_class_converted, n_class_converted, n_class_converted)
         )
 
         # inset_channel_axis based on data type
-        if self.data_type == "spectrum":
-            if insert_channel_axis:
-                print("- チャンネル方向に軸を追加します")
-                x_train = x_train[:, :, np.newaxis]  # .astype('float32')
-                x_test = x_test[:, :, np.newaxis]  # .astype('float32')
-        elif self.data_type == "spectrogram":
-            if insert_channel_axis:
-                print("- チャンネル方向に軸を追加します")
-                x_train = x_train[:, :, :, np.newaxis]  # .astype('float32')
-                x_test = x_test[:, :, :, np.newaxis]  # .astype('float32')
-
-        if self.verbose == 0:
-            print(
-                "*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n",
-                Counter(y_train),
+        if (
+            self.data_type == "spectrum"
+            or self.data_type == "cepstrum"
+            and insert_channel_axis == True
+        ):
+            print("- チャンネル方向に軸を追加します")
+            insert_channel = lambda x: x[:, :, np.newaxis]
+            (x_train, x_val, x_test) = map(
+                insert_channel, (x_train, x_val, x_test)
+            )
+        elif self.data_type == "spectrogram" and insert_channel_axis == True:
+            print("- チャンネル方向に軸を追加します")
+            insert_channel = lambda x: x[:, :, :, np.newaxis]
+            (x_train, x_val, x_test) = map(
+                insert_channel, (x_train, x_val, x_test)
             )
 
         # convert to one-hot vector
         if to_one_hot_vector:
             print("- one-hotベクトルを出力します")
-            y_train = tf.one_hot(y_train, class_size)
-            y_test = tf.one_hot(y_test, class_size)
+            converter = lambda y: tf.one_hot(y, class_size)
+            (y_train, y_val, y_test) = map(converter, (y_train, y_val, y_test))
 
-        return (x_train, y_train), (x_test, y_test)
+        # only use under 4hz
+        if is_under_4hz:
+            print("- 4Hzで足切りをします")
+            shaper_4hz = lambda x: x[:, : int(x.shape[1] / 2), :, :]
+            (x_train, x_val, x_test) = map(
+                shaper_4hz, (x_train, x_val, x_test)
+            )
+
+        if self.verbose == 0:
+            print(
+                "*** 全ての前処理後（one-hotを除く）の訓練データセット（確認用） *** \n",
+                "y_train: ",
+                Counter(y_train),
+                "y_val: ",
+                Counter(y_val),
+                "y_test: ",
+                Counter(y_test),
+            )
+        return (
+            (x_train, np.vstack([y_train, y_train_subject])),
+            (x_val, np.vstack([y_val, y_val_subject])),
+            (x_test, np.vstack([y_test, y_test_subject])),
+        )
+
+    # 文字列から睡眠段階の数字に変更するメソッド
+    def ss2int(self, target_ss: list) -> list:
+        __tmp = list()
+        for _target_ss in target_ss:
+            if _target_ss == "nr4":
+                __tmp.append(0)
+            elif _target_ss == "nr3":
+                __tmp.append(1)
+            elif _target_ss == "nr2":
+                __tmp.append(2)
+            elif _target_ss == "nr1":
+                __tmp.append(3)
+            elif _target_ss == "rem":
+                __tmp.append(4)
+            elif _target_ss == "wake":
+                __tmp.append(5)
+            else:
+                print(
+                    PyColor.RED_FLASH,
+                    f"Unkown sleep stage name {_target_ss} given",
+                    PyColor.END,
+                )
+                sys.exit(1)
+        return __tmp
 
     # recordからスペクトラムの作成
     def list2Spectrum(self, list_data):
@@ -276,9 +393,30 @@ class PreProcess:
     def list2SS(self, list_data):
         return np.array([k.ss for k in list_data])
 
+    # recordから年齢の作成
+    def list2age(self, list_data: List[Record]):
+        return [k.age for k in list_data]
+
+    # recordから被験者の作成
+    def list2sub(self, list_data: List[Record]) -> ndarray:
+        # 被験者名とそのラベルを定義
+        for __record in list_data:
+            if not __record.name in self.has_catched_name:
+                self.has_catched_name.update(
+                    {__record.name: self.subject_counter}
+                )
+                self.subject_counter += 1
+        return np.array(
+            [self.has_catched_name[__record.name] for __record in list_data]
+        )
+
     # recordからスペクトログラムの作成
     def list2Spectrogram(self, list_data):
         return np.array([data.spectrogram for data in list_data])
+
+    # make cepstrum from list
+    def list2Cepstrum(self, list_data):
+        return np.array([data.cepstrum for data in list_data])
 
     # 訓練データとテストデータをスプリット（ホールドアウト検証）
     def split_train_test_data(
@@ -315,6 +453,11 @@ class PreProcess:
 
         return records_train, records_test
 
+    # def set_subjects_info(records: List[List[Record]]):
+    #     for _record in records:
+    #         for __record in _record:
+    #             __record.name =
+
     # 訓練データとテストデータをスプリット（ホールドアウト検証（旧バージョン））
     def split_train_test_from_records(
         self, records, test_id, pse_data: bool = False
@@ -341,8 +484,18 @@ class PreProcess:
     ):
 
         if isStorchastic:
-            print("確率的サンプリングを実装し直しましょう")
-            sys.exit(1)
+            print(
+                PyColor.GREEN_FLASH,
+                "確率的サンプリング（2クラス分類時に他クラスのラベルを増やすために実装下部分です",
+                PyColor.END,
+            )
+            return {
+                1: each_data_size,
+                2: each_data_size,
+                3: each_data_size,
+                4: each_data_size,
+                5: each_data_size,
+            }
         else:
             if class_size == 5:  # NR34, NR2, NR1, REM, WAKE
                 if self.has_nrem2_bias:
@@ -403,23 +556,43 @@ class PreProcess:
         for X in data:  # TODO : 全体の値で割るようなこともする
             X /= X.max()
 
+    # 各スペクトルの最小値で正規化
+    def min_norm(self, data):
+        for X in data:  # TODO : 全体の値で割るようなこともする
+            X /= X.min()
+
     # NONEの睡眠段階をキャッチして入力データごと消去
-    def catch_none(self, x_data, y_data):
+    def catch_none(self, x_data, y_data, y_data_subject):
         import pandas as pd
 
         x_data = list(x_data)
         y_data = list(y_data)
+        y_data_subject = list(y_data_subject)
         # 保存用のリストを確保
         _x_data = list()
         _y_data = list()
+        _y_data_subject = list()
         for num, ss in enumerate(y_data):
             if not pd.isnull(ss):
                 _x_data.append(x_data[num])
                 _y_data.append(y_data[num])
-        return np.array(_x_data), np.array(_y_data).astype(np.int32)
+                _y_data_subject.append(y_data_subject[num])
+            else:
+                print("none data has catched")
+        return (
+            np.array(_x_data),
+            np.array(_y_data).astype(np.int32),
+            np.array(_y_data_subject).astype(np.int32),
+        )
 
     # ラベルをクラス数に合わせて変更
-    def change_label(self, y_data, n_class, target_class=None):
+    def change_label(
+        self,
+        y_data: list,
+        n_class: int,
+        target_class: list = [],
+        n_class_converted: int = 5,
+    ):
         nr4_label_from = 0
         nr3_label_from = 1
         nr2_label_from = 2
@@ -427,7 +600,7 @@ class PreProcess:
         rem_label_from = 4
         wake_label_from = 5
         # 5クラス分類の時（0:nr34, 1:nr2, 2:nr1, 3:rem, 4:wake）
-        if n_class == 5:
+        if n_class_converted == 5:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 1
@@ -435,7 +608,7 @@ class PreProcess:
             rem_label_to = 3
             wake_label_to = 4
         # 4クラス分類の時（0:nr34, 1:nr12, 2:rem, 3:wake）
-        elif n_class == 4:
+        elif n_class_converted == 4:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 1
@@ -443,7 +616,7 @@ class PreProcess:
             rem_label_to = 2
             wake_label_to = 3
         # 3クラス分類の時（0:nrem, 1:rem, 2:wake）
-        elif n_class == 3:
+        elif n_class_converted == 3:
             nr4_label_to = 0
             nr3_label_to = 0
             nr2_label_to = 0
@@ -451,14 +624,14 @@ class PreProcess:
             rem_label_to = 1
             wake_label_to = 2
         # 2クラス分類とき（0:non_target, 1:target）
-        elif n_class == 2:
-            assert target_class is not None
-            nr4_label_to = 0 if target_class != "nr4" else 1
-            nr3_label_to = 0 if target_class != "nr3" else 1
-            nr2_label_to = 0 if target_class != "nr2" else 1
-            nr1_label_to = 0 if target_class != "nr1" else 1
-            rem_label_to = 0 if target_class != "rem" else 1
-            wake_label_to = 0 if target_class != "wake" else 1
+        elif n_class_converted == 2:
+            assert len(target_class) != 0
+            nr4_label_to = 1 if "nr4" in target_class else 0
+            nr3_label_to = 1 if "nr3" in target_class else 0
+            nr2_label_to = 1 if "nr2" in target_class else 0
+            nr1_label_to = 1 if "nr1" in target_class else 0
+            rem_label_to = 1 if "rem" in target_class else 0
+            wake_label_to = 1 if "wake" in target_class else 0
         else:
             print("正しいクラス数を指定してください")
             sys.exit(1)
@@ -585,13 +758,36 @@ class PreProcess:
 
 
 if __name__ == "__main__":
-    from pre_process.load_sleep_data import LoadSleepData
+    import rich
+
+    from data_analysis.utils import Utils
 
     PSE_DATA = False
-    load_sleep_data = LoadSleepData(data_type="spectrum", verbose=0, n_class=5)
-    pre_process = PreProcess(load_sleep_data)
+    utils = Utils(
+        is_normal=True,
+        is_previous=False,
+        data_type="spectrogram",
+        fit_pos="middle",
+        stride=128,
+        kernel_size=16,
+        model_type="enn",
+        cleansing_type="nothing",
+        catch_nrem2=True,
+    )
+    pre_process = PreProcess(
+        data_type="spectrogram",
+        fit_pos="middle",
+        verbose=0,
+        kernel_size=128,
+        is_previous=False,
+        stride=16,
+        is_normal=True,
+        cleansing_type="nothing",
+        has_nrem2_bias=True,
+        model_type="enn",
+    )
     # 全員読み込む
-    records = load_sleep_data.load_data(
+    records = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=PSE_DATA, name=None
     )
     # テストと訓練にスプリット
@@ -602,10 +798,21 @@ if __name__ == "__main__":
     # (train, test) = pre_process.split_train_test_data(
     #     load_all=True, test_name="H_Li")
     (x_train, y_train), (x_test, y_test) = pre_process.make_dataset(
-        train=train, test=test, is_storchastic=False, pse_data=PSE_DATA
+        train=train,
+        test=test,
+        is_storchastic=False,
+        pse_data=PSE_DATA,
+        to_one_hot_vector=False,
+        each_data_size=100,
+        normalize=False,
     )
-    print(x_train.shape)
-    # 1d が本当にデータ入っているかの確認 -> 確認済み
-    # import matplotlib.pyplot as plt
-    # plt.plot(x_train[0])
-    # plt.show()
+    ss = 5
+    num_plot = 16
+    print(Counter(y_test[0]))
+    utils.plotly_images(
+        images_arr=x_test,
+        title_arr=y_test[0],
+        num_plot=num_plot,
+    )
+    # print("x_train.shape: ", x_train.shape)
+    # print("y_train.shape: ", y_train.shape)

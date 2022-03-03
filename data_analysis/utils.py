@@ -1,70 +1,106 @@
-from typing import Any, Tuple
+import datetime
+import glob
+import os
+import pickle
+import sys
+from collections import Counter
+from typing import Any, Dict, List
+
+import imageio
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy
+import numpy as np
+import pandas as pd
+import PIL
+import plotly.express as px
+import seaborn as sns
+import tensorflow as tf
+
+# from imblearn.over_sampling import SMOTE
+from IPython.display import SVG
+from PIL import Image
+
+# from sklearn.datasets import make_classification
+from sklearn.metrics import confusion_matrix
+from tensorboard.plugins import projector
+
+# from tensorflow.keras.datasets import mnist
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
-from data_analysis.py_color import PyColor
-import pickle
-import datetime
-import os
+
+# import tensorflow_docs.vis.embed as embed
 import wandb
-from pre_process.file_reader import FileReader
-from random import shuffle, choices, random, seed
-import matplotlib
+from data_analysis.my_color import MyColor
+from data_analysis.py_color import PyColor
+from nn.losses import EDLLoss
+from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import pandas as pd
-from sklearn.metrics import confusion_matrix
-import numpy as np
-import seaborn as sns
-from tensorflow.keras.datasets import mnist
-from pre_process.load_sleep_data import LoadSleepData
-from sklearn.datasets import make_classification
-from imblearn.over_sampling import SMOTE
-from collections import Counter
-from IPython.display import SVG
-import numpy as np
-import sys
-import numpy
-import tensorflow as tf
-from data_analysis.my_color import MyColor
-from pre_process.my_env import MyEnv
-from PIL import Image
-import glob
-from tensorboard.plugins import projector
-from nn.losses import EDLLoss
-
 
 # 便利な関数をまとめたもの
 class Utils:
-    def __init__(self, ss_list=None, catch_nrem2: bool = False) -> None:
+    def __init__(
+        self,
+        is_normal,
+        is_previous,
+        data_type,
+        fit_pos,
+        stride,
+        kernel_size,
+        model_type,
+        cleansing_type,
+        ss_list=None,
+        catch_nrem2: bool = False,
+    ) -> None:
         self.id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.fr = FileReader()
-        self.env = self.fr.my_env
-        # self.name_list = self.fr.sl.name_list
-        # self.name_dict = self.fr.sl.name_dict
+        self.env = MyEnv(
+            is_normal=is_normal,
+            is_previous=is_previous,
+            data_type=data_type,
+            fit_pos=fit_pos,
+            stride=stride,
+            kernel_size=kernel_size,
+            model_type=model_type,
+            cleansing_type=cleansing_type,
+        )
         self.ss_list = ss_list
         self.catch_nrem2 = catch_nrem2
+        self.my_color = MyColor()
 
     # tensorboard のプロジェクタの作成
-    def make_tf_projector(self, x: Tensor, y: ndarray, batch_size: int, hidden_layer_id: str, log_dir: str, data_type: str, model_loads: bool = False, model: Model = None, date_id: str = "") -> None:
+    def make_tf_projector(
+        self,
+        x: Tensor,
+        y: ndarray,
+        batch_size: int,
+        hidden_layer_id: int,
+        log_dir: str,
+        data_type: str,
+        model: Model,
+        model_loads: bool = False,
+        date_id: str = "",
+    ) -> None:
         # モデルの読み込み（コンパイル済み）
         if model_loads and model is None:
             print(
                 PyColor().CYAN,
                 PyColor().RETURN,
-                f"*** {test_name}のモデルを読み込みます ***",
+                f"*** {data_type}のモデルを読み込みます ***",
                 PyColor().END,
             )
-            path = os.path.join(os.environ["sleep"], "models", test_name, date_id)
+            path = os.path.join(
+                os.environ["sleep"], "models", data_type, date_id
+            )
             model = tf.keras.models.load_model(
                 path, custom_objects={"EDLLoss": EDLLoss(K=5, annealing=0.1)}
             )
             print(
                 PyColor().CYAN,
                 PyColor().RETURN,
-                f"*** {test_name}のモデルを読み込みました ***",
+                f"*** {data_type}のモデルを読み込みました ***",
                 PyColor().END,
             )
         # 新しいモデルの作成
@@ -74,7 +110,9 @@ class Utils:
         hidden = new_model.predict(x, batch_size=batch_size)
         hidden = hidden.reshape(x.shape[0], -1)
         evidence = model.predict(x, batch_size=batch_size)
-        alpha, _, unc, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        alpha, _, unc, y_pred = self.calc_enn_output_from_evidence(
+            evidence=evidence
+        )
         # ディレクトリの作成
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
@@ -110,6 +148,7 @@ class Utils:
             raise Exception("知らないモードが指定されました")
 
     # graph_person_id => test_label(test_name), graph_date_id => date_id
+    # TODO: train_or_testがstr型で渡すべきなのか，bool型で渡すべきなのかを整理しておく
     def make_graphs(
         self,
         y: ndarray,
@@ -117,10 +156,13 @@ class Utils:
         train_or_test: str,
         graph_person_id: str,
         graph_date_id: str,
-        calling_graph: Any,
+        calling_graph: str,
         evidence_positive: Tensor = None,
         unc_threthold: float = 0,
         is_each_unc: bool = False,
+        n_class: int = 5,
+        norm_cm: bool = False,
+        is_joinplot: bool = False,
     ):
         if calling_graph == "all":
             # 混合行列をwandbに送信
@@ -131,6 +173,8 @@ class Utils:
                 test_label=graph_person_id,
                 date_id=graph_date_id,
                 is_each_unc=is_each_unc,
+                n_class=n_class,
+                norm_cm=norm_cm,
             )
             for is_separating in [True, False]:
                 # 不確かさと正負の関係をヒストグラムにログる
@@ -141,6 +185,8 @@ class Utils:
                     test_label=graph_person_id,
                     date_id=graph_date_id,
                     separate_each_ss=is_separating,
+                    n_class=n_class,
+                    is_joinplot=is_joinplot,
                 )
             # 不確かさによる閾値を設けて一致率を計算
             self.u_threshold_and_acc2Wandb(
@@ -152,17 +198,19 @@ class Utils:
                 unc_threthold=unc_threthold,
                 evidence_positive=evidence_positive,
             )
+            # 全時間のスペクトログラムをログに送る
+            # self.make_time_series_prediction(y=y, evidence=evidence)
+        else:
+            print("全てのグラフを作成する引数'all'を指定してください")
 
-    def dump_with_pickle(self, data, file_name, data_type, fit_pos):
-
-        file_path = os.path.join(
-            self.env.pre_processed_dir, data_type, fit_pos
-        )
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        file_path = os.path.join(file_path, file_name + "_" + self.id + ".sav")
-        print(PyColor.CYAN, PyColor.BOLD, f"{file_path}を保存します", PyColor.END)
-        pickle.dump(data, open(file_path, "wb"))
+    def make_time_series_prediction(
+        self, y: ndarray, evidence: tf.Tensor
+    ) -> None:
+        _, _, _, y_pred = self.calc_enn_output_from_evidence(evidence=evidence)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot(y)
+        ax.plot(y_pred)
 
     def showSpectrogram(self, *datas, num=4, path=False):
         fig = plt.figure()
@@ -218,14 +266,65 @@ class Utils:
         return returned_dict
 
     # グラフを並べて表示する
-    def plot_images(self, images_arr):
-        fig, axes = plt.subplots(1, 5, figsize=(20, 20))
+    def plot_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        fig, axes = plt.subplots(5, num_plot, figsize=(16, 16))
         axes = axes.flatten()
-        for img, ax in zip(images_arr, axes):
+        for img, title, ax in zip(images_arr, title_arr, axes):
             ax.imshow(img)
             ax.axis("off")
+            # ax.set_title(f"ss:{title}")
         plt.tight_layout()
         plt.show()
+
+    # グラフを並べて表示する
+    def plot_ss_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        row_num = 5
+        fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        for row, images in enumerate(ss_array):
+            for col in range(num_plot):
+                try:
+                    axes[row, col].imshow(images[col])
+
+                    axes[row, col].axis("off")
+                except:
+                    continue
+        plt.tight_layout()
+        plt.show()
+
+    # グラフをplotlyで表示
+    def plotly_images(
+        self, images_arr: np.ndarray, title_arr: np.ndarray, num_plot: int
+    ):
+        wake_arr = images_arr[title_arr == 4]
+        rem_arr = images_arr[title_arr == 3]
+        nrem1_arr = images_arr[title_arr == 2]
+        nrem2_arr = images_arr[title_arr == 1]
+        nrem34_arr = images_arr[title_arr == 0]
+        fig = px.imshow(wake_arr[0].reshape(-1, 30))
+        fig.show()
+        # row_num = 5
+        # fig, axes = plt.subplots(row_num, num_plot, figsize=(16, 16))
+        # ss_array = list([wake_arr, rem_arr, nrem1_arr, nrem2_arr, nrem34_arr])
+        # for row, images in enumerate(ss_array):
+        #     for col in range(num_plot):
+        #         try:
+        #             axes[row, col].imshow(images[col])
+
+        #             axes[row, col].axis("off")
+        #         except:
+        #             continue
+        # plt.tight_layout()
+        # plt.show()
 
     # wandbに画像のログを送る
     def save_image2Wandb(
@@ -237,21 +336,31 @@ class Utils:
         train_or_test=None,
         test_label=None,
         date_id=None,
+        norm_cm: bool = False,
+        is_specific_path: bool = False,
+        specific_name: str = "",
     ):
-        sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
+        if norm_cm:
+            sns.heatmap(image, annot=True, cmap="Blues", fmt="f")
+        else:
+            sns.heatmap(image, annot=True, cmap="Blues", fmt="d")
         plt.xlabel("pred")
         plt.ylabel("actual")
-        # 保存するフォルダ名を取得
-        path = os.path.join(
-            self.env.figure_dir, dir2, test_label, train_or_test
-        )
-        # パスを通す
-        self.check_path_auto(path=path)
-        if not os.path.exists(path):
-            print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
-            os.makedirs(path)
-        # ファイル名を指定して保存
-        plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        if not is_specific_path:
+            # 保存するフォルダ名を取得
+            path = os.path.join(
+                self.env.figure_dir, dir2, test_label, train_or_test
+            )
+            # パスを通す
+            if not os.path.exists(path):
+                print(PyColor.RED_FLASH, f"{path}を作成します", PyColor.END)
+                os.makedirs(path)
+            # ファイル名を指定して保存
+            plt.savefig(os.path.join(path, fileName + "_" + date_id + ".png"))
+        else:
+            plt.savefig(
+                os.path.join(self.env.tmp_dir, specific_name, "cm.png")
+            )
 
         if to_wandb:
             im_read = plt.imread(
@@ -366,22 +475,43 @@ class Utils:
             self.check_path(file_path)
 
     # 混合行列を作成
-    def make_confusion_matrix(self, y_true, y_pred, n_class=5):
+    def make_confusion_matrix(
+        self, y_true, y_pred, n_class=5, norm_cm: bool = False
+    ):
         # カテゴリカルのデータ(y_true, y_pred)であることを想定
         try:
-            assert np.ndim(y_true) == 1
-        except:
-            print("正解データはlogitsで入力してください（one-hotじゃない形で！）")
+            assert np.ndim(y_true) == 1 and np.ndim(y_pred) == 1
+        except Exception():
+            print("正解データ or 予測ラベル はlogitsで入力してください（one-hotじゃない形で！）")
             sys.exit(1)
-        try:
-            assert np.ndim(y_pred) == 1
-        except:
-            print("予測ラベルはlogitsで入力してください（one-hotじゃない形で！）")
-
-        # 混合行列を作成
-        cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
         # 予測ラベルのクラス数に応じてラベル名を変更する
+        # if n_class == 5:
+        #     labels = ["nr34", "nr2", "nr1", "rem", "wake"]
+        #     # 分類数5で正解・予測がともに4クラスしかないときはNR34を取り除く（片方が5クラスあれば大丈夫）
+        #     if (
+        #         len(Counter(y_true)) == 4
+        #         and len(Counter(y_pred)) == 4
+        #         and min(y_true) == 1
+        #         and min(y_pred) == 1
+        #     ):
+        #         # 分類数5で正解・予測がともに3クラスしかないときはNR1を取り除く（片方が5クラスあれば大丈夫）
+        #         labels.pop(0)
+
+        # elif n_class == 4:
+        #     labels = ["nr34", "nr12", "rem", "wake"]
+        # elif n_class == 3:
+        #     labels = ["nrem", "rem", "wake"]
+        # elif n_class == 2:
+        #     labels = ["non-target", "target"]
+
+        # 混合行列を作成
+        if norm_cm:
+            cm = confusion_matrix(
+                y_true=y_true, y_pred=y_pred, normalize="all"
+            )
+        else:
+            cm = confusion_matrix(y_true=y_true, y_pred=y_pred)
 
         if n_class == 5:
             labels = ["nr34", "nr2", "nr1", "rem", "wake"]
@@ -401,7 +531,10 @@ class Utils:
             labels = ["nrem", "rem", "wake"]
         elif n_class == 2:
             labels = ["non-target", "target"]
-        df = pd.DataFrame(cm)
+        try:
+            df = pd.DataFrame(cm, columns=labels, index=labels)
+        except:
+            df = pd.DataFrame(cm)
         return df
 
     def makeConfusionMatrixFromInput(self, x, y, model, using_pandas=False):
@@ -432,13 +565,13 @@ class Utils:
         target_array: list,
         dir2: str,
         file_name: str,
-        train_or_test: bool = False,
-        test_label: str = None,
-        date_id: str = None,
+        train_or_test: str,
+        test_label: str,
+        colors: list,
+        date_id: str = "",
         hist_label: list = None,
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
-        color_obj: MyColor = MyColor(),
-    ):
+    ) -> None:
         plt.style.use("default")
         sns.set()
         sns.set_style("whitegrid")
@@ -446,12 +579,7 @@ class Utils:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         target_len = len(target_array)
-        try:
-            assert len(color_obj.__dict__) > target_len
-        except:
-            print("your color is smaller than target array")
-            sys.exit(1)
-        colors = list(color_obj.__dict__.values())[11 : 11 + target_len]
+        ss_list = ["nrem1", "nrem2", "nrem34", "rem", "wake"]
         ax.hist(
             target_array, bins=10, label=hist_label, stacked=True, color=colors
         )
@@ -474,13 +602,13 @@ class Utils:
         false_label_array: list = None,
         dir2: str = "histgram",
         file_name: str = "hist",
-        train_or_test: list = None,
-        test_label: str = None,
-        date_id: str = None,
+        train_or_test: str = "",
+        test_label: str = "",
+        date_id: str = "",
         hist_label: list = ["True", "False"],
         axis_label: dict = {"x": "uncertainty", "y": "samples"},
         color_obj: MyColor = MyColor(),
-    ):
+    ) -> None:
 
         self._make_histgram(
             target_array=[true_label_array, false_label_array],
@@ -491,7 +619,9 @@ class Utils:
             date_id=date_id,
             hist_label=hist_label,
             axis_label=axis_label,
-            color_obj=color_obj,
+            colors=[
+                self.my_color.color[key] for key in ["TRUE_BLUE", "FALSE_RED"]
+            ],
         )
 
     # NOTE: 5クラス分類用の設定になっている
@@ -499,10 +629,11 @@ class Utils:
         array_max = np.argmax(array, axis=axis)
         array_min = np.argmin(array, axis=axis)
         fixed_array = []
+        nrem2_index = 1
         # 最大値と最小値が一致する場合はNREM2(1)を返す
         for _max, _min in zip(array_max, array_min):
             if _max == _min:
-                fixed_array.append(1)
+                fixed_array.append(nrem2_index)
             else:
                 fixed_array.append(_max)
         return np.array(fixed_array)
@@ -524,14 +655,14 @@ class Utils:
         self,
         y: Tensor,
         evidence: Tensor,
-        train_or_test: bool,
+        train_or_test: str,
         test_label: str,
         date_id: str,
         log_all_in_one: bool = False,
         is_each_unc: bool = False,
         n_class: int = 5,
+        norm_cm: bool = False,
     ):
-        # TODO: calc_enn_outputで計算するようにまとめる
         evidence, alpha, unc, y_pred = self.calc_enn_output_from_evidence(
             evidence=evidence
         )
@@ -547,9 +678,15 @@ class Utils:
                     y_true=y_true_separated,
                     y_pred=y_pred_separated,
                     n_class=n_class,
+                    norm_cm=norm_cm,
                 )
                 # cmが空であればグラフを書かずにループに戻る
                 if cm.size == 0:
+                    print(
+                        PyColor.RED_FLASH,
+                        f"{train_or_test}：空のcmが渡されました．プログラムを継続します",
+                        PyColor.END,
+                    )
                     continue
                 # seabornを使ってグラフを作成し保存
                 self.save_image2Wandb(
@@ -562,7 +699,7 @@ class Utils:
         else:
             # ラベル付き混合行列を返す
             cm = self.make_confusion_matrix(
-                y_true=y, y_pred=y_pred, n_class=n_class
+                y_true=y, y_pred=y_pred, n_class=n_class, norm_cm=norm_cm
             )
             # seabornを使ってグラフを作成し保存
             self.save_image2Wandb(
@@ -571,10 +708,46 @@ class Utils:
                 train_or_test=train_or_test,
                 test_label=test_label,
                 date_id=date_id,
+                norm_cm=norm_cm,
             )
         return
+
+    #
+
+    # joinplotを用いて不確実性と睡眠段階の関係が分かるようにする
+    def make_joinplot(
+        self,
+        y: ndarray,
+        unc: ndarray,
+        train_or_test: bool,
+        date_id: str,
+        dir2: str,
+        test_label: str,
+        file_name: str,
+    ):
+        sns.set_theme(style="ticks")
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        hexplot = sns.jointplot(unc, y, kind="hex", color=MyColor.WHITE_BLUE)
+        plt.subplots_adjust(
+            left=0.2, right=0.8, top=0.8, bottom=0.2
+        )  # shrink fig so cbar is visible
+        # make new ax object for the cbar
+        cbar_ax = hexplot.fig.add_axes(
+            [0.85, 0.25, 0.05, 0.4]
+        )  # x, y, width, height
+        plt.colorbar(cax=cbar_ax)
+        # 保存するフォルダ名を取得
+        path = os.path.join(
+            self.env.figure_dir, dir2, test_label, train_or_test
+        )
+        if not os.path.exists(path):
+            os.makedirs(path)
+        # 保存
+        plt.savefig(os.path.join(path, file_name + "_" + date_id + ".png"))
+
     # 不確かさのヒストグラムをwandbに送信
-    
+
     def u_hist2Wandb(
         self,
         y: Tensor,
@@ -583,55 +756,36 @@ class Utils:
         test_label: str,
         date_id: str,
         dir2: str = "histgram",
+        file_name: str = "hist",
         separate_each_ss: bool = False,
         unc: Tensor = None,
         has_caliculated: bool = False,
         alpha: Tensor = None,
         y_pred: Tensor = None,
         log_all_in_one: bool = False,
-        n_class: int = 5
-    ):
-        evidence, alpha, uncertainty, y_pred = self.calc_enn_output_from_evidence(
-            evidence=evidence)
+        n_class: int = 5,
+        is_joinplot: bool = False,
+    ) -> None:
+        (
+            evidence,
+            alpha,
+            uncertainty,
+            y_pred,
+        ) = self.calc_enn_output_from_evidence(evidence=evidence)
         uncertainty = np.array(uncertainty)
-        # 計算済みの場合はそれを使うほうが良い
-        # if has_caliculated:
-        #     try:
-        #         assert (
-        #             evidence is not None
-        #             and unc is not None
-        #             and alpha is not None
-        #             and y_pred is not None
-        #         )
-        #     except AssertionError:
-        #         print(
-        #             PyColor.RED_FLASH,
-        #             "計算済みの場合，evidence, unc, alpha, y_pred を渡してください",
-        #             PyColor.END,
-        #         )
-        #         sys.exit(1)
 
-        # else:
-        #     )
-        #     # 各睡眠段階に分けて表示するかどうか
-        #     alpha = evidence + 1
-        #     S = tf.reduce_sum(alpha, axis=1, keepdims=True)
-        #     y_pred = alpha / S
-        #     _, n_class = y_pred.shape
-        #     # 今は5クラス分類以外ありえない
-        #     # カテゴリカルに変換
-        #     y_pred = (
-        #         np.argmax(y_pred, axis=1)
-        #         if not self.catch_nrem2
-        #         else self.my_argmax(y_pred, axis=1)
-        #     )
-        # # unc だけを渡す場合
-        # if unc is not None:
-        #     uncertainty = unc
-        # else:
-        #     uncertainty = n_class / tf.reduce_sum(alpha, axis=1, keepdims=True)
+        if is_joinplot:
+            self.make_joinplot(
+                y=y,
+                unc=uncertainty,
+                train_or_test=train_or_test,
+                date_id=date_id,
+                dir2=dir2,
+                test_label=test_label,
+                file_name=file_name,
+            )
 
-        if not separate_each_ss:
+        elif not is_joinplot and not separate_each_ss:
             # true_label, false_labelに分類する
             true_label_array = uncertainty[y == y_pred]
             false_label_array = uncertainty[y != y_pred]
@@ -683,6 +837,7 @@ class Utils:
                 test_label=test_label,
                 date_id=date_id,
                 hist_label=hist_label,
+                colors=[self.my_color.color[key] for key in hist_label],
             )
 
         file_path = os.path.join(
@@ -698,11 +853,15 @@ class Utils:
         )
 
     # 予測ラベルから一致率の計算
-    def calc_acc_from_pred(self, y_true, y_pred, log_label):
+    def calc_acc_from_pred(
+        self, y_true, y_pred, log_label: str = "", log2wandb: bool = True
+    ) -> Dict[str, float]:
         # 一致率の計算
         acc = sum(y_pred == y_true) / len(y_true)
-        wandb.log({log_label: acc}, commit=False)
-        return acc
+        loged = {log_label: acc}
+        if log2wandb:
+            wandb.log(loged, commit=False)
+        return loged
 
     # ENN の計算(evidence => unc, pred, alpha)
     def calc_enn_output_from_evidence(self, evidence: Tensor) -> tuple:
@@ -735,12 +894,12 @@ class Utils:
         is_early_stop_and_return_data_frame: bool = False,
         unc_threthold: float = 0,
     ):
-        acc_list = list()
-        true_list = list()
-        existing_list = list()
-        _threshold_list = list()
-        acc_list_replaced = list()
-        _threshold_list_replaced = list()
+        acc_list: List[float] = list()
+        true_list: List[float] = list()
+        existing_list: List[bool] = list()
+        _threshold_list: List[float] = list()
+        acc_list_replaced: List[float] = list()
+        _threshold_list_replaced: List[float] = list()
         # 閾値のリスト
         thresh_hold_list = np.arange(0.1, 1.1, 0.1)
 
@@ -1056,6 +1215,7 @@ class Utils:
         # 極座標のデータ
         if len(data_type) == 0 and type(data_type) == str:
             print(PyColor.RED_FLASH, "データタイプを指定してください", PyColor.END)
+            return None, None
         elif data_type == "type01":
             return self.polar_data(
                 row=row, col=col, x_bias=x_bias, y_bias=y_bias
@@ -1066,7 +1226,7 @@ class Utils:
             return self.archimedes_spiral(row, col, x_bias, y_bias, seed)
         else:
             print(PyColor.RED_FLASH, "データタイプの指定方法を確認してください", PyColor.END)
-            sys.exit(1)
+            return None, None
 
     # 各睡眠段階のF値の計算
     def calc_each_ss_f_m(
@@ -1088,12 +1248,12 @@ class Utils:
 
         # NOTE: Tensor型できたときのみこの処理にする
         if type(y) is not np.ndarray:
-            ss_dict = Counter(y.numpy())
+            ss_dict: Dict[int, int] = Counter(y.numpy())
         else:
             ss_dict = Counter(y)
 
         if confmatrix.shape[0] == 5:
-            rec_log_dict = {
+            rec_log_dict: Dict[str] = {
                 "rec_" + ss_label: confdiag[i][i] / (ss_dict[i])
                 if ss_dict[i] != 0
                 else np.nan
@@ -1157,24 +1317,172 @@ class Utils:
         model: Model,
         n_class: int = 5,
         batch_size: int = 32,
+        base_or_positive: str = "",
+        log2wandb: bool = True,
     ):
+        if len(base_or_positive) == 0:
+            print(
+                PyColor.RED_FLASH,
+                "baseモデル or positiveモデルを識別する引数base_or_positiveが指定されていません．問題なければここの部分で返さないように指定してください",
+                PyColor.END,
+            )
+            raise Exception("exception has occured")
         # 一致率の計算
         y_pred = self.my_argmax(
             model.predict(x, batch_size=batch_size), axis=1
         )
         acc = sum(y_pred == y.numpy()) / len(y)
-        wandb.log({"accuracy": acc}, commit=False)
+        if log2wandb:
+            wandb.log({"accuracy_" + base_or_positive: acc}, commit=False)
+        return acc
+
+    def generate_and_save_images(
+        self,
+        model: tf.keras.Model,
+        epoch: int,
+        test_sample: tf.Tensor,
+        filename: str = "",
+    ):
+        mean, logvar = model.encode(test_sample)
+        z = model.reparameterize(mean, logvar)
+        predictions = model.sample(model, z)
+        fig = plt.figure(figsize=(4, 4))
+
+        for i in range(predictions.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(predictions[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        # tight_layout minimizes the overlap between 2 sub-plots
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+
+        plt.savefig(filepath)
+        plt.close()
+
+    def show_true_image(self, x: tf.Tensor, filename: str = ""):
+        fig = plt.figure(figsize=(4, 4))
+        for i in range(x.shape[0]):
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(x[i, :, :, 0], cmap="gray")
+            plt.axis("off")
+
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"original_image_of_mine")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        plt.show()
+
+    def display_image(self, epoch_no: int, filename: str = ""):
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        if len(filename) == 0:
+            filepath = os.path.join(
+                file_dir, f"image_at_epoch_{epoch_no:04d}.png"
+            )
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+        # plt.show()
+        return PIL.Image.open(filepath)
+
+    def create_gif(self, outputfile: str = "vdann.gif") -> None:
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        outputfile = os.path.join(file_dir, outputfile)
+        with imageio.get_writer(outputfile, mode="I") as writer:
+            filenames = glob.glob(os.path.join(file_dir, "image*.png"))
+            filenames = sorted(filenames)
+            for filename in filenames:
+                image = imageio.imread(os.path.join(file_dir, filename))
+                writer.append_data(image)
+            image = imageio.imread(filename)
+            writer.append_data(image)
+        embed.embed_file(outputfile)
+
+    def drow_latent_space(
+        self,
+        model: tf.keras.Model,
+        x: tf.Tensor,
+        y: tf.Tensor,
+        filename: str = "",
+    ):
+        data = x[::10], y[::10]
+        mean, logvar = model.encode(data[0])
+        z = model.reparameterize(mean, logvar)
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        im = ax.scatter(z[:, 0], z[:, 1], c=data[1])
+        cbar = fig.colorbar(im)
+        file_dir = os.path.join(self.env.figure_dir, "vae")
+        if len(filename) == 0:
+            filepath = os.path.join(file_dir, f"vae_latent_space.png")
+        else:
+            filepath = os.path.join(file_dir, filename + ".png")
+        plt.savefig(filepath)
+
+    def compare_ss(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        test_name: str,
+    ) -> None:
+        filepath = os.path.join(self.env.tmp_dir, test_name, "ss.png")
+        fig = plt.figure(figsize=(8, 6))
+        ax1 = fig.add_subplot(311)
+        ax1.plot(y_true, label="y_true")
+        ax1.legend()
+        ax1.set_title(test_name)
+        ax2 = fig.add_subplot(312)
+        ax2.plot(y_pred, label="y_pred")
+        ax2.legend()
+        ax3 = fig.add_subplot(313)
+        ax3.plot(y_true, label="y_true", alpha=0.4)
+        ax3.plot(y_pred, label="y_pred", alpha=0.4)
+        ax3.legend()
+        if not os.path.exists(os.path.split(filepath)[0]):
+            os.makedirs(os.path.split(filepath)[0])
+        plt.savefig(filepath)
+        plt.close()
+        return
+
+    def calc_metrics(self, cm: pd.DataFrame):
+        pass
 
 
 if __name__ == "__main__":
+    import sys
+
     utils = Utils()
-    (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
-        100, 2, 0, 0
-    )
-    x_train = x_train.numpy()
-    plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
-    plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
-    plt.savefig("hoge.png")
+    filepath = os.path.join(os.environ["sleep"], "tmp", "joinplot.png")
+    filedir, _ = os.path.split(filepath)
+    if not filedir:
+        print(f"filedir:{filedir}がありません")
+        sys.exit(1)
+    else:
+        utils.make_joinplot(filepath)
+
+    # ===========================
+    #  archimedes_spiral の実験用
+    # ===========================
+    # (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
+    #     100, 2, 0, 0
+    # )
+    # x_train = x_train.numpy()
+    # plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
+    # plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
+    # plt.savefig("hoge.png")
 
     # ===============
     # make graph test

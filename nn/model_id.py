@@ -1,40 +1,132 @@
 import json
-from pre_process.json_base import JsonBase
 import sys
+from typing import Any, List
+
+from data_analysis.py_color import PyColor
+from pre_process.json_base import JsonBase
 
 
 class ModelId(JsonBase):
     def __init__(self) -> None:
-        super().__init__(json_filename="./model_id.json")
+        super().__init__(json_filename="model_id.json")
+        self.hostkey = self.get_hostkey()
+        self.subject_type = ""
+        self.data_type = ""
+        self.fit_pos = ""
+        self.stride = ""
+        self.kernel = ""
+        # self.load()
 
-    def load(self) -> None:
-        with open(self.json_file) as f:
-            self.json_dict = json.load(f)
+    def get_ppi(self):
+        return self.json_dict[self.hostkey][self.subject_type][
+            self.model_type
+        ][self.data_type][self.fit_pos][self.stride][self.kernel]
 
-    def dump(self, keys: list, value: str) -> None:
-        # 辞書であり，keysが入っている間はキーを入れる
-        key_len = len(keys)
-        if key_len > 4:
-            print(PyColor.RED_FLASH, f"キーは4までの長さまでしか実装されていません", PyColor.END)
-            sys.exit(1)
-        # TODO : もっと賢い書き方無いかな？
-        if key_len == 1:
-            self.json_dict[keys[0]] = value
-        elif key_len == 2:
-            self.json_dict[keys[0]][keys[1]] = value
-        elif key_len == 3:
-            self.json_dict[keys[0]][keys[1]][keys[2]] = value
-        elif key_len == 4:
-            self.json_dict[keys[0]][keys[1]][keys[2]][keys[3]] = value
-        with open(self.json_file, "w") as f:
-            json.dump(self.json_dict, f, indent=4)
+    # 2クラス分類時の形式用のjson読み込みメソッド
+    def make_model_id_list4bin_format(self) -> Any:
+        # ss_list = ["nr1", "nr2", "nr3", "rem", "wake"]
+        # mapper = lambda ss: self.json_dict[self.hostkey][self.subject_type][
+        #     self.model_type
+        # ][self.data_type][self.fit_pos][self.stride][self.kernel][self.cleansing_type]
+
+        # nr1_list, nr2_list, nr3_list, rem_list, wake_list = map(
+        #     mapper, ss_list
+        # )
+        # mapped = map(
+        #     lambda nr1, nr2, nr3, rem, wake: dict(
+        #         nr1=nr1, nr2=nr2, nr3=nr3, rem=rem, wake=wake
+        #     ),
+        #     nr1_list,
+        #     nr2_list,
+        #     nr3_list,
+        #     rem_list,
+        #     wake_list,
+        # )
+        # return list(mapped)
+        return self.json_dict[self.hostkey][self.subject_type][
+            self.model_type
+        ][self.data_type][self.fit_pos][self.stride][self.kernel][
+            self.cleansing_type
+        ]
+
+    def set_key(
+        self,
+        is_normal: bool,
+        is_previous: bool,
+        data_type: str,
+        fit_pos: str,
+        stride: int,
+        kernel: int,
+        model_type: str = "",
+        cleansing_type: str = "",
+    ) -> None:
+        self.subject_type = self.first_key_of_pre_process(
+            is_normal=is_normal, is_prev=is_previous
+        )
+        self.data_type = data_type
+        self.fit_pos = fit_pos
+        self.stride = "stride_" + str(stride)
+        self.kernel = "kernel_" + str(kernel)
+        self.model_type = self.set_model_type(model_type)
+        self.cleansing_type = self.set_cleansing_type(cleansing_type)
+
+    def set_cleansing_type(self, cleansing_type):
+        return cleansing_type
+
+    def set_model_type(self, model_type: str):
+        if "enn" in model_type:
+            return "enn"
+        elif "dnn" in model_type:
+            return "dnn"
+        elif "pass":
+            return "pass"
+        else:
+            raise Exception
+
+    def dump(
+        self, value, is_pre_dump: bool = False, cleansing_type: str = ""
+    ) -> None:
+        def __dump():
+            assert isinstance(cleansing_type, str)
+            if len(cleansing_type) == 0:
+                self.json_dict[self.hostkey][self.subject_type][
+                    self.model_type
+                ][self.data_type][self.fit_pos][self.stride][self.kernel][
+                    self.cleansing_type
+                ] = value
+            # cleansingタイプをpositiveみたいにしたいときにはこっち
+            # TODO: 応急処置のため後で修正
+            else:
+                self.json_dict[self.hostkey][self.subject_type][
+                    self.model_type
+                ][self.data_type][self.fit_pos][self.stride][self.kernel][
+                    cleansing_type
+                ] = value
+
+            with open(self.json_file, "w") as f:
+                json.dump(self.json_dict, f, indent=2)
+
+        if is_pre_dump:
+            print(
+                PyColor().RED_FLASH,
+                f"comfirming whether dump into {self.json_file} is possipoble or not",
+                PyColor().END,
+            )
+        else:
+            print(
+                PyColor().GREEN_FLASH,
+                f"dumping into {self.json_file}",
+                PyColor().END,
+            )
+
+        __dump()
 
 
 if __name__ == "__main__":
     from data_analysis.py_color import PyColor
 
-    ppi = PreProcessedId()
-    ppi.load()
-    for key, val in ppi.__dict__.items():
-        print(PyColor.GREEN, "key, ", key, "val, ", val, PyColor.END)
-    print(PyColor.YELLOW, ppi.prev_datasets, PyColor.END)
+    model_id = ModelId()
+    model_id.load()
+    for depth_counter, (key, val) in enumerate(model_id.json_dict.items()):
+        # print(PyColor.GREEN, "key, ", key, "val, ", val, PyColor.END)
+        print(depth_counter)
