@@ -818,12 +818,15 @@ class Utils:
         )
 
     # 予測ラベルから一致率の計算
-    def calc_acc_from_pred(self, y_true, y_pred, log_label, log2wandb):
+    def calc_acc_from_pred(
+        self, y_true, y_pred, log_label: str = "", log2wandb: bool = True
+    ) -> Dict[str, float]:
         # 一致率の計算
         acc = sum(y_pred == y_true) / len(y_true)
+        loged = {log_label: acc}
         if log2wandb:
-            wandb.log({log_label: acc}, commit=False)
-        return acc
+            wandb.log(loged, commit=False)
+        return loged
 
     # ENN の計算(evidence => unc, pred, alpha)
     def calc_enn_output_from_evidence(self, evidence: Tensor) -> tuple:
