@@ -129,7 +129,6 @@ for cnn_attn, cnn_no_attn, enn, aecnn, ecnn, ccnn, eenn, denn in zip(
         )
 
     output_df = pd.concat([__df for __df in report_d.values()], axis=0)
-    output_dir = "tmp.csv"
     output_dir = os.path.join(
         os.environ["sleep"], "logs", "ouput_metrics_from_ss"
     )
