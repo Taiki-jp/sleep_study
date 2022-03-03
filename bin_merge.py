@@ -238,7 +238,7 @@ def merge_rule_d(
     return pd.DataFrame(y_pred, columns=["y_pred"])
 
 
-# 提案手法4
+# 提案手法4(eenn)
 df4enn_a = None
 df4enn_b = None
 enn_filelist = sorted(enn_filelist)
@@ -280,7 +280,7 @@ for enn_file in enn_filelist:
         df4enn_a = pd.concat([df4enn_a, tmp_df], axis=0)
 df4enn_a.to_csv("eenn_counter.csv")
 
-# 提案手法1
+# 提案手法1(aecnn)
 df4enn_b = None
 cnn_filelist = sorted(cnn_filelist)
 for cnn_file in cnn_filelist:
@@ -318,9 +318,9 @@ for cnn_file in cnn_filelist:
         df4enn_b = tmp_df
     else:
         df4enn_b = pd.concat([df4enn_b, tmp_df], axis=0)
-df4enn_b.to_csv("enn_b_counter_pp1.csv")
+df4enn_b.to_csv("aecnn_counter.csv")
 
-# 提案手法2
+# 提案手法2(ecnn)
 df4enn_b = None
 cnn_attn_filelist = sorted(cnn_attn_filelist)
 for cnn_attn_file in cnn_attn_filelist:
@@ -358,9 +358,9 @@ for cnn_attn_file in cnn_attn_filelist:
         df4enn_b = tmp_df
     else:
         df4enn_b = pd.concat([df4enn_b, tmp_df], axis=0)
-df4enn_b.to_csv("enn_b_counter_pp2.csv")
+df4enn_b.to_csv("ecnn_counter.csv")
 
-# 旧提案手法3
+# 旧提案手法3(ccnn)
 df4enn_c = None
 cnn_filelist = sorted(cnn_filelist)
 for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
@@ -407,9 +407,9 @@ for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
         df4enn_c = tmp_df
     else:
         df4enn_c = pd.concat([df4enn_c, tmp_df], axis=0)
-df4enn_c.to_csv("enn_c_counter_pp3.csv")
+df4enn_c.to_csv("ccnn_counter.csv")
 
-# 提案手法3
+# 提案手法3(ccnn_ver2)
 # for cnn_attn_file, cnn_file in zip(cnn_attn_filelist, cnn_filelist):
 #     print(f"load {cnn_attn_file}")
 #     print(f"load {cnn_file}")

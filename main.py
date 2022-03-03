@@ -5,13 +5,13 @@ from collections import Counter
 from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
+import wandb
 from tensorflow.keras.metrics import (
     BinaryAccuracy,  # TrueNegatives,  # TN; TruePositives,  # TP; FalseNegatives,  # FN; FalsePositives,  # FP; 一致率
 )
 from tensorflow.keras.metrics import Precision  # Precision
 from tensorflow.keras.metrics import Recall  # Recall
 
-import wandb
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
@@ -301,12 +301,8 @@ if __name__ == "__main__":
     SAVE_MODEL = MPR.main_setting["save_model"]
     STRIDE = MPR.main_setting["stride"]
     TEST_RUN = MPR.main_setting["test_run"]
-    TARGET_SS = [
-        "wake",
-        "rem",
-        "nr1",
-        "nr2",
-        "nr3",
+    TARGET_SS = MPR.main_setting[
+        "target_ss"
     ]  # target_ss としてpre_process.change_labelでnr3として扱いたいのでnr4, nr34とはしていない
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
     if IS_ENN:
