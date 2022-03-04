@@ -238,48 +238,6 @@ def merge_rule_d(
     return pd.DataFrame(y_pred, columns=["y_pred"])
 
 
-# 提案手法4(eenn)
-df4enn_a = None
-df4enn_b = None
-enn_filelist = sorted(enn_filelist)
-for enn_file in enn_filelist:
-    print(f"load {enn_file}")
-    # カウンタのための辞書
-    count_d4a = {"rule_0": 0, "rule_1": 0, "rule_2": 0}
-    # acc_d4a = {"rule_0_t": 0, "rule_1_t": 0, "rule_2_t": 0}
-    count_d4b = {
-        "rule_0": 0,
-        "rule_1": 0,
-        "rule_2": 0,
-        "rule_3": 0,
-        "rule_4": 0,
-    }
-    df = pd.read_csv(enn_file)
-    y_pred_merged_by_a = df.apply(merge_rule_a, args=(count_d4a,), axis=1)
-    y_pred_merged_by_b = df.apply(merge_rule_b, args=(count_d4b,), axis=1)
-    new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
-    new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
-    new_df = new_df.drop(columns="Unnamed: 0")
-    output_dir = os.path.join(os.environ["sleep"], "logs", "bin_enn_output")
-    if not os.path.exists(output_dir):
-        print(f"{output_dir}を作成します")
-        os.makedirs(output_dir)
-    filename = os.path.split(enn_file)[1]
-    output_filepath = os.path.join(output_dir, filename)
-    new_df.to_csv(output_filepath, index=False)
-    # カウンタの出力
-    tmp_df = pd.DataFrame(
-        count_d4a,
-        index=[
-            "i",
-        ],
-    )
-    if df4enn_a is None:
-        df4enn_a = tmp_df
-    else:
-        df4enn_a = pd.concat([df4enn_a, tmp_df], axis=0)
-df4enn_a.to_csv("eenn_counter.csv")
-
 # 提案手法1(aecnn)
 df4enn_b = None
 cnn_filelist = sorted(cnn_filelist)
@@ -434,3 +392,45 @@ df4enn_c.to_csv("ccnn_counter.csv")
 #     filename = os.path.split(cnn_attn_file)[1]
 #     output_filepath = os.path.join(output_dir, filename)
 #     new_df.to_csv(output_filepath, index=False)
+
+# 提案手法4(eenn)
+df4enn_a = None
+df4enn_b = None
+enn_filelist = sorted(enn_filelist)
+for enn_file in enn_filelist:
+    print(f"load {enn_file}")
+    # カウンタのための辞書
+    count_d4a = {"rule_0": 0, "rule_1": 0, "rule_2": 0}
+    # acc_d4a = {"rule_0_t": 0, "rule_1_t": 0, "rule_2_t": 0}
+    count_d4b = {
+        "rule_0": 0,
+        "rule_1": 0,
+        "rule_2": 0,
+        "rule_3": 0,
+        "rule_4": 0,
+    }
+    df = pd.read_csv(enn_file)
+    y_pred_merged_by_a = df.apply(merge_rule_a, args=(count_d4a,), axis=1)
+    y_pred_merged_by_b = df.apply(merge_rule_b, args=(count_d4b,), axis=1)
+    new_df = pd.concat([df, y_pred_merged_by_a, y_pred_merged_by_b], axis=1)
+    new_df = new_df.rename(columns={0: "rule_a", 1: "rule_b"})
+    new_df = new_df.drop(columns="Unnamed: 0")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "bin_enn_output")
+    if not os.path.exists(output_dir):
+        print(f"{output_dir}を作成します")
+        os.makedirs(output_dir)
+    filename = os.path.split(enn_file)[1]
+    output_filepath = os.path.join(output_dir, filename)
+    new_df.to_csv(output_filepath, index=False)
+    # カウンタの出力
+    tmp_df = pd.DataFrame(
+        count_d4a,
+        index=[
+            "i",
+        ],
+    )
+    if df4enn_a is None:
+        df4enn_a = tmp_df
+    else:
+        df4enn_a = pd.concat([df4enn_a, tmp_df], axis=0)
+df4enn_a.to_csv("eenn_counter.csv")
