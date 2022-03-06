@@ -41,9 +41,8 @@ def pred_ss_based_on_unc(
         series[["nr34_pred", "nr2_pred", "nr1_pred", "rem_pred", "wake_pred"]],
     )
     bin_pred = bin_pred.to_numpy()
-    is_included = (
-        1 if sum(bin_pred) != 0 and np.argmax(bin_pred) == y_true else 0
-    )
+    # 予測のどれかがpositiveで、ターゲットクラスの予測がpositiveであれば1
+    is_included = 1 if sum(bin_pred) != 0 and bin_pred[y_true] == 1 else 0
 
     # 一つ目のルール
     if sum(bin_pred) == 1:
@@ -96,9 +95,7 @@ def pred_ss_based_on_bio(series: pd.Series, counter: Dict[str, int]):
         series[["nr34_pred", "nr2_pred", "nr1_pred", "rem_pred", "wake_pred"]],
     )
     bin_pred = bin_pred.to_numpy()
-    is_included = (
-        1 if sum(bin_pred) != 0 and np.argmax(bin_pred) == y_true else 0
-    )
+    is_included = 1 if sum(bin_pred) != 0 and bin_pred[y_true] == 1 else 0
     # 0. ひとつだけPositiveならそのクラス
     if sum(bin_pred) == 1:
         counter["rule_0"] += 1
@@ -118,7 +115,7 @@ def pred_ss_based_on_bio(series: pd.Series, counter: Dict[str, int]):
     # 1. NR2, remがPositiveならrem
     elif bin_pred[2] == 1 and bin_pred[4] == 1:
         counter["rule_1"] += 1
-        return time, 0, 1, 0, 0, 0, 3, y_true, sum(bin_pred), is_included
+        return time, 0, 1, 0, 0, 0, 2, y_true, sum(bin_pred), is_included
 
     # 2. nr1, wakeがpositiveならwake
     elif bin_pred[2] == 1 and bin_pred[4] == 1:
@@ -176,9 +173,7 @@ def pred_ss_custom(series: pd.Series, counter: Dict[str, int]) -> pd.DataFrame:
             bin_pred_no_attn[4],
         ]
     )
-    is_included = (
-        1 if sum(bin_pred) != 0 and np.argmax(bin_pred) == y_true else 0
-    )
+    is_included = 1 if sum(bin_pred) != 0 and bin_pred[y_true] == 1 else 0
     # 0. ひとつだけPositiveならそのクラス
     if sum(bin_pred) == 1:
         counter["rule_0"] += 1
@@ -198,7 +193,7 @@ def pred_ss_custom(series: pd.Series, counter: Dict[str, int]) -> pd.DataFrame:
     # 1. NR2, remがPositiveならrem
     elif bin_pred[2] == 1 and bin_pred[4] == 1:
         counter["rule_1"] += 1
-        return time, 0, 1, 0, 0, 0, 3, y_true, sum(bin_pred), is_included
+        return time, 0, 1, 0, 0, 0, 2, y_true, sum(bin_pred), is_included
 
     # 2. nr1, wakeがpositiveならwake
     elif bin_pred[2] == 1 and bin_pred[4] == 1:
