@@ -62,6 +62,8 @@ def calc_random_select_acc(
 
 
 # それぞれのルールの予測の正解率を計算する(予測があっていた数/予測された総和)
+# FIXME: aecnnのルール0の値がinfのせい？その後の処理によりnanになっている
+# FIXME: eennのルール2の確率の計算方法を変更する
 def calc_rulebase_select_acc(
     df: pd.DataFrame, case: str
 ) -> Union[
