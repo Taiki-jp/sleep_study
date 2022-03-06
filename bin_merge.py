@@ -140,10 +140,10 @@ def pred_ss_based_on_bio(series: pd.Series, counter: Dict[str, int]):
             y_pred = 0
         else:
             raise AssertionError
-        return time, 0, 0, 1, 0, 0, y_pred, y_true, sum(bin_pred), is_included
+        return time, 0, 0, 0, 1, 0, y_pred, y_true, sum(bin_pred), is_included
     else:
         counter["rule_4"] += 1
-        return time, 0, 0, 1, 0, 0, 1, y_true, sum(bin_pred), is_included
+        return time, 0, 0, 0, 0, 1, 1, y_true, sum(bin_pred), is_included
 
 
 def pred_ss_custom(series: pd.Series, counter: Dict[str, int]) -> pd.DataFrame:
@@ -220,10 +220,10 @@ def pred_ss_custom(series: pd.Series, counter: Dict[str, int]) -> pd.DataFrame:
             y_pred = 0
         else:
             raise AssertionError
-        return time, 0, 0, 1, 0, 0, y_pred, y_true, sum(bin_pred), is_included
+        return time, 0, 0, 0, 1, 0, y_pred, y_true, sum(bin_pred), is_included
     else:
         counter["rule_4"] += 1
-        return time, 0, 0, 1, 0, 0, 1, y_true, sum(bin_pred), is_included
+        return time, 0, 0, 0, 0, 1, 1, y_true, sum(bin_pred), is_included
 
 
 def pred_ss_custom_ver2(
@@ -445,7 +445,7 @@ def make_eenn_table(enn_file):
     new_df = new_df.rename(
         columns={key: val for key, val in enumerate(column_names)}
     )
-    output_dir = os.path.join(os.environ["sleep"], "tmp", "eenn")
+    output_dir = os.path.join(os.environ["sleep"], "logs", "eenn")
     if not os.path.exists(output_dir):
         print(f"{output_dir}を作成します")
         os.makedirs(output_dir)
