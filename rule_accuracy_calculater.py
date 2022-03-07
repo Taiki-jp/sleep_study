@@ -3,7 +3,6 @@ import os
 import sys
 from glob import glob
 from multiprocessing import Pool
-from tkinter import W
 from typing import Dict, List, Tuple, Union
 from unittest import result
 
