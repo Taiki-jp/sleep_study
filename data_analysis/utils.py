@@ -1460,6 +1460,30 @@ class Utils:
     def calc_metrics(self, cm: pd.DataFrame):
         pass
 
+    # ennの出力をcsvに書き出すためのメソッド
+    def output_enn_pred(
+        self,
+        evidence: tf.Tensor,
+        y_true: np.ndarray,
+        target_ss: str,
+        test_name: str,
+    ) -> bool:
+        try:
+            _, _, unc, y_pred = self.calc_enn_output_from_evidence(evidence)
+            column_names = ["y_true", "y_pred", "unc"]
+            values = [y_true, y_pred, unc]
+            d = {key: val for key, val in zip(column_names, values)}
+            df = pd.DataFrame.from_dict(d)
+            output_dir = os.path.join(self.env.tmp_dir, test_name)
+            if not os.path.exists(output_dir):
+                print(PyColor.RED_FLASH, f"{output_dir}を作成します", PyColor.END)
+                os.makedirs(output_dir)
+            output_abs_filepath = os.path.join(output_dir, f"{target_ss}.csv")
+            df.to_csv(output_abs_filepath)
+            return True
+        except:
+            return False
+
 
 if __name__ == "__main__":
     import sys
