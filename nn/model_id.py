@@ -84,7 +84,12 @@ class ModelId(JsonBase):
             raise Exception
 
     def dump(
-        self, value, is_pre_dump: bool = False, cleansing_type: str = ""
+        self,
+        value,
+        test_name: str,
+        is_pre_dump: bool = False,
+        cleansing_type: str = "",
+        target_ss: str = "",
     ) -> None:
         def __dump():
             assert isinstance(cleansing_type, str)
@@ -93,6 +98,10 @@ class ModelId(JsonBase):
                     self.model_type
                 ][self.data_type][self.fit_pos][self.stride][self.kernel][
                     self.cleansing_type
+                ][
+                    test_name
+                ][
+                    target_ss
                 ] = value
             # cleansingタイプをpositiveみたいにしたいときにはこっち
             # TODO: 応急処置のため後で修正
@@ -101,6 +110,10 @@ class ModelId(JsonBase):
                     self.model_type
                 ][self.data_type][self.fit_pos][self.stride][self.kernel][
                     cleansing_type
+                ][
+                    test_name
+                ][
+                    target_ss
                 ] = value
 
             with open(self.json_file, "w") as f:
