@@ -5,7 +5,6 @@ from collections import Counter
 from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
-import wandb
 from tensorflow.keras.metrics import (
     BinaryAccuracy,  # TrueNegatives,  # TN; TruePositives,  # TP; FalseNegatives,  # FN; FalsePositives,  # FP; 一致率
 )
@@ -16,19 +15,12 @@ from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
-from nn.wandb_classification_callback import WandbClassificationCallback
 from pre_process.main_param_reader import MainParamReader
-
-# from nn.metrics import CategoricalTruePositives
 from pre_process.pre_process import PreProcess, Record
 from pre_process.utils import set_seed
 
-# from wandb.keras import WandbCallback
-
 
 def main(
-    project: str,
-    wandb_config: Dict[str, Any],
     batch_size: int,
     data_type: str,
     date_id: str,
@@ -41,18 +33,13 @@ def main(
     is_mul_layer: bool,
     is_under_4hz: bool,
     kernel_size: int,
-    log_tf_projector: bool,
-    my_tags: List[str],
     n_class: int,
-    name: str,
     pre_process: PreProcess,
     pse_data: bool,
     sample_size: int,
-    save_model: bool,
     target_ss: str,
     test: List[Record],
     test_name: str,
-    test_run: bool,
     train: List[Record],
     utils: Utils,
 ):
@@ -75,36 +62,6 @@ def main(
         to_one_hot_vector=False,
         train=train,
     )
-    # データセットの数を表示
-    # TODO: データセットを表示するメソッド呼び出しを実装
-    print(f"training data : {x_train.shape}")
-    ss_train_dict: Dict[int, int] = Counter(y_train[0, :])
-    ss_test_dict: Dict[int, int] = Counter(y_test[0, :])
-    # config の追加
-    added_config = {
-        "attention": has_attention,
-        "inception": has_inception,
-        "test wake before replaced": ss_test_dict[4],
-        "test rem before replaced": ss_test_dict[3],
-        "test nr1 before replaced": ss_test_dict[2],
-        "test nr2 before replaced": ss_test_dict[1],
-        "test nr34 before replaced": ss_test_dict[0],
-        "train wake before replaced": ss_train_dict[4],
-        "train rem before replaced": ss_train_dict[3],
-        "train nr1 before replaced": ss_train_dict[2],
-        "train nr2 before replaced": ss_train_dict[1],
-        "train nr34 before replaced": ss_train_dict[0],
-    }
-    wandb_config.update(added_config)
-    # wandbの初期化
-    wandb.init(
-        name=name,
-        project=project,
-        tags=my_tags,
-        config=wandb_config,
-        sync_tensorboard=True,
-        dir=pre_process.my_env.project_dir,
-    )
 
     # モデルの作成とコンパイル
     # NOTE: kernel_size の半分が入力のサイズになる（fft をかけているため）
@@ -124,7 +81,6 @@ def main(
         print("correct data_type based on your model")
         sys.exit(1)
 
-    # TODO: メソッド化
     inputs = tf.keras.Input(shape=shape)
     if data_type == "spectrum" or data_type == "cepstrum":
         outputs = edl_classifier_1d(
@@ -155,10 +111,6 @@ def main(
                 BinaryAccuracy(name="bn"),
                 Precision(name="precision"),
                 Recall(name="recall"),
-                # TruePositives(name="tp"),
-                # FalseNegatives(name="fn"),
-                # TrueNegatives(name="tn"),
-                # FalsePositives(name="fp"),
             ],
         )
         monitoring = "val_bn"
@@ -205,50 +157,25 @@ def main(
         epochs=epochs,
         callbacks=[
             tf_callback,
-            WandbClassificationCallback(
-                validation_data=(x_val, y_val[0]),
-                # validation_data=(x_test, y_test[0]),
-                log_confusion_matrix=True,
-                labels=["nr34", "nr2", "nr1", "rem", "wake"]
-                if n_class == 5
-                else ["non_target", "target"],
-            ),
             cp_callback,
         ],
         verbose=2,
     )
-    # 混合行列・不確かさ・ヒストグラムの作成
-    if is_enn:
-        tuple_x = (x_train, x_val)
-        tuple_y = (y_train[0], y_val[0])
-        for train_or_test, _x, _y in zip(["train", "test"], tuple_x, tuple_y):
-            evidence = model.predict(_x)
-            utils.make_graphs(
-                y=_y,
-                evidence=evidence,
-                train_or_test=train_or_test,
-                graph_person_id=test_name,
-                calling_graph="all",
-                graph_date_id=date_id,
-                is_each_unc=False,
-                n_class=n_class,
-                norm_cm=True,
-                is_joinplot=False,
-            )
 
-    # # tensorboardのログ
-    if log_tf_projector:
-        utils.make_tf_projector(
-            x=x_val,
-            y=y_val[0],
-            batch_size=batch_size,
-            hidden_layer_id=-7,
-            log_dir=log_dir,
-            data_type=data_type,
-            model=model,
+    # ENNの場合正解データ，予測データ，不確実性を書き出す
+    evidence = model.predict(x_test)
+    can_save = utils.output_enn_pred(
+        evidence=evidence,
+        y_true=y_test[0],
+        target_ss=target_ss,
+        test_name=test_name,
+    )
+    if can_save:
+        return
+    else:
+        print(
+            PyColor.RED_FLASH, "cannot save model prediction file", PyColor.END
         )
-
-    wandb.finish()
 
 
 if __name__ == "__main__":
@@ -305,13 +232,6 @@ if __name__ == "__main__":
         "target_ss"
     ]  # target_ss としてpre_process.change_labelでnr3として扱いたいのでnr4, nr34とはしていない
     ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
-    if IS_ENN:
-        WANDB_PROJECT = "test" if TEST_RUN else "bin_enn_attn"
-    else:
-        if HAS_ATTENTION:
-            WANDB_PROJECT = "test" if TEST_RUN else "bin_cnn_attn"
-        else:
-            WANDB_PROJECT = "test" if TEST_RUN else "bin_cnn"
     ENN_TAG = "enn" if IS_ENN else "dnn"
     INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
 
@@ -349,35 +269,6 @@ if __name__ == "__main__":
             (train, test) = pre_process.split_train_test_from_records(
                 datasets, test_id=test_id, pse_data=PSE_DATA
             )
-            # tagの設定
-            my_tags = [
-                test_name,
-                f"kernel:{KERNEL_SIZE}",
-                # f"stride:{STRIDE}",
-                # f"sample:{SAMPLE_SIZE}",
-                f"model:{ENN_TAG}",
-                # f"epoch:{EPOCHS}",
-                f"nrem2_bias:{HAS_NREM2_BIAS}",
-                f"rem_bias:{HAS_REM_BIAS}",
-                # f"dropout:{HAS_DROPOUT}:rate{DROPOUT_RATE}",
-                f"under_4hz:{IS_UNDER_4HZ}",
-            ]
-            wandb_config = {
-                "batch_size": BATCH_SIZE,
-                "data_type": DATA_TYPE,
-                "date id": date_id,
-                "epochs": EPOCHS,
-                "fit_pos": FIT_POS,
-                "has_nrem2_bias": HAS_NREM2_BIAS,
-                "has_rem_bias": HAS_REM_BIAS,
-                "kernel": KERNEL_SIZE,
-                "model_type": ENN_TAG,
-                "n_class": N_CLASS,
-                "sample_size": SAMPLE_SIZE,
-                "stride": STRIDE,
-                "test name": test_name,
-                "under_4hz": IS_UNDER_4HZ,
-            }
             main(
                 batch_size=BATCH_SIZE,
                 data_type=DATA_TYPE,
@@ -391,21 +282,14 @@ if __name__ == "__main__":
                 is_mul_layer=IS_MUL_LAYER,
                 is_under_4hz=IS_UNDER_4HZ,
                 kernel_size=KERNEL_SIZE,
-                log_tf_projector=True,
-                my_tags=my_tags,
                 n_class=N_CLASS,
-                name=test_name,
                 pre_process=pre_process,
-                project=WANDB_PROJECT,
                 pse_data=PSE_DATA,
                 sample_size=SAMPLE_SIZE,
-                save_model=True,
                 target_ss=target_ss,
                 test=test,
                 test_name=test_name,
-                test_run=TEST_RUN,
                 train=train,
-                wandb_config=wandb_config,
                 utils=Utils(
                     IS_NORMAL,
                     IS_PREVIOUS,
