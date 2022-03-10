@@ -1467,6 +1467,7 @@ class Utils:
         y_true: np.ndarray,
         target_ss: str,
         test_name: str,
+        is_double: bool,
     ) -> bool:
         try:
             _, _, unc, y_pred = self.calc_enn_output_from_evidence(evidence)
@@ -1478,7 +1479,14 @@ class Utils:
             if not os.path.exists(output_dir):
                 print(PyColor.RED_FLASH, f"{output_dir}を作成します", PyColor.END)
                 os.makedirs(output_dir)
-            output_abs_filepath = os.path.join(output_dir, f"{target_ss}.csv")
+            if not is_double:
+                output_abs_filepath = os.path.join(
+                    output_dir, f"{target_ss}.csv"
+                )
+            else:
+                output_abs_filepath = os.path.join(
+                    output_dir, f"{target_ss}_double.csv"
+                )
             df.to_csv(output_abs_filepath)
             return True
         except:
