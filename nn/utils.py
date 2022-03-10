@@ -1,16 +1,13 @@
 from __future__ import annotations
+
 import os
 import random
 import sys
+from typing import Dict, List
 
 import numpy as np
 import tensorflow as tf
 from numpy.lib.function_base import kaiser
-
-import os
-from typing import Dict, List
-
-import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 
@@ -33,8 +30,9 @@ def load_bin_model(
 
     # モデルの読み込みメソッド
     def _load_model(ss):
+        # denn_ensemble.pyの時にss_idがstr型で来るため修正した
         filepath = os.path.join(
-            os.environ["sleep"], "models", loaded_name, ss, ss_id[ss]
+            os.environ["sleep"], "models", loaded_name, ss, ss_id
         )
         if not os.path.exists(filepath):
             print(PyColor.RED_FLASH, f"{filepath}は存在しません", PyColor.END)
