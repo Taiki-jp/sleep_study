@@ -7,6 +7,11 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow.keras.metrics import (
+    BinaryAccuracy,  # TrueNegatives,  # TN; TruePositives,  # TP; FalseNegatives,  # FN; FalsePositives,  # FP; 一致率
+)
+from tensorflow.keras.metrics import Precision  # Precision
+from tensorflow.keras.metrics import Recall  # Recall
 from tensorflow.python.ops.numpy_ops.np_math_ops import positive
 
 from data_analysis.py_color import PyColor
@@ -15,23 +20,25 @@ from nn.losses import EDLLoss
 from nn.model_base import EDLModelBase, edl_classifier_1d, edl_classifier_2d
 from nn.utils import load_bin_model, separate_unc_data
 from pre_process.json_base import JsonBase
+from pre_process.main_param_reader import MainParamReader
 from pre_process.pre_process import PreProcess
 from pre_process.utils import set_seed
 
 
 def main(
+    is_under_4hz: bool,
+    date_id_for_save: str,
+    pre_process: PreProcess,
     pse_data: bool,
     target_ss: str,
-    is_under_4hz: bool,
-    train: list,
     test: list,
-    pre_process: PreProcess,
+    train: list,
     utils: Utils,
-    n_class: int = 5,
-    test_name: str = None,
-    date_id: dict = dict(),
-    sample_size: int = 0,
     batch_size: int = 0,
+    date_id: dict = dict(),
+    n_class: int = 5,
+    sample_size: int = 0,
+    test_name: str = None,
     unc_threthold: float = 0,
 ):
 
@@ -56,7 +63,11 @@ def main(
 
     # データクレンジングを行うベースとなるモデルを読み込む
     model = load_bin_model(
-        loaded_name=test_name, verbose=0, is_all=True, ss_id=date_id
+        loaded_name=test_name,
+        verbose=0,
+        is_all=False,
+        ss_id=date_id,
+        ss=target_ss,
     )
     # モデルが一つでもない場合はreturn
     if any(model) is None:
@@ -74,89 +85,92 @@ def main(
         has_dropout=True,
         dropout_rate=0.3,
     )
-    catching_flag_train = utils.stop_early(y=_y, mode="catching_assertion")
-    catching_flag_test = utils.stop_early(y=_y_test, mode="catching_assertion")
+    # catching_flag_train = utils.stop_early(y=_y, mode="catching_assertion")
+    # catching_flag_test = utils.stop_early(y=_y_test, mode="catching_assertion")
     # 早期終了フラグが立った場合はそこで終了
-    if catching_flag_train or catching_flag_test:
+    # if catching_flag_train or catching_flag_test:
+    #     return
+    # 訓練データのクレンジング
+    (_x, _y) = separate_unc_data(
+        x=x_train,
+        y=y_train[0],
+        model=model[0],
+        batch_size=batch_size,
+        n_class=n_class,
+        experiment_type="positive_cleansing",
+        unc_threthold=unc_threthold,
+        verbose=0,
+    )
+    # 検証データのクレンジング
+    (_x_val, _y_val) = separate_unc_data(
+        x=x_val,
+        y=y_val[0],
+        model=model[0],
+        batch_size=batch_size,
+        n_class=n_class,
+        experiment_type="positive_cleansing",
+        unc_threthold=unc_threthold,
+        verbose=0,
+    )
+    # テストデータのクレンジング
+    (_x_test, _y_test) = separate_unc_data(
+        x=x_test,
+        y=y_test[0],
+        model=model[0],
+        batch_size=batch_size,
+        n_class=n_class,
+        experiment_type="positive_cleansing",
+        unc_threthold=unc_threthold,
+        verbose=0,
+    )
+    # ennの時はevidenceから計算する
+    sub_model = EDLModelBase(inputs=inputs, outputs=outputs, n_class=n_class)
+    sub_model.compile(
+        optimizer=tf.keras.optimizers.Adam(),
+        loss=EDLLoss(K=n_class, annealing=0.1),
+        metrics=[
+            BinaryAccuracy(name="bn"),
+            Precision(name="precision"),
+            Recall(name="recall"),
+        ],
+    )
+    cp_dir = pre_process.my_env.get_model_saved_path(
+        c_dir=test_name,
+        ss_dir=target_ss,
+        model_id=date_id_for_save,
+    )
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=cp_dir,
+        verbose=1,
+        period=1,
+        monitor="val_bn",
+        save_best_only=True,
+        mode="max",
+    )
+    sub_model.fit(
+        x=_x,
+        y=_y,
+        batch_size=batch_size,
+        validation_data=(_x_val, _y_val),
+        epochs=10,
+        callbacks=[cp_callback],
+        verbose=2,
+    )
+
+    # ENN（サブ）の場合正解データ、予測データ、不確実性を書き出す
+    evidence = sub_model.predict(x_test)
+    can_save = utils.output_enn_pred(
+        evidence=evidence,
+        y_true=y_test[0],
+        target_ss=target_ss,
+        test_name=test_name,
+        is_double=True,
+    )
+    if can_save:
         return
-    # 5つのモデルでevidenceを出力
-    evd_list = list()
-    alp_list = list()
-    unc_list = list()
-    y_pred_list = list()
-    for _model in model:
-        # 訓練データのクレンジング
-        (_x, _y) = separate_unc_data(
-            x=x_train,
-            y=y_train,
-            model=_model,
-            batch_size=batch_size,
-            n_class=n_class,
-            experiment_type="positive_cleansing",
-            unc_threthold=unc_threthold,
-            verbose=0,
-        )
-        # 検証データのクレンジング
-        (_x_val, _y_val) = separate_unc_data(
-            x=x_val,
-            y=y_val,
-            model=_model,
-            batch_size=batch_size,
-            n_class=n_class,
-            experiment_type="positive_cleansing",
-            unc_threthold=unc_threthold,
-            verbose=0,
-        )
-        # テストデータのクレンジング
-        (_x_test, _y_test) = separate_unc_data(
-            x=x_test,
-            y=y_test,
-            model=_model,
-            batch_size=batch_size,
-            n_class=n_class,
-            experiment_type="positive_cleansing",
-            unc_threthold=unc_threthold,
-            verbose=0,
-        )
-        # ennの時はevidenceから計算する
-        sub_model = EDLModelBase(inputs=inputs, outputs=outputs)
-        sub_model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=EDLLoss(K=n_class, annealing=0.1),
-            metrics=[
-                "accuracy",
-            ],
-        )
-        log_dir = os.path.join(
-            pre_process.my_env.project_dir,
-            "denn_ensemble",
-            test_name,
-            date_id["positive"],
-        )
-        tf_callback = tf.keras.callbacks.TensorBoard(
-            log_dir=log_dir, histogram_freq=1
-        )
-        cp_dir = pre_process.my_env.get_model_saved_path(
-            c_dir=test_name,
-            ss_dir=target_ss,
-            model_id=date_id,
-        )
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=cp_dir,
-            verbose=1,
-            period=1,
-            monitor="val_bn",
-            save_best_only=True,
-            mode="max",
-        )
-        sub_model.fit(
-            x=_x,
-            y=_y,
-            batch_size=batch_size,
-            validation_data=(_x_val, _y_val),
-            epochs=10,
-            callbacks=[cp_callback],
-            verbose=2,
+    else:
+        print(
+            PyColor.RED_FLASH, "cannot save model prediction file", PyColor.END
         )
 
 
@@ -171,99 +185,96 @@ if __name__ == "__main__":
     tf.keras.backend.set_floatx("float32")
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    # 実験用パラメータを読み込む
+    MPR = MainParamReader()
 
     # ANCHOR: ハイパーパラメータの設定
-    TEST_RUN = True
-    IS_MUL_LAYER = False
-    CATCH_NREM2 = True
-    IS_NORMAL = True
-    HAS_NREM2_BIAS = True
-    HAS_REM_BIAS = False
-    IS_UNDER_4HZ = False
-    BATCH_SIZE = 512
-    N_CLASS = 5
-    STRIDE = 16
-    KERNEL_SIZE = 128
-    SAMPLE_SIZE = 10000
-    UNC_THRETHOLD = 0.3
-    EXPERIMENT_TYPES = (
-        "no_cleansing",
-        "positive_cleansing",
-        "negative_cleansing",
-    )
-    DATA_TYPE = "spectrogram"
-    FIT_POS = "middle"
-    IS_PREVIOUS = False
-    IS_ENN = False
-    PSE_DATA = False
-    ENN_TAG = "enn" if IS_ENN else "dnn"
-    CLEANSING_TYPE = "no_cleansing"
-    TARGET_SS = [
-        "wake",
-        "rem",
-        "nr1",
-        "nr2",
-        "nr3",
+    BATCH_SIZE = MPR.denn_ensemble["batch_size"]
+    CLEANSING_TYPE = MPR.denn_ensemble["cleansing_type"]
+    DATA_TYPE = MPR.denn_ensemble["data_type"]
+    DROPOUT_RATE = MPR.denn_ensemble["dropout_rate"]
+    EPOCHS = MPR.denn_ensemble["epochs"]
+    FIT_POS = MPR.denn_ensemble["fit_pos"]
+    HAS_ATTENTION = MPR.denn_ensemble["has_attention"]
+    HAS_DROPOUT = MPR.denn_ensemble["has_dropout"]
+    HAS_INCEPTION = MPR.denn_ensemble["has_inception"]
+    HAS_NREM2_BIAS = MPR.denn_ensemble["has_nrem2_bias"]
+    HAS_REM_BIAS = MPR.denn_ensemble["has_rem_bias"]
+    INCEPTION_TAG = "inception" if HAS_INCEPTION else "no-inception"
+    IS_ENN = MPR.denn_ensemble["is_enn"]
+    IS_MUL_LAYER = MPR.denn_ensemble["is_mul_layer"]
+    IS_NORMAL = MPR.denn_ensemble["is_normal"]
+    IS_PREVIOUS = MPR.denn_ensemble["is_previous"]
+    IS_SIMPLE_RNN = MPR.denn_ensemble["is_simple_rnn"]
+    IS_TIME_SERIES = MPR.denn_ensemble["is_time_series"]
+    IS_UNDER_4HZ = MPR.denn_ensemble["is_under_4hz"]
+    KERNEL_SIZE = MPR.denn_ensemble["kernel_size"]
+    NORMAL_TAG = "normal" if IS_NORMAL else "sas"
+    N_CLASS = MPR.denn_ensemble["n_class"]
+    PSE_DATA = MPR.denn_ensemble["pse_data"]
+    PSE_DATA_TAG = "psedata" if PSE_DATA else "sleepdata"
+    SAMPLE_SIZE = MPR.denn_ensemble["sample_size"]
+    SAVE_MODEL = MPR.denn_ensemble["save_model"]
+    STRIDE = MPR.denn_ensemble["stride"]
+    TEST_RUN = MPR.denn_ensemble["test_run"]
+    TARGET_SS = MPR.denn_ensemble[
+        "target_ss"
     ]  # target_ss としてpre_process.change_labelでnr3として扱いたいのでnr4, nr34とはしていない
+    ATTENTION_TAG = "attention" if HAS_ATTENTION else "no-attention"
+    ENN_TAG = "enn" if IS_ENN else "dnn"
+    INCEPTION_TAG += "v2" if IS_MUL_LAYER else ""
     # オブジェクトの作成
     pre_process = PreProcess(
+        cleansing_type=CLEANSING_TYPE,
         data_type=DATA_TYPE,
         fit_pos=FIT_POS,
-        verbose=0,
-        kernel_size=KERNEL_SIZE,
-        is_previous=IS_PREVIOUS,
-        stride=STRIDE,
-        is_normal=IS_NORMAL,
+        has_ignored=True,
         has_nrem2_bias=HAS_NREM2_BIAS,
         has_rem_bias=HAS_REM_BIAS,
-        model_type=ENN_TAG,
-        cleansing_type=CLEANSING_TYPE,
-        make_valdata=True,
-        has_ignored=True,
+        is_normal=IS_NORMAL,
+        is_previous=IS_PREVIOUS,
+        kernel_size=KERNEL_SIZE,
         lsp_option="nr2",
+        make_valdata=True,
+        model_type=ENN_TAG,
+        stride=STRIDE,
+        verbose=0,
     )
+    # 読み込むモデルの日付リストを返す
+    MI = pre_process.my_env.mi
     datasets = pre_process.load_sleep_data.load_data(
         load_all=True, pse_data=False
     )
 
-    # 読み込むモデルの日付リストを返す
-    MI = pre_process.my_env.mi
     # ここでは69名全員が呼ばれるが，後のpreprocess.namelistで被験者が絞られるので大丈夫
     model_date_list = MI.make_model_id_list4bin_format()
 
     # モデルのidを記録するためのリスト
     date_id_saving_list: List[str] = list()
 
-    for test_id, test_name in enumerate(pre_process.name_list):
+    for (test_id, test_name) in enumerate(pre_process.name_list):
         # モデルのidを記録するためのリスト
         for target_ss in TARGET_SS:
-            date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            date_id_for_save = datetime.datetime.now().strftime(
+                "%Y%m%d-%H%M%S"
+            )
             (train, test) = pre_process.split_train_test_from_records(
                 datasets, test_id=test_id, pse_data=PSE_DATA
             )
+            date_id = model_date_list[test_name][target_ss]
             main(
-                pse_data=PSE_DATA,
-                target_ss=target_ss,
-                is_under_4hz=IS_UNDER_4HZ,
-                log_tf_projector=True,
-                name=test_name,
-                # project=WANDB_PROJECT,
-                pre_process=pre_process,
-                train=train,
-                test=test,
-                epochs=10,
-                save_model=False,
-                has_attention=False,
-                date_id=date_id,
-                test_name=test_name,
-                has_inception=True,
                 batch_size=BATCH_SIZE,
+                date_id=date_id,
+                date_id_for_save=date_id_for_save,
+                is_under_4hz=IS_UNDER_4HZ,
                 n_class=N_CLASS,
-                data_type=DATA_TYPE,
+                pre_process=pre_process,
+                pse_data=PSE_DATA,
                 sample_size=SAMPLE_SIZE,
-                # wandb_config=wandb_config,
-                kernel_size=KERNEL_SIZE,
-                is_mul_layer=IS_MUL_LAYER,
+                target_ss=target_ss,
+                test=test,
+                test_name=test_name,
+                train=train,
                 utils=Utils(
                     IS_NORMAL,
                     IS_PREVIOUS,
@@ -274,11 +285,15 @@ if __name__ == "__main__":
                     model_type=ENN_TAG,
                     cleansing_type=CLEANSING_TYPE,
                 ),
-                dropout_rate=0.3,
             )
 
             # json に書き込み
-            MI.dump(value=date_id, test_name=test_name, target_ss=target_ss)
+            MI.dump(
+                value=date_id_for_save,
+                test_name=test_name,
+                target_ss=target_ss,
+                cleansing_type="positive_cleansing",
+            )
 
         if TEST_RUN:
             print(PyColor.RED_FLASH, "テストランのため被験者ループを終了します", PyColor.END)
