@@ -10,6 +10,8 @@ from tensorflow.python.keras import optimizer_v2
 from tensorflow.python.keras.layers.core import Dense
 from tensorflow.python.keras.models import Model
 
+from data_analysis.py_color import PyColor
+
 
 def classifier(latent: Tensor, output_dim: int):
     x = tf.keras.layers.Dense(units=output_dim ** 2, activation="relu")(latent)
@@ -378,7 +380,13 @@ def edl_classifier_2d(
         x = tf.keras.layers.SimpleRNN(128)
 
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(n_class ** 6)(x)
+    if n_class == 5:
+        x = tf.keras.layers.Dense(n_class ** 2)(x)
+    elif n_class == 2:
+        x = tf.keras.layers.Dense(n_class ** 6)(x)
+    else:
+        print(PyColor.RED_FLASH, "Unkown class size", PyColor.END)
+        sys.exit(1)
     x = tf.keras.layers.Activation("relu")(x)
     x = tf.keras.layers.Dense(n_class)(x)
     x = tf.keras.layers.Activation("relu")(x)
