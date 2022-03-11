@@ -5,11 +5,9 @@ from collections import Counter
 from typing import Any, Dict, List, Tuple
 
 import tensorflow as tf
-from tensorflow.keras.metrics import (
-    BinaryAccuracy,  # TrueNegatives,  # TN; TruePositives,  # TP; FalseNegatives,  # FN; FalsePositives,  # FP; 一致率
-)
 from tensorflow.keras.metrics import Precision  # Precision
 from tensorflow.keras.metrics import Recall  # Recall
+from tensorflow.keras.metrics import BinaryAccuracy
 
 from data_analysis.py_color import PyColor
 from data_analysis.utils import Utils
@@ -52,7 +50,7 @@ def main(
     ) = pre_process.make_dataset(
         class_size=5,  # NOTE: ここは予測するラベル数ではなく，睡眠段階の数を指定している
         each_data_size=sample_size,
-        is_shuffle=False,
+        is_shuffle=True,
         is_storchastic=False,
         is_under_4hz=is_under_4hz,
         n_class_converted=n_class,
@@ -163,19 +161,23 @@ def main(
     )
 
     # ENNの場合正解データ，予測データ，不確実性を書き出す
-    evidence = model.predict(x_test)
-    can_save = utils.output_enn_pred(
-        evidence=evidence,
-        y_true=y_test[0],
-        target_ss=target_ss,
-        test_name=test_name,
-    )
-    if can_save:
-        return
-    else:
-        print(
-            PyColor.RED_FLASH, "cannot save model prediction file", PyColor.END
+    if is_enn:
+        evidence = model.predict(x_test)
+        can_save = utils.output_enn_pred(
+            evidence=evidence,
+            y_true=y_test[0],
+            target_ss=target_ss,
+            test_name=test_name,
+            is_double=False,
         )
+        if can_save:
+            return
+        else:
+            print(
+                PyColor.RED_FLASH,
+                "cannot save model prediction file",
+                PyColor.END,
+            )
 
 
 if __name__ == "__main__":
