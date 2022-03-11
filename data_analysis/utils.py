@@ -17,6 +17,9 @@ import plotly.express as px
 import seaborn as sns
 import tensorflow as tf
 
+# import tensorflow_docs.vis.embed as embed
+import wandb
+
 # from imblearn.over_sampling import SMOTE
 from IPython.display import SVG
 from PIL import Image
@@ -31,8 +34,6 @@ from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
-# import tensorflow_docs.vis.embed as embed
-import wandb
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
@@ -1491,6 +1492,51 @@ class Utils:
             return True
         except:
             return False
+
+    # ENNとDENNを比較するグラフを作成するメソッド
+    def make_graphs_comparing_enn_denn(
+        self, df: pd.DataFrame, y_pred: pd.Series, output_filepath: str
+    ):
+        fig = plt.figure(figsize=(8, 6))
+        ax1 = fig.add_subplot(211)
+        ax1.plot(df["y_true"], label="psg", alpha=0.5)
+        ax1.plot(df["base_pred"], label="base", alpha=0.5)
+        plt.legend()
+
+        ax2 = fig.add_subplot(212)
+        ax2.plot(df["y_true"], label="psg", alpha=0.5)
+        ax2.plot(df["positive_pred"], label="sub", alpha=0.5)
+        plt.legend()
+
+        plt.savefig(output_filepath)
+        # plt.savefig("hoge.png")
+
+        return
+
+    # CNNとbin_CNNを比較するグラフを作成するメソッド
+    def make_graphs_comparing_cnn(
+        self,
+        df_5stage: pd.DataFrame,
+        df_bin: pd.DataFrame,
+        output_filepath: str,
+    ):
+        fig = plt.figure(figsize=(8, 6))
+        ax1 = fig.add_subplot(211)
+        # 同時推定と正解の比較
+        ax1.plot(df_5stage["y_true"], label="psg", alpha=0.5)
+        ax1.plot(df_5stage["y_pred"], label="base", alpha=0.5)
+        plt.legend()
+
+        # 個別推定と正解の比較
+        ax2 = fig.add_subplot(212)
+        ax2.plot(df_bin["y_true"], label="psg", alpha=0.5)
+        ax2.plot(df_bin["y_pred"], label="sub", alpha=0.5)
+        plt.legend()
+
+        plt.savefig(output_filepath)
+        # plt.savefig("hoge.png")
+
+        return
 
 
 if __name__ == "__main__":

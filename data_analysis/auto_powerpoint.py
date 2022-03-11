@@ -34,8 +34,11 @@ cm_filepath_list = [
     if len(filepath) != 0
 ]
 
-pptx_filepath = (
-    "/home/takadamalab/taiki_senju/git/sleep_study/gallery/blue_template.pptx"
+# pptx_filepath = (
+#     "/home/takadamalab/taiki_senju/git/sleep_study/gallery/blue_template.pptx"
+# )
+pptx_filepath = os.path.join(
+    os.environ["git"], "sleep_study", "gallery", "blue_template.pptx"
 )
 prs = Presentation(pptx_filepath)
 
