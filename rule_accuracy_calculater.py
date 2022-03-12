@@ -26,7 +26,7 @@ def calc_random_select_acc(
     random_acc = df.apply(div, axis=1)
     # infをnanに置換
     random_acc = random_acc.replace([np.inf, -np.inf], np.nan)
-    if case == "eenn":
+    if case == "eenn" or case == "deedl":
         exploit_condition_rule_0 = np.logical_and(
             df["rule_0"] == 1, df["truth_included"]
         )
@@ -69,7 +69,7 @@ def calc_rulebase_select_acc(
     Tuple[float, float, float], Tuple[float, float, float, float, float]
 ]:
     div = lambda x, y: np.array(x, dtype="float") / np.array(y, dtype="float")
-    if case == "eenn":
+    if case == "eenn" or case == "deedl":
         # 総和（各ルールが選択されてその予測の一つが正解の場合の数）
         exploit_condition_rule_0 = np.logical_and(
             df["rule_0"] == 1, df["truth_included"]
@@ -172,28 +172,37 @@ def main(
     ecnn_filelist: List[str],
     ccnn_filelist: List[str],
     eenn_filelist: List[str],
+    deedl_filelist: List[str],
 ):
 
     aecnn_random_accs_list = list()
     ecnn_random_accs_list = list()
     ccnn_random_accs_list = list()
     eenn_random_accs_list = list()
+    deedl_random_accs_list = list()
     aecnn_rulebase_accs_list = list()
     ecnn_rulebase_accs_list = list()
     ccnn_rulebase_accs_list = list()
     eenn_rulebase_accs_list = list()
+    deedl_rulebase_accs_list = list()
 
-    for aecnn_file, ecnn_file, ccnn_file, eenn_file in zip(
-        aecnn_filelist, ecnn_filelist, ccnn_filelist, eenn_filelist
+    for aecnn_file, ecnn_file, ccnn_file, eenn_file, deedl_file in zip(
+        aecnn_filelist,
+        ecnn_filelist,
+        ccnn_filelist,
+        eenn_filelist,
+        deedl_filelist,
     ):
-        aecnn_df, ecnn_df, ccnn_df, eenn_df = map(
-            pd.read_csv, [aecnn_file, ecnn_file, ccnn_file, eenn_file]
+        aecnn_df, ecnn_df, ccnn_df, eenn_df, deedl_df = map(
+            pd.read_csv,
+            [aecnn_file, ecnn_file, ccnn_file, eenn_file, deedl_file],
         )
         # ランダム選択の予測確率を計算する(up_flagsが2以上の時にtruth_includedが1の行の確率の和を取る)
         aecnn_random_accs = calc_random_select_acc(df=aecnn_df, case="aecnn")
         ecnn_random_accs = calc_random_select_acc(df=ecnn_df, case="ecnn")
         ccnn_random_accs = calc_random_select_acc(df=ccnn_df, case="ccnn")
         eenn_random_accs = calc_random_select_acc(df=eenn_df, case="eenn")
+        deedl_random_accs = calc_random_select_acc(df=deedl_df, case="deedl")
         # それぞれのルールの予測の正解率を計算する(予測があっていた数/予測された総和)
         aecnn_rulebase_accs = calc_rulebase_select_acc(
             df=aecnn_df, case="aecnn"
@@ -201,15 +210,20 @@ def main(
         ecnn_rulebase_accs = calc_rulebase_select_acc(df=ecnn_df, case="ecnn")
         ccnn_rulebase_accs = calc_rulebase_select_acc(df=ccnn_df, case="ccnn")
         eenn_rulebase_accs = calc_rulebase_select_acc(df=eenn_df, case="eenn")
+        deedl_rulebase_accs = calc_rulebase_select_acc(
+            df=deedl_df, case="deedl"
+        )
         # リストに追加
         aecnn_random_accs_list.append(list(aecnn_random_accs))
         ecnn_random_accs_list.append(list(ecnn_random_accs))
         ccnn_random_accs_list.append(list(ccnn_random_accs))
         eenn_random_accs_list.append(list(eenn_random_accs))
+        deedl_random_accs_list.append(list(deedl_random_accs))
         aecnn_rulebase_accs_list.append(list(aecnn_rulebase_accs))
         ecnn_rulebase_accs_list.append(list(ecnn_rulebase_accs))
         ccnn_rulebase_accs_list.append(list(ccnn_rulebase_accs))
         eenn_rulebase_accs_list.append(list(eenn_rulebase_accs))
+        deedl_rulebase_accs_list.append(list(deedl_rulebase_accs))
     # 各手法のランダム選択とルールベース選択をルール別に一致率を計算
     # aecnn
     aecnn_random_accs_rule_0 = [arr[0] for arr in aecnn_random_accs_list]
@@ -251,6 +265,13 @@ def main(
     eenn_rulebase_accs_rule_1 = [arr[1] for arr in eenn_rulebase_accs_list]
     eenn_random_accs_rule_2 = [arr[2] for arr in eenn_random_accs_list]
     eenn_rulebase_accs_rule_2 = [arr[2] for arr in eenn_rulebase_accs_list]
+    # deedl
+    deedl_random_accs_rule_0 = [arr[0] for arr in deedl_random_accs_list]
+    deedl_rulebase_accs_rule_0 = [arr[0] for arr in deedl_rulebase_accs_list]
+    deedl_random_accs_rule_1 = [arr[1] for arr in deedl_random_accs_list]
+    deedl_rulebase_accs_rule_1 = [arr[1] for arr in deedl_rulebase_accs_list]
+    deedl_random_accs_rule_2 = [arr[2] for arr in deedl_random_accs_list]
+    deedl_rulebase_accs_rule_2 = [arr[2] for arr in deedl_rulebase_accs_list]
     column_name = (
         "aecnn_random_rule_0",
         "aecnn_rulebase_rule_0",
@@ -288,6 +309,12 @@ def main(
         "eenn_rulebase_rule_1",
         "eenn_random_rule_2",
         "eenn_rulebase_rule_2",
+        "deedl_random_rule_0",
+        "deedl_rulebase_rule_0",
+        "deedl_random_rule_1",
+        "deedl_rulebase_rule_1",
+        "deedl_random_rule_2",
+        "deedl_rulebase_rule_2",
     )
     d4df = {
         key: val
@@ -330,6 +357,12 @@ def main(
                 eenn_rulebase_accs_rule_1,
                 eenn_random_accs_rule_2,
                 eenn_rulebase_accs_rule_2,
+                deedl_random_accs_rule_0,
+                deedl_rulebase_accs_rule_0,
+                deedl_random_accs_rule_1,
+                deedl_rulebase_accs_rule_1,
+                deedl_random_accs_rule_2,
+                deedl_rulebase_accs_rule_2,
             ],
         )
     }
@@ -352,4 +385,15 @@ if __name__ == "__main__":
     # eenn
     eenn_filedir = os.path.join(os.environ["sleep"], "logs", "eenn", "*.csv")
     eenn_filelist = glob(eenn_filedir)
-    main(aecnn_filelist, ecnn_filelist, ccnn_filelist, eenn_filelist)
+    # deedl
+    deedl_filedir = os.path.join(
+        os.environ["git"], "sleep_study", "deedl", "*.csv"
+    )
+    deedl_filelist = glob(deedl_filedir)
+    main(
+        aecnn_filelist,
+        ecnn_filelist,
+        ccnn_filelist,
+        eenn_filelist,
+        deedl_filelist,
+    )
