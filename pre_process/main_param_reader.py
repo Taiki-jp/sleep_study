@@ -6,6 +6,7 @@ class MainParamReader(JsonBase):
         super().__init__(json_filename)
         self.main_setting = self.json_dict["main"]
         self.denn_ensemble = self.json_dict["denn_ensemble"]
+        self.attention_ipynb = self.json_dict["attention_ipynb"]
 
 
 if __name__ == "__main__":

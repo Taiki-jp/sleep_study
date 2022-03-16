@@ -172,6 +172,7 @@ class PreProcess:
         )
 
         # 補正前の各睡眠段階のクラス数の表示
+        # FIXME: verboseによってvaldataなどif分の下にしか定義されていない変数にアクセスできなくなるのはおかしい
         if self.verbose == 0:
             print(
                 "訓練データの各睡眠段階（補正前）",
