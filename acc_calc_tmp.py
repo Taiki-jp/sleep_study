@@ -1,15 +1,4 @@
 # 2クラス分類の結果をマージする
-import os
-import sys
-from glob import glob
-from tabnanny import verbose
-
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from sklearn.metrics import classification_report, confusion_matrix
-
 from data_analysis.utils import Mine
 
 
