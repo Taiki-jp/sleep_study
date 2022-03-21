@@ -32,19 +32,19 @@ class SubjectsInfo(JsonBase):
     def get_subjects(self) -> List[str]:
         return list(self.json_dict.keys())
 
+    def get_ss_time(self) -> Dict[str, float]:
+        json_cp = self.json_dict.copy()
+        name_ss_time_d = {}
+        for __subject, __info in json_cp.items():
+            name_ss_time_d.update({__subject: __info["sleeping_time"]})
+
+        return name_ss_time_d
+
     def get_sex(self) -> Dict[str, str]:
         json_cp = self.json_dict.copy()
         name_sex_d = {}
         for __subject, __info in json_cp.items():
             name_sex_d.update({__subject: __info["sex"]})
-
-        return name_sex_d
-
-    def get_ss_time(self) -> Dict[str, str]:
-        json_cp = self.json_dict.copy()
-        name_sex_d = {}
-        for __subject, __info in json_cp.items():
-            name_sex_d.update({__subject: __info[""]})
 
         return name_sex_d
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     from data_analysis.py_color import PyColor
 
     sl = SubjectsInfo()
-    tmp = sl.get_sex()
+    tmp = sl.get_ss_time()
     # NOTE: 辞書の中身がstrで入っているのでfrom_dictは使えない
     # df = pd.DataFrame.from_dict(tmp)
     df = pd.DataFrame(
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             "i",
         ],
     )
-    filepath = os.path.join(os.environ["sleep"], "tmp", "sex_list.csv")
+    filepath = os.path.join(os.environ["sleep"], "tmp", "time_list.csv")
     df.to_csv(filepath)
 
     # sl.show_summary()
