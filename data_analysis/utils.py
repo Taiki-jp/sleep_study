@@ -156,6 +156,62 @@ class Mine:
             [__df for __df in self.clf_rep_d.values()], axis=1
         )
 
+    def make_ss_graph(self, fig_saves: bool, one_fig: bool) -> None:
+        def __inner_func(key: Union[str, Iterable]) -> None:
+            # 文字列で与えられたときは一つずつ描画する
+            if isinstance(key, str):
+                fig = plt.figure(figsize=(8, 6))
+                ax = fig.add_subplot(111)
+                ax.plot(self.time, self.y_true, alpha=0.5, label="psg")
+                ax.plot(self.time, self.pred_d[key], alpha=0.5, label=key)
+                # 表示するメモリの調整
+                interbal = int(len(self.time) / 5)
+                ax.set_xticks([i for i in range(0, len(self.time), interbal)])
+                # ax.set_xticklabels([self.time[::interbal]])
+                output_path = os.path.join(
+                    self.figure_dir, "ss", self.name.split(".")[0]
+                )
+                if not os.path.exists(output_path):
+                    os.makedirs(output_path)
+                if fig_saves:
+                    plt.legend()
+                    plt.grid(True)
+                    plt.savefig(os.path.join(output_path, f"{key}.png"))
+                else:
+                    plt.show()
+            # Iterableで与えられたときは一気に描画する
+            elif isinstance(key, Iterable):
+                fig = plt.figure(figsize=(6, 10))
+                for i, __key in enumerate(key):
+                    ax = fig.add_subplot(len(key), 1, i + 1)
+                    ax.plot(self.time, self.y_true, alpha=0.5)
+                    ax.plot(
+                        self.time, self.pred_d[__key], alpha=0.5, label=__key
+                    )
+                    if i + 1 != len(key):
+                        ax.set_xticks([])
+                    # plt.legend()
+                    plt.grid(True)
+                # 最後だけ表示するメモリの調整
+                interbal = int(len(self.time) / 5)
+                ax.set_xticks([i for i in range(0, len(self.time), interbal)])
+                plt.tight_layout()
+                output_path = os.path.join(
+                    self.figure_dir, "ss", self.name.split(".")[0]
+                )
+                if not os.path.exists(output_path):
+                    os.makedirs(output_path)
+                if fig_saves:
+                    plt.savefig(os.path.join(output_path, "merged_ss.png"))
+                else:
+                    plt.show()
+
+        if not one_fig:
+            for __key in self.path_arg_d.keys():
+                __inner_func(key=__key)
+        else:
+            __inner_func(key=self.actual_path_d.keys())
+
     def exec(self):
         # 実際のパスの設定までをする
         self.set_path()
@@ -166,11 +222,12 @@ class Mine:
             self.set_time()
             self.set_y_true()
             self.cnct_method_with_pred()
-            self.cnct_method_with_clf_rep()
-            self.rename_metrics_column()
-            self.concat_df()
-            self.concat_clf_rep()
-            self.save()
+            # self.cnct_method_with_clf_rep()
+            # self.rename_metrics_column()
+            # self.concat_df()
+            # self.concat_clf_rep()
+            # self.save()
+            self.make_ss_graph(fig_saves=True, one_fig=False)
 
     def save_pred_and_selected_rule(self) -> None:
         filepath = self.make_filepath_from_list(
