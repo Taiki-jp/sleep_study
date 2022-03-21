@@ -1,10 +1,11 @@
 import datetime
 import glob
 import os
-import pickle
+
+# import pickle
 import sys
 from collections import Counter
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 
 import imageio
 import matplotlib
@@ -23,9 +24,12 @@ import wandb
 # from imblearn.over_sampling import SMOTE
 from IPython.display import SVG
 from PIL import Image
+from rich.console import Console
+from rich.progress import track
 
 # from sklearn.datasets import make_classification
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import validation_curve
 from tensorboard.plugins import projector
 
 # from tensorflow.keras.datasets import mnist
@@ -40,6 +44,376 @@ from nn.losses import EDLLoss
 from pre_process.my_env import MyEnv
 
 matplotlib.use("Agg")
+
+# Utilsクラスとの競合を避けるために作成したクラス（仕様意図はUtilsと同じ）
+# TODO: Utilsクラスとのマージ
+class Mine:
+    def __init__(
+        self, path_arg_d: Dict[str, List[str]], verbose: int = 0
+    ) -> None:
+        self.project_dir: str = os.environ["sleep"]
+        self.figure_dir: str = os.path.join(self.project_dir, "figures")
+        self.video_dir: str = os.path.join(self.project_dir, "videos")
+        self.tmp_dir: str = os.path.join(self.project_dir, "tmps")
+        self.models_dir: str = os.path.join(self.project_dir, "models")
+        self.data_dir: str = os.path.join(self.project_dir, "datas")
+        self.log_dir: str = os.path.join(self.project_dir, "logs")
+        self.name: str = ""
+        self.path_arg_d: Dict[str, List[str]] = path_arg_d
+        # 提案手法（キー）とそのパス（バリュー）のワイルドカードの辞書
+        self.wild_path_d: Dict[str, str] = {"": ""}
+        # 提案手法（キー）とその実際のパス（バリュー）の辞書
+        self.actual_path_d: Dict[str, List[str]] = {"": [""]}
+        # 提案手法（キー）とデータの中身（バリュー）の辞書
+        self.df_d: Dict[str, pd.DataFrame] = {"": None}
+        # キー（手法）とバリュー（予測ラベル）を紐づける
+        self.pred_d: Dict[str, pd.Series] = {"": None}
+        # キー（手法）とバリュー（評価表）を紐づける
+        self.clf_rep_d: Dict[str, pd.DataFrame] = {"": None}
+        # 時刻
+        self.time: pd.Series = None
+        # 正解ラベル
+        self.y_true: pd.Series = None
+        # 評価指標のラベル
+        self.metrics: Tuple[str] = (
+            "precision",
+            "recall",
+            "f1-score",
+            "support",
+        )
+        # metrics計算後の列名
+        self.clf_column: Tuple[str] = (
+            "nr34",
+            "nr2",
+            "nr1",
+            "rem",
+            "wake",
+            "accuracy",
+            "macro avg",
+            "weighted avg",
+        )
+        self.verbose: int = verbose
+        self.console: Console = Console()
+        # 出力用のDF
+        self.output_df: pd.DataFrame = None
+        # 評価表の出力用DF
+        self.output_clf_rep: pd.DataFrame = None
+
+    def rename_metrics_column(self):
+        for key, val in self.clf_rep_d.items():
+            val = val.rename(
+                columns={
+                    __clf_column: __clf_column + f"_{key}"
+                    for __clf_column in self.clf_column
+                }
+            )
+            # NOTE: valは辞書のコピーのようでアドレスが違うみたいだから代入も書かないといけない
+            # assert id(val) == id(self.clf_rep_d[key])
+            self.clf_rep_d[key] = val
+
+    def connect_method_with_df(self, val_tpl: Tuple[Any]) -> None:
+        self.df_d = self.connect_key_val(
+            key=self.wild_path_d.keys(),
+            val=val_tpl,
+            val_function=self.read_single_csv,
+            # val_f_args=({"verbose": self.verbose},),
+            verbose=self.verbose,
+        )
+
+    def cnct_method_with_pred(self):
+        self.pred_d = self.connect_key_val(
+            key=self.df_d.keys(),
+            val=self.df_d.values(),
+            val_function=lambda df, arg: df.loc[:, arg],
+            val_f_args=("y_pred",),
+            verbose=self.verbose,
+        )
+
+    def cnct_method_with_clf_rep(self):
+        self.clf_rep_d = self.connect_key_val(
+            key=self.pred_d.keys(),
+            val=self.pred_d.values(),
+            val_function=self.make_classification_report,
+            val_f_args=(self.y_true,),
+            verbose=self.verbose,
+        )
+
+    def set_time(self) -> None:
+        self.time = self.df_d["aecnn"].loc[:, "time"]
+
+    def set_y_true(self) -> None:
+        self.y_true = self.df_d["aecnn"].loc[:, "y_true"]
+
+    def concat_df(self) -> None:
+        self.output_df = pd.concat(
+            [__df for __df in self.df_d.values()], axis=0
+        )
+
+    def concat_clf_rep(self) -> None:
+        # 各キーをプレフィックスに持つように列名を変更
+        # self.clf_rep_d = {__df.rename()}
+        self.output_clf_rep = pd.concat(
+            [__df for __df in self.clf_rep_d.values()], axis=1
+        )
+
+    def exec(self):
+        # 実際のパスの設定までをする
+        self.set_path()
+        for val_tpl in zip(*self.actual_path_d.values()):
+            # ファイル名が全てのファイルリストで同じ順でループが回されていることの確認
+            self.is_same_name(*val_tpl, name_sets=True, verbose=self.verbose)
+            self.connect_method_with_df(val_tpl)
+            self.set_time()
+            self.set_y_true()
+            self.cnct_method_with_pred()
+            self.cnct_method_with_clf_rep()
+            self.rename_metrics_column()
+            self.concat_df()
+            self.concat_clf_rep()
+            self.save()
+
+    def save_pred_and_selected_rule(self) -> None:
+        filepath = self.make_filepath_from_list(
+            ["acc_calc_tmp", self.name],
+            is_filelayer=True,
+            check_dirpath=True,
+        )
+        self.output_df.to_csv(filepath)
+        self.console.print(f":gem: [green] {filepath} Saved! [/green]")
+
+    def save_clf_rep(self, is_merged: bool) -> None:
+        if is_merged:
+            filepath = self.make_filepath_from_list(
+                ["tmp"], is_filelayer=False, check_dirpath=True
+            )
+            filepath = os.path.join(filepath, "clf_merged.csv")
+            # ファイルが既に存在する場合はヘッダ以外を出力（ファイル名までのチェックになっているため実行するときは"clf_merged.csv"ファイルを削除してから実行推奨）
+            if os.path.exists(filepath):
+                self.output_clf_rep.to_csv(filepath, mode="a", header=False)
+            # ファイルが存在しない場合はそのまま出力
+            else:
+                self.output_clf_rep.to_csv(filepath)
+
+        else:
+            filepath = self.make_filepath_from_list(
+                ["clf_rep", self.name],
+                is_filelayer=True,
+                check_dirpath=True,
+            )
+            self.output_clf_rep.to_csv(filepath)
+        self.console.print(f":gem: [green] {filepath} Saved! [/green]")
+
+    def save(self) -> None:
+        self.save_pred_and_selected_rule()
+        self.save_clf_rep(is_merged=True)
+
+    def set_path(self) -> None:
+        # 順番：ワイルドカードを設定 => 実際のパスを設定
+        self.set_wild_path_d()
+        self.set_actual_path_d()
+
+    def set_actual_path_d(self) -> None:
+        self.actual_path_d = self.connect_key_val(
+            key=self.wild_path_d.keys(),
+            val=self.wild_path_d.values(),
+            val_function=self.glob_file_from_path,
+            val_f_args=(True,),
+            verbose=self.verbose,
+        )
+
+    def set_wild_path_d(self) -> None:
+        self.wild_path_d = self.connect_key_val(
+            key=self.path_arg_d.keys(),
+            val=self.path_arg_d.values(),
+            val_function=self.make_filepath_from_list,
+            val_f_args=(True, False),
+            verbose=self.verbose,
+        )
+
+    def debug(func: Callable):
+        console = Console()
+
+        def debugged_func(self, *args, **kwargs):
+            result = func(self, *args, **kwargs)
+            if self.verbose == 0:
+                console.print(
+                    f"[magenta]:white_check_mark: <func: {func.__name__}>[/magenta] [green]{result['message']}[/green]"
+                )
+            return result["output"]
+
+        return debugged_func
+
+    def make_filepath_from_list(
+        self,
+        l: List[str],
+        is_filelayer: bool,
+        check_dirpath: bool,
+    ) -> str:
+        # 引数lの型チェック
+        try:
+            assert isinstance(l, list)
+        except AssertionError:
+            print(f"引数lの型{type(l)}がリスト型と異なります．")
+            sys.exit(1)
+        except Exception:
+            print("例外が発生しました")
+            sys.exit(99)
+        filepath = self.log_dir
+        for __l in l:
+            filepath = os.path.join(filepath, __l)
+        if is_filelayer:
+            dir_layer = os.path.split(filepath)[0]
+        else:
+            dir_layer = filepath
+        if check_dirpath and not os.path.exists(dir_layer):
+            self.console.print(
+                f":construction: [bold yellow] {dir_layer} が存在しないため作成します[/bold yellow]"
+            )
+            os.makedirs(dir_layer)
+        return filepath
+
+    def glob_file_from_path(self, filepath: str, is_sorted: bool) -> List[str]:
+        globbed_list = glob.glob(filepath)
+        if is_sorted:
+            globbed_list = sorted(globbed_list)
+        return globbed_list
+
+    def split_filename_prefix(keyword: str, filelist: List[str]) -> List[str]:
+        if os.path.split(filelist[0])[1].startswith(keyword + "_"):
+            filelist = [
+                os.path.join(
+                    os.path.split(trimmed_enn_filename)[0],
+                    os.path.split(trimmed_enn_filename)[1][keyword + "_"],
+                )
+                for trimmed_enn_filename in filelist
+            ]
+        return filelist
+
+    @debug
+    def is_same_name(
+        self, *args: str, **kwargs: Dict[Any, Any]
+    ) -> Dict[str, Union[str, None]]:
+        # argsの長さチェック（1の時は渡し方を間違えている可能性あり）
+        try:
+            assert len(args) != 1
+        except AssertionError:
+            self.console.print(
+                f":x: [bold red]argsの長さが1以下です．引数を展開してから渡してください（ex: func(*args)）[/bold red]"
+            )
+            sys.exit(1)
+        except Exception:
+            print("例外が発生しました")
+            sys.exit(99)
+
+        for i in range(len(args) - 1):
+            try:
+                assert (
+                    os.path.split(args[i])[1] == os.path.split(args[i + 1])[1]
+                )
+            except AssertionError:
+                self.console.print(
+                    f":x: [bold red]{args[i]}と{args[i+1]}のファイル名が異なります[/bold red]"
+                )
+                sys.exit(1)
+            except Exception:
+                print("例外が発生しました")
+                sys.exit(99)
+        message = "FileName Check Succeed"
+        if kwargs["name_sets"]:
+            self.name = os.path.split(args[0])[1]
+        return {"message": message, "output": None}
+
+    @debug
+    def read_multi_csv(
+        self, *args, **kwargs
+    ) -> Dict[str, Union[str, Tuple[pd.DataFrame]]]:
+        m = map(pd.read_csv, args)
+        message = "CSV Load Succeed"
+        return {"message": message, "output": tuple(m)}
+
+    @debug
+    def read_single_csv(
+        self, *args, **kwargs
+    ) -> Dict[str, Union[str, pd.DataFrame]]:
+        df = pd.read_csv(args[0])
+        message = "CSV Load Succeed"
+        return {"message": message, "output": df}
+
+    # キーとバリューの紐づけ
+    @debug
+    def connect_key_val(
+        self,
+        key: Iterable,
+        val: Iterable,
+        key_function: Callable = None,
+        val_function: Callable = None,
+        key_f_args: Tuple = (),
+        val_f_args: Tuple = (),
+        **kwargs: Dict[Any, Any],
+    ) -> Dict[Any, Any]:
+        # type check of key_f_args and val_f_args
+        try:
+            assert isinstance(key_f_args, Tuple) and isinstance(
+                val_f_args, Tuple
+            )
+        except AssertionError:
+            self.console.print(
+                f":x: [bold red]コールバック関数の引数にタプル型を指定してください[/bold red]"
+            )
+            sys.exit(1)
+        except Exception:
+            print("例外が発生しました")
+            sys.exit(99)
+        # key_function, val_function
+        if isinstance(key_function, Callable) and isinstance(
+            val_function, Callable
+        ):
+            d = {
+                key_function(*(__key, *key_f_args)): val_function(
+                    *(__val, *val_f_args)
+                )
+                for __key, __val in zip(key, val)
+            }
+        # key_function
+        elif isinstance(key_function, Callable):
+            d = {
+                key_function(*(__key, *key_f_args)): __val
+                for __key, __val in zip(key, val)
+            }
+        # val_function
+        elif isinstance(val_function, Callable):
+            d = {
+                __key: val_function(*(__val, *val_f_args))
+                for __key, __val in zip(key, val)
+            }
+        # None
+        else:
+            d = {__key: __val for __key, __val in zip(key, val)}
+        message = "Connection Between Key and Value Succeed"
+        return {"message": message, "output": d}
+
+    @debug
+    def make_classification_report(
+        self, y_pred: pd.Series, y_true: pd.Series, **kwargs
+    ) -> Dict[str, Union[str, pd.DataFrame]]:
+        try:
+            clf_rep = classification_report(
+                y_true=y_true,
+                y_pred=y_pred,
+                target_names=["nr34", "nr2", "nr1", "rem", "wake"],
+                output_dict=True,
+            )
+            message = "5段階の評価表を作成します"
+        except:
+            clf_rep = classification_report(
+                y_true=y_true,
+                y_pred=y_pred,
+                target_names=["nr2", "nr1", "rem", "wake"],
+                output_dict=True,
+            )
+            message = "4段階の評価表を作成します"
+        return {"message": message, "output": pd.DataFrame(clf_rep)}
+
 
 # 便利な関数をまとめたもの
 class Utils:
@@ -1539,18 +1913,28 @@ class Utils:
         return
 
 
+# データフレームの結合（Noneに対して場合分けあり）
+def concat_df(
+    origin_df: Union[pd.DataFrame, None], concated_df: pd.DataFrame
+) -> pd.DataFrame:
+    if origin_df is None:
+        origin_df = concated_df
+    else:
+        origin_df = pd.concat([origin_df, concated_df], axis=1)
+    return origin_df
+
+
 if __name__ == "__main__":
     import sys
 
-    utils = Utils()
-    filepath = os.path.join(os.environ["sleep"], "tmp", "joinplot.png")
-    filedir, _ = os.path.split(filepath)
-    if not filedir:
-        print(f"filedir:{filedir}がありません")
-        sys.exit(1)
-    else:
-        utils.make_joinplot(filepath)
-
+    # utils = Utils()
+    # filepath = os.path.join(os.environ["sleep"], "tmp", "joinplot.png")
+    # filedir, _ = os.path.split(filepath)
+    # if not filedir:
+    #     print(f"filedir:{filedir}がありません")
+    #     sys.exit(1)
+    # else:
+    #     utils.make_joinplot(filepath)
     # ===========================
     #  archimedes_spiral の実験用
     # ===========================
@@ -1561,7 +1945,6 @@ if __name__ == "__main__":
     # plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
     # plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
     # plt.savefig("hoge.png")
-
     # ===============
     # make graph test
     # ===============
@@ -1575,7 +1958,6 @@ if __name__ == "__main__":
     # ]
     # for saved_path in saved_path_list:
     #     utils.make_gif(saved_path=saved_path)
-
     # =========================
     # point_symmetry_data test
     # =========================
