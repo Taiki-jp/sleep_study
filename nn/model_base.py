@@ -373,7 +373,7 @@ def edl_classifier_2d(
             )  # (13, 13, 1)
             attention = tf.keras.layers.Activation("sigmoid")(attention)
 
-            x *= attention
+            x = tf.keras.layers.multiply([x, attention])
 
     # use simple rnn
     if is_simple_rnn:

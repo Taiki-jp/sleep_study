@@ -1,4 +1,34 @@
 {
+  "attention_ipynb": {
+    "batch_size": 512,
+    "cleansing_type": "no_cleansing",
+    "data_type": "spectrogram",
+    "dropout_rate": 0.2,
+    "epochs": 10,
+    "fit_pos": "middle",
+    "has_attention": true,
+    "has_dropout": true,
+    "has_inception": true,
+    "has_nrem2_bias": false,
+    "has_rem_bias": false,
+    "is_enn": false,
+    "is_mul_layer": true,
+    "is_normal": true,
+    "is_previous": false,
+    "is_simple_rnn": false,
+    "is_time_series": false,
+    "is_under_4hz": false,
+    "kernel_size": 128,
+    "n_class": 5,
+    "pse_data": false,
+    "sample_size": 10000,
+    "save_model": false,
+    "stride": 16,
+    "target_ss": [
+      "5stage"
+    ],
+    "test_run": false
+  },
   "data_analysis_main": {
     "batch_size": [],
     "data_type": [],
@@ -120,17 +150,13 @@
     "is_time_series": false,
     "is_under_4hz": false,
     "kernel_size": 128,
-    "n_class": 2,
+    "n_class": 5,
     "pse_data": false,
     "sample_size": 10000,
     "save_model": false,
     "stride": 16,
     "target_ss": [
-      "wake",
-      "rem",
-      "nr1",
-      "nr2",
-      "nr3"
+      "5stage"
     ],
     "test_run": false
   },
