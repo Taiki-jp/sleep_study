@@ -2,7 +2,7 @@ import json
 import os
 import socket
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 from data_analysis.py_color import PyColor
 
@@ -129,6 +129,16 @@ class JsonBase:
     ) -> None:
         def __dump():
             # 辞書であり，keysが入っている間はキーを入れる
+            try:
+                assert isinstance(keys, Iterable)
+            except AssertionError:
+                print(
+                    PyColor.RED_FLASH,
+                    "Please specifiy Iterable as keys",
+                    PyColor.END,
+                )
+                sys.exit(1)
+
             key_len = len(keys)
             if key_len > 8:
                 print(
