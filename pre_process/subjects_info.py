@@ -32,6 +32,22 @@ class SubjectsInfo(JsonBase):
     def get_subjects(self) -> List[str]:
         return list(self.json_dict.keys())
 
+    def get_sex(self) -> Dict[str, str]:
+        json_cp = self.json_dict.copy()
+        name_sex_d = {}
+        for __subject, __info in json_cp.items():
+            name_sex_d.update({__subject: __info["sex"]})
+
+        return name_sex_d
+
+    def get_ss_time(self) -> Dict[str, str]:
+        json_cp = self.json_dict.copy()
+        name_sex_d = {}
+        for __subject, __info in json_cp.items():
+            name_sex_d.update({__subject: __info[""]})
+
+        return name_sex_d
+
     # 被験者の実験当時の年齢を返すメソッド
     def get_age(self) -> Dict[str, str]:
         json_cp = self.json_dict.copy()
@@ -61,7 +77,7 @@ class SubjectsInfo(JsonBase):
         try:
             int(string)
             return True
-        except:
+        except Exception:
             return False
 
     def convert_str2datetime(self, time_str: str) -> datetime.datetime:
@@ -86,7 +102,23 @@ class SubjectsInfo(JsonBase):
 
 
 if __name__ == "__main__":
+    import os
+
+    import pandas as pd
+
     from data_analysis.py_color import PyColor
 
     sl = SubjectsInfo()
-    sl.show_summary()
+    tmp = sl.get_sex()
+    # NOTE: 辞書の中身がstrで入っているのでfrom_dictは使えない
+    # df = pd.DataFrame.from_dict(tmp)
+    df = pd.DataFrame(
+        tmp,
+        index=[
+            "i",
+        ],
+    )
+    filepath = os.path.join(os.environ["sleep"], "tmp", "sex_list.csv")
+    df.to_csv(filepath)
+
+    # sl.show_summary()
