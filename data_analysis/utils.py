@@ -81,17 +81,35 @@ class Mine:
             "f1-score",
             "support",
         )
+        # metrics計算後の列名
+        self.clf_column: Tuple[str] = (
+            "nr34",
+            "nr2",
+            "nr1",
+            "rem",
+            "wake",
+            "accuracy",
+            "macro avg",
+            "weighted avg",
+        )
         self.verbose: int = verbose
         self.console: Console = Console()
+        # 出力用のDF
+        self.output_df: pd.DataFrame = None
+        # 評価表の出力用DF
+        self.output_clf_rep: pd.DataFrame = None
 
     def rename_metrics_column(self):
-        for key, val in self.df_d.items():
+        for key, val in self.clf_rep_d.items():
             val = val.rename(
-                {
-                    __metrics: __metrics + f"_{key}"
-                    for __metrics in self.metrics
+                columns={
+                    __clf_column: __clf_column + f"_{key}"
+                    for __clf_column in self.clf_column
                 }
             )
+            # NOTE: valは辞書のコピーのようでアドレスが違うみたいだから代入も書かないといけない
+            # assert id(val) == id(self.clf_rep_d[key])
+            self.clf_rep_d[key] = val
 
     def connect_method_with_df(self, val_tpl: Tuple[Any]) -> None:
         self.df_d = self.connect_key_val(
@@ -131,6 +149,13 @@ class Mine:
             [__df for __df in self.df_d.values()], axis=0
         )
 
+    def concat_clf_rep(self) -> None:
+        # 各キーをプレフィックスに持つように列名を変更
+        # self.clf_rep_d = {__df.rename()}
+        self.output_clf_rep = pd.concat(
+            [__df for __df in self.clf_rep_d.values()], axis=1
+        )
+
     def exec(self):
         # 実際のパスの設定までをする
         self.set_path()
@@ -144,9 +169,10 @@ class Mine:
             self.cnct_method_with_clf_rep()
             self.rename_metrics_column()
             self.concat_df()
+            self.concat_clf_rep()
             self.save()
 
-    def save(self) -> None:
+    def save_pred_and_selected_rule(self) -> None:
         filepath = self.make_filepath_from_list(
             ["acc_calc_tmp", self.name],
             is_filelayer=True,
@@ -154,6 +180,32 @@ class Mine:
         )
         self.output_df.to_csv(filepath)
         self.console.print(f":gem: [green] {filepath} Saved! [/green]")
+
+    def save_clf_rep(self, is_merged: bool) -> None:
+        if is_merged:
+            filepath = self.make_filepath_from_list(
+                ["tmp"], is_filelayer=False, check_dirpath=True
+            )
+            filepath = os.path.join(filepath, "clf_merged.csv")
+            # ファイルが既に存在する場合はヘッダ以外を出力（ファイル名までのチェックになっているため実行するときは"clf_merged.csv"ファイルを削除してから実行推奨）
+            if os.path.exists(filepath):
+                self.output_clf_rep.to_csv(filepath, mode="a", header=False)
+            # ファイルが存在しない場合はそのまま出力
+            else:
+                self.output_clf_rep.to_csv(filepath)
+
+        else:
+            filepath = self.make_filepath_from_list(
+                ["clf_rep", self.name],
+                is_filelayer=True,
+                check_dirpath=True,
+            )
+            self.output_clf_rep.to_csv(filepath)
+        self.console.print(f":gem: [green] {filepath} Saved! [/green]")
+
+    def save(self) -> None:
+        self.save_pred_and_selected_rule()
+        self.save_clf_rep(is_merged=True)
 
     def set_path(self) -> None:
         # 順番：ワイルドカードを設定 => 実際のパスを設定
@@ -340,6 +392,7 @@ class Mine:
         message = "Connection Between Key and Value Succeed"
         return {"message": message, "output": d}
 
+    @debug
     def make_classification_report(
         self, y_pred: pd.Series, y_true: pd.Series, **kwargs
     ) -> Dict[str, Union[str, pd.DataFrame]]:
