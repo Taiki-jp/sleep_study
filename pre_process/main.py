@@ -81,7 +81,7 @@ def main():
     DATA_TYPE = "spectrum"
     FIT_POS_LIST = ["middle"]
     STRIDE_LIST = [16]
-    KERNEL_SIZE_LIST = [128, 256]
+    KERNEL_SIZE_LIST = [128]
     IS_NORMAL = True
     IS_PREVIOUS = False
     VERBOSE = 2
@@ -110,41 +110,61 @@ def main():
                     model_type="pass",
                     cleansing_type="",
                 )
-                CD = CreateData()
-                PPI = env.ppi
-                PPI.dump(is_pre_dump=True)
+                # CD = CreateData()
+                # PPI = env.ppi
+                # PPI.dump(is_pre_dump=True)
 
                 target_folders = env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
                 )
-                # To debug efficiently (not to stop the same patient when cause error), sort target_folders randomly
+                # NOTE: To debug efficiently sort randomly
                 target_folders = random.sample(
                     target_folders, len(target_folders)
                 )
-
-                subject_age_d = env.si.get_age()
-                p = Pool(cpu_count())
-                for target in tqdm(target_folders):
-                    p.apply_async(
-                        exec_preprocess,
-                        args=(
-                            target,
-                            IS_PREVIOUS,
-                            VERBOSE,
-                            CD,
-                            DATA_TYPE,
-                            KERNEL_SIZE,
-                            STRIDE,
-                            FIT_POS,
-                            subject_age_d,
-                            env,
-                            date_id,
-                        ),
+                SI = env.si
+                for target in target_folders:
+                    _, name = os.path.split(target)
+                    psg = PsgReader(target, is_previous=False, verbose=2)
+                    psg.read_csv()
+                    start2sleep, end2sleep = (
+                        psg.df["time"][0],
+                        psg.df["time"][psg.df.shape[0] - 1],
                     )
-                p.close()
-                p.join()
+                    start2sleep, end2sleep = map(
+                        datetime.datetime.strptime,
+                        [start2sleep, end2sleep],
+                        ["%H:%M:%S"] * 2,
+                    )
+                    sub_e2s = end2sleep - start2sleep
+                    # print(name, sleeping_time)
+                    SI.dump(
+                        keys=[name, "sleeping_time"],
+                        value=sub_e2s.seconds / 60,
+                    )
 
-                PPI.dump(value=date_id)
+                # subject_age_d = env.si.get_age()
+                # p = Pool(cpu_count())
+                # for target in tqdm(target_folders):
+                #     p.apply_async(
+                #         exec_preprocess,
+                #         args=(
+                #             target,
+                #             IS_PREVIOUS,
+                #             VERBOSE,
+                #             CD,
+                #             DATA_TYPE,
+                #             KERNEL_SIZE,
+                #             STRIDE,
+                #             FIT_POS,
+                #             subject_age_d,
+                #             env,
+                #             date_id,
+                #         ),
+                #     )
+                # p.close()
+                # p.join()
+
+                # PPI.dump(value=date_id)
 
 
 if __name__ == "__main__":
