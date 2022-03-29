@@ -20,4 +20,4 @@ if __name__ == "__main__":
         "eenn": ["eenn", "*.csv"],
     }
     mine = Mine(path_arg_d, VERBOSE)
-    mine.exec()
+    mine.exec(filename="douji")
