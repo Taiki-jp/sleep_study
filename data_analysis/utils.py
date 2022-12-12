@@ -18,9 +18,6 @@ import plotly.express as px
 import seaborn as sns
 import tensorflow as tf
 
-# import tensorflow_docs.vis.embed as embed
-import wandb
-
 # from imblearn.over_sampling import SMOTE
 from IPython.display import SVG
 from PIL import Image
@@ -38,6 +35,8 @@ from tensorflow.python.framework.ops import Tensor
 from tensorflow.python.keras.engine.training import Model
 from tensorflow.python.ops.numpy_ops.np_arrays import ndarray
 
+# import tensorflow_docs.vis.embed as embed
+import wandb
 from data_analysis.my_color import MyColor
 from data_analysis.py_color import PyColor
 from nn.losses import EDLLoss
@@ -156,7 +155,9 @@ class Mine:
             [__df for __df in self.clf_rep_d.values()], axis=1
         )
 
-    def make_ss_graph(self, fig_saves: bool, one_fig: bool) -> None:
+    def make_ss_graph(
+        self, fig_saves: bool, one_fig: bool, filename: str
+    ) -> None:
         def __inner_func(key: Union[str, Iterable]) -> None:
             # 文字列で与えられたときは一つずつ描画する
             if isinstance(key, str):
@@ -202,7 +203,7 @@ class Mine:
                 if not os.path.exists(output_path):
                     os.makedirs(output_path)
                 if fig_saves:
-                    plt.savefig(os.path.join(output_path, "merged_ss.png"))
+                    plt.savefig(os.path.join(output_path, f"{filename}.png"))
                 else:
                     plt.show()
 
@@ -212,7 +213,7 @@ class Mine:
         else:
             __inner_func(key=self.actual_path_d.keys())
 
-    def exec(self):
+    def exec(self, filename: str):
         # 実際のパスの設定までをする
         self.set_path()
         for val_tpl in zip(*self.actual_path_d.values()):
@@ -227,7 +228,7 @@ class Mine:
             # self.concat_df()
             # self.concat_clf_rep()
             # self.save()
-            self.make_ss_graph(fig_saves=True, one_fig=False)
+            self.make_ss_graph(fig_saves=True, one_fig=True, filename=filename)
 
     def save_pred_and_selected_rule(self) -> None:
         filepath = self.make_filepath_from_list(
