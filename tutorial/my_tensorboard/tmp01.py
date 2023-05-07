@@ -1,4 +1,3 @@
-# tensorboardのtutorial実装（TensorBoardを使ってみる）
 # カスタムループを使わないバージョン
 import tensorflow as tf
 import datetime
