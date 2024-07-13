@@ -9,8 +9,8 @@ from data_analysis.py_color import PyColor
 class CsvReader(object):
     def __init__(
         self,
-        person_dir: str,
-        file_name: str,
+        person_dir: str = "",
+        file_name: str = "",
         verbose: int = 0,
         is_previous: bool = True,
         columns: list = list(),

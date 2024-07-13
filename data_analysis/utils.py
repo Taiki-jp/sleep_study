@@ -1983,29 +1983,13 @@ def concat_df(
 
 
 if __name__ == "__main__":
-    import sys
+    utils = Utils()
+    import pandas as pd
+    import os, sys
 
-    # utils = Utils()
-    # filepath = os.path.join(os.environ["sleep"], "tmp", "joinplot.png")
-    # filedir, _ = os.path.split(filepath)
-    # if not filedir:
-    #     print(f"filedir:{filedir}がありません")
-    #     sys.exit(1)
-    # else:
-    #     utils.make_joinplot(filepath)
-    # ===========================
-    #  archimedes_spiral の実験用
-    # ===========================
-    # (x_train, x_test), (y_train, y_test) = utils.archimedes_spiral(
-    #     100, 2, 0, 0
-    # )
-    # x_train = x_train.numpy()
-    # plt.scatter(x_train[:100, 0], x_train[:100, 1], c="r")
-    # plt.scatter(x_train[100:, 0], x_train[100:, 1], c="b")
-    # plt.savefig("hoge.png")
-    # ===============
-    # make graph test
-    # ===============
+    filepath = os.path.join(os.environ["git"], "sleep_study", "acc.csv")
+    df = pd.read_csv(filepath)
+
     # root_dir = os.path.join(os.environ["sleep"], "figures")
     # each_dir_name_list = ["main_network", "sub_network", "merged_network"]
     # saved_path_list = [
@@ -2016,11 +2000,3 @@ if __name__ == "__main__":
     # ]
     # for saved_path in saved_path_list:
     #     utils.make_gif(saved_path=saved_path)
-    # =========================
-    # point_symmetry_data test
-    # =========================
-    # (x_train, x_test), (y_train, y_test) = utils.polar_data(100, 2, 0, 0)
-    # print(x_train)
-    # =========================
-    # archimedes_spiral test
-    # =========================

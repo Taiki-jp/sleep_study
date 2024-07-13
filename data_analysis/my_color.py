@@ -8,12 +8,17 @@ class MyColor(JsonBase):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # 平行線による試し書き
     my_color = MyColor()
-    # my_color.load()
-    # for counter, (alias, color) in enumerate(my_color.json_dict.items()):
-    #     if not callable(color):
-    #         x = np.arange(10)
-    #         y = x * (counter + 1)
-    #         plt.plot(x, y, c=color, label=f"alias : {alias}")
-    # plt.legend()
-    # plt.show()
+
+    for counter, (alias, color) in enumerate(my_color.__dict__.items()):
+        if not callable(color):
+            x = np.arange(10)
+            # y = x * (counter + 1)
+            y = [counter for _ in x]
+            plt.plot(x, y, c=color, label=f"alias : {alias}")
+    plt.legend()
+    plt.show()
