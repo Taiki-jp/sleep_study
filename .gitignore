@@ -6,6 +6,8 @@ __pycache__/
 tmp_save/
 
 *.csv
+*.png
+*.pptx
 custom_model/
 
 model_saved_by_save_method/
@@ -13,4 +15,7 @@ model_saved_by_save_method/
 logs/
 .pytest_cache/
 
+!*.ipynb
+
 pre_process/pre_processed_id.json
+.ipynb_checkpoints/

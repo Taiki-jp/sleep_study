@@ -1,20 +1,19 @@
-from wandb.keras import WandbCallback
-from pre_process.pre_process import PreProcess
 import copy
-from random import sample
-import sys
-from data_analysis.py_color import PyColor
-import os
 import datetime
-import wandb
-import tensorflow as tf
+import os
+import sys
 from collections import Counter
-from pre_process.pre_process import PreProcess
-from nn.model_base import classifier4enn, edl_classifier_1d, spectrum_conv
+from random import sample
+
+import numpy as np
+import tensorflow as tf
+import wandb
+from wandb.keras import WandbCallback
+
+from data_analysis.utils import Utils
 from nn.losses import EDLLoss
 from pre_process.json_base import JsonBase
-import numpy as np
-from data_analysis.utils import Utils
+from pre_process.pre_process import PreProcess
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # tensorflow を読み込む前のタイミングですると効果あり
 

@@ -1,19 +1,36 @@
 import os
-import sys
 import pickle
-from pre_process.subjects_list import SubjectsList
-from pre_process.record import Record  # noqa
-from pre_process.my_env import MyEnv
+import sys
+
 from data_analysis.py_color import PyColor
+from pre_process.my_env import MyEnv
 
 
 class FileReader(object):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        is_normal,
+        is_previous,
+        data_type,
+        fit_pos,
+        stride,
+        kernel_size,
+        model_type,
+        cleansing_type,
+    ) -> None:
 
-        self.sl: SubjectsList = SubjectsList()
-        self.my_env: MyEnv = MyEnv()
+        self.my_env: MyEnv = MyEnv(
+            is_normal,
+            is_previous,
+            data_type,
+            fit_pos,
+            stride,
+            kernel_size,
+            model_type,
+            cleansing_type,
+        )
         self.ppi = self.my_env.ppi
-        self.sl.load()
+        self.sl = self.my_env.sl
 
     # ファイルを読み込むためにファイルパスと被験者名を指定する
     def load(self, name: str = "", path_list: list = [], verbose: int = 0):
@@ -40,24 +57,4 @@ class FileReader(object):
 
 
 if __name__ == "__main__":
-    fr = FileReader()
-    data01 = fr.load(
-        name="H_Li",
-        path_list=[
-            "previous_dataset",
-            "H_Li_" + fr.my_env.ppi.prev_datasets["spectrum"]["id"] + ".sav",
-        ],
-    )
-    data02 = fr.load(
-        name="140703_Li",
-        path_list=[
-            "spectrum",
-            "middle",
-            "140703_Li_"
-            + fr.my_env.ppi.spectrum["middle"]["stride_16"]
-            + ".sav",
-        ],
-    )
-    datas = [data01, data02]
-    for data in datas:
-        print("data_len : ", len(data[0]))
+    pass

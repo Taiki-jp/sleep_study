@@ -2,12 +2,14 @@
 # *         Import Some Libraries
 # ================================================ #
 
-from nn.model_base import EDLModelBase
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
-from nn.model_base import ModelBase, CreateModelBase, EDLModelBase
-import nn.layer_base as MyLayer
 from tensorflow.keras.applications import ResNet50
 from tensorflow.python.keras import backend
+
+import nn.layer_base as MyLayer
+from nn.model_base import CreateModelBase, EDLModelBase, ModelBase
 
 
 def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
@@ -27,6 +29,15 @@ def Int2IntWithSequentialModel(hidded1_dim, hidden2_dim):
     model.add(tf.keras.layers.Dense(hidden2_dim, activation="relu"))
     model.add(tf.keras.layers.Dense(1))
     print(model.summary)
+    return model
+
+
+# 複数出力を持つ関数の書き方
+def build_model():
+    inputs = tf.keras.Input(shape=(10,))
+    first = tf.keras.layers.Dense(units=10, activation="relu")(inputs)
+    second = tf.keras.layers.Dense(units=10, activation="relu")(inputs)
+    model = tf.keras.Model(inputs=inputs, outputs=[first, second])
     return model
 
 

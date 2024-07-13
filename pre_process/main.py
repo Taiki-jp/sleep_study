@@ -1,24 +1,90 @@
-import random
-import sys
-from pre_process.file_reader import FileReader
-from data_analysis.utils import Utils
-from pre_process.tanita_reader import TanitaReader
-from pre_process.psg_reader import PsgReader
-from pre_process.create_data import CreateData
-from data_analysis.py_color import PyColor
 import datetime
 import os
-from pre_process.json_base import JsonBase
+import random
+import sys
+import time
+from multiprocessing import Pool, cpu_count
+from typing import Dict
+
+from tqdm import tqdm
+
+from data_analysis.py_color import PyColor
+from pre_process.create_data import CreateData, Record
+from pre_process.my_env import MyEnv
+from pre_process.psg_reader import PsgReader
+from pre_process.tanita_reader import TanitaReader
+
+
+def exec_preprocess(
+    target: str,
+    is_previous: bool,
+    verbose: int,
+    CD: CreateData,
+    data_type: str,
+    kernel_size: int,
+    stride: int,
+    fit_pos: str,
+    subject_age_d: Dict[str, str],
+    env: MyEnv,
+    date_id: str,
+):
+    _, name = os.path.split(target)
+    tanita = TanitaReader(target, is_previous=is_previous, verbose=verbose)
+    psg = PsgReader(target, is_previous=is_previous, verbose=verbose)
+    tanita.read_csv()
+    psg.read_csv()
+    # 最初の時間がそろっていることを確認する
+    try:
+        assert datetime.datetime.strptime(
+            tanita.df["time"][0], "%H:%M:%S"
+        ) == datetime.datetime.strptime(psg.df["time"][0], "%H:%M:%S")
+    except AssertionError:
+        print(
+            PyColor.RED_FLASH,
+            "tanita, psgの最初の時刻がそろっていることを確認してください",
+            PyColor.END,
+        )
+        print(f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}")
+        sys.exit(1)
+    preprocessing = CD.make_freq_transform(mode=data_type)
+    records = preprocessing(
+        tanita.df,
+        psg.df,
+        kernel_size=kernel_size,
+        stride=stride,
+        fit_pos=fit_pos,
+        ss_term=30,
+    )
+    # recordsの被験者名と被験者年齢を更新
+    for _record in records:
+        _record.name = name
+        # TODO: 例外処理以外の方法でやった方が良い
+        try:
+            _record.age = subject_age_d[name]
+        except KeyError:
+            pass
+
+    # ssが空のレコードは削除
+    records = Record().drop_none(records)
+    env.dump_with_pickle(
+        records,
+        name,
+        data_type=data_type,
+        fit_pos=fit_pos,
+        date_id=date_id,
+    )
+    return
 
 
 def main():
     # ハイパーパラメータの読み込み
     DATA_TYPE = "spectrum"
-    FIT_POS_LIST = ["top", "middle", "bottom"]
-    STRIDE_LIST = [1024, 16, 4]
-    KERNEL_SIZE_LIST = [1024, 512]
+    FIT_POS_LIST = ["middle"]
+    STRIDE_LIST = [16]
+    KERNEL_SIZE_LIST = [128]
     IS_NORMAL = True
     IS_PREVIOUS = False
+    VERBOSE = 2
 
     for FIT_POS in FIT_POS_LIST:
         for STRIDE in STRIDE_LIST:
@@ -34,65 +100,71 @@ def main():
 
                 date_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 # オブジェクトの作成
-                CD = CreateData()
-                FR = FileReader()
-                JB = JsonBase("pre_processed_id.json")
-                JB.load()
-                utils = Utils()
+                env = MyEnv(
+                    IS_NORMAL,
+                    IS_PREVIOUS,
+                    DATA_TYPE,
+                    FIT_POS,
+                    STRIDE,
+                    KERNEL_SIZE,
+                    model_type="pass",
+                    cleansing_type="",
+                )
+                # CD = CreateData()
+                # PPI = env.ppi
+                # PPI.dump(is_pre_dump=True)
 
-                target_folders = FR.my_env.set_raw_folder_path(
+                target_folders = env.set_raw_folder_path(
                     is_normal=IS_NORMAL, is_previous=IS_PREVIOUS
                 )
-                # 実験を効率よくするためにランダムに並べ替える
+                # NOTE: To debug efficiently sort randomly
                 target_folders = random.sample(
                     target_folders, len(target_folders)
                 )
-
+                SI = env.si
                 for target in target_folders:
                     _, name = os.path.split(target)
-                    tanita = TanitaReader(target, is_previous=IS_PREVIOUS)
-                    psg = PsgReader(target, is_previous=IS_PREVIOUS)
-                    tanita.read_csv()
+                    psg = PsgReader(target, is_previous=False, verbose=2)
                     psg.read_csv()
-                    # 最初の時間がそろっていることを確認する
-                    try:
-                        assert datetime.datetime.strptime(
-                            tanita.df["time"][0], "%H:%M:%S"
-                        ) == datetime.datetime.strptime(
-                            psg.df["time"][0], "%H:%M:%S"
-                        )
-                    except AssertionError:
-                        print(
-                            PyColor.RED_FLASH,
-                            "tanita, psgの最初の時刻がそろっていることを確認してください",
-                            PyColor.END,
-                        )
-                        print(
-                            f"tanita: {tanita.df['time'][0]}, psg: {psg.df['time'][0]}"
-                        )
-                        sys.exit(1)
-
-                    records = CD.make_spectrum(
-                        tanita.df,
-                        psg.df,
-                        kernel_size=KERNEL_SIZE,
-                        stride=STRIDE,
-                        fit_pos=FIT_POS,
+                    start2sleep, end2sleep = (
+                        psg.df["time"][0],
+                        psg.df["time"][psg.df.shape[0] - 1],
                     )
-                    utils.dump_with_pickle(
-                        records, name, data_type=DATA_TYPE, fit_pos=FIT_POS
+                    start2sleep, end2sleep = map(
+                        datetime.datetime.strptime,
+                        [start2sleep, end2sleep],
+                        ["%H:%M:%S"] * 2,
+                    )
+                    sub_e2s = end2sleep - start2sleep
+                    # print(name, sleeping_time)
+                    SI.dump(
+                        keys=[name, "sleeping_time"],
+                        value=sub_e2s.seconds / 60,
                     )
 
-                    # jsonへの書き込み
-                JB.dump(
-                    keys=[
-                        DATA_TYPE,
-                        FIT_POS,
-                        f"stride_{str(STRIDE)}",
-                        f"kernel_{str(KERNEL_SIZE)}",
-                    ],
-                    value=date_id,
-                )
+                # subject_age_d = env.si.get_age()
+                # p = Pool(cpu_count())
+                # for target in tqdm(target_folders):
+                #     p.apply_async(
+                #         exec_preprocess,
+                #         args=(
+                #             target,
+                #             IS_PREVIOUS,
+                #             VERBOSE,
+                #             CD,
+                #             DATA_TYPE,
+                #             KERNEL_SIZE,
+                #             STRIDE,
+                #             FIT_POS,
+                #             subject_age_d,
+                #             env,
+                #             date_id,
+                #         ),
+                #     )
+                # p.close()
+                # p.join()
+
+                # PPI.dump(value=date_id)
 
 
 if __name__ == "__main__":
